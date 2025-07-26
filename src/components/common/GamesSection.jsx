@@ -6,6 +6,7 @@ import { fetchGamesThunk } from "../../features/games/gamesSlice";
 const GamesSection = () => {
   const dispatch = useDispatch();
   const { games, status, error } = useSelector((state) => state.games);
+  const imageBaseUrl = import.meta.env.VITE_IMAGE_BASE_URL;
 
   // Fetch games data on component mount
   useEffect(() => {
@@ -79,9 +80,9 @@ const GamesSection = () => {
         {/* 3. Grid Kartu Game yang Responsif */}
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
           {activeGames.map((game) => {
-            // Build image URL
+            // Build image URL using environment variable
             const imageUrl = game.image
-              ? `http://lg84oss0kw4gc80kk8skk8c8.168.231.84.221.sslip.io/${game.image}`
+              ? `${imageBaseUrl}/${game.image}`
               : "/images/playstation.png"; // Fallback image
 
             return (

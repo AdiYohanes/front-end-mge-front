@@ -8,6 +8,7 @@ import { fetchRoomsThunk } from "../../features/rooms/roomsSlice";
 const RoomsSection = () => {
   const dispatch = useDispatch();
   const { rooms, status, error } = useSelector((state) => state.rooms);
+  const imageBaseUrl = import.meta.env.VITE_IMAGE_BASE_URL;
 
   // Fetch rooms data on component mount
   useEffect(() => {
@@ -66,9 +67,9 @@ const RoomsSection = () => {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {rooms.map((room) => {
-            // Build image URL
+            // Build image URL using environment variable
             const imageUrl = room.image
-              ? `http://lg84oss0kw4gc80kk8skk8c8.168.231.84.221.sslip.io/${room.image}`
+              ? `${imageBaseUrl}/${room.image}`
               : "/images/roomsnya.jpg"; // Fallback image
 
             return (

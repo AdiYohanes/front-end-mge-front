@@ -1,0 +1,87 @@
+/* src/styles/Calendar.css */
+
+/* Mengubah tampilan keseluruhan kalender */
+.react-calendar {
+  width: 100%;
+  max-width: 100%;
+  background: white;
+  border: 2px solid #e5e7eb; /* border-base-300 */
+  border-radius: 0.5rem; /* rounded-lg */
+  font-family: sans-serif;
+  line-height: 1.125em;
+  padding: 1rem;
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+}
+
+/* Header (Navigasi & Nama Bulan) */
+.react-calendar__navigation {
+  display: flex;
+  height: 44px;
+  margin-bottom: 1em;
+}
+
+.react-calendar__navigation button {
+  min-width: 44px;
+  background: none;
+  border-radius: 0.25rem;
+  transition: background-color 0.2s;
+}
+
+.react-calendar__navigation button:hover {
+  background-color: #f3f4f6; /* bg-base-200 */
+}
+
+.react-calendar__navigation__label {
+  font-family: "Minecraft", "Courier New", monospace !important;
+  font-weight: bold;
+  font-size: 1.5rem; /* text-2xl */
+}
+
+/* Nama Hari (SUN, MON, ...) */
+.react-calendar__month-view__weekdays__weekday {
+  padding: 0.5em;
+  font-weight: bold;
+  text-decoration: none; /* Menghapus garis bawah */
+  color: #6b7280; /* text-gray-500 */
+}
+
+/* Tombol tanggal */
+.react-calendar__tile {
+  max-width: 100%;
+  padding: 10px 6.6667px;
+  background: none;
+  text-align: center;
+  line-height: 16px;
+  border-radius: 0.25rem; /* rounded-md */
+  transition: background-color 0.2s;
+}
+
+.react-calendar__tile:disabled {
+  background-color: #f3f4f6;
+  color: #d1d5db;
+  cursor: not-allowed;
+}
+
+/* Hover pada tanggal yang aktif */
+.react-calendar__tile:enabled:hover,
+.react-calendar__tile:enabled:focus {
+  background-color: #fef3c7; /* yellow-100 */
+}
+
+/* Tanggal hari ini */
+.react-calendar__tile--now {
+  background: #fef9c3; /* yellow-200 */
+  font-weight: bold;
+}
+
+/* Tanggal yang dipilih (AKTIF) */
+.react-calendar__tile--active {
+  background: #eab308 !important; /* Warna brand-gold Anda */
+  color: white !important;
+  font-weight: bold;
+}
+
+/* Tanggal di luar bulan */
+.react-calendar__month-view__days__day--neighboringMonth {
+  color: #d1d5db; /* text-gray-300 */
+}

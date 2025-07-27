@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useLocation, useNavigate } from "react-router";
 import { useDispatch, useSelector } from "react-redux";
-import { submitBookingThunk } from "../features/booking/bookingSlice";
+import { submitBookingThunk, validatePromoThunk, clearPromoValidation } from "../features/booking/bookingSlice";
 import BookingSummary from "../components/rent/BookingSummary";
 import PersonalInfoForm from "../components/rent/PersonalInfoForm";
 import ConfirmationModal from "../components/common/ConfirmationModal"; // Import modal
@@ -17,6 +17,7 @@ const BookingPaymentPage = () => {
     status: bookingStatus,
     error: bookingError,
     redirectUrl,
+    promoValidation,
   } = useSelector((state) => state.booking);
   const isLoading = bookingStatus === "loading";
 
@@ -52,6 +53,28 @@ const BookingPaymentPage = () => {
     }
   }, [bookingStatus, bookingError]);
 
+  // Handle promo validation response
+  useEffect(() => {
+    if (promoValidation.status === "succeeded" && promoValidation.promoData) {
+      const promo = promoValidation.promoData;
+      if (promo.is_active) {
+        const discount = (bookingDetails.subtotal * promo.percentage) / 100;
+        setBookingDetails((prev) => ({
+          ...prev,
+          voucherDiscount: discount,
+          voucherCode: promo.name,
+          promoId: promo.id,
+          promoPercentage: promo.percentage,
+        }));
+        toast.success(`Voucher "${promo.name}" applied! ${promo.percentage}% discount`);
+      } else {
+        toast.error("This promo code is not active");
+      }
+    } else if (promoValidation.status === "failed") {
+      toast.error(promoValidation.error || "Invalid promo code");
+    }
+  }, [promoValidation, bookingDetails.subtotal]);
+
   const handleInfoChange = useCallback((e) => {
     const { name, value, type, checked } = e.target;
     setPersonalInfo((prev) => ({
@@ -61,17 +84,16 @@ const BookingPaymentPage = () => {
   }, []);
 
   const handleApplyPromo = () => {
-    if (promoCode.toUpperCase() === "MGEPERTAMA") {
-      const discount = bookingDetails.subtotal * 0.1;
-      setBookingDetails((prev) => ({
-        ...prev,
-        voucherDiscount: discount,
-        voucherCode: promoCode.toUpperCase(),
-      }));
-      toast.success(`Voucher "${promoCode.toUpperCase()}" applied!`);
-    } else {
-      toast.error("Invalid promo code.");
+    if (!promoCode.trim()) {
+      toast.error("Please enter a promo code");
+      return;
     }
+
+    // Clear previous validation
+    dispatch(clearPromoValidation());
+
+    // Validate promo code using API
+    dispatch(validatePromoThunk(promoCode.trim().toUpperCase()));
   };
 
   // Fungsi ini sekarang hanya untuk validasi dan membuka modal
@@ -148,21 +170,23 @@ const BookingPaymentPage = () => {
               promoCode={promoCode}
               onPromoChange={(e) => setPromoCode(e.target.value)}
               onApplyPromo={handleApplyPromo}
+              isPromoLoading={promoValidation.status === "loading"}
             />
           </div>
         </div>
       </div>
 
+      {/* Confirmation Modal */}
       <ConfirmationModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onConfirm={handleSubmitBooking}
-        title="Confirm Your Booking"
-        confirmText="Book a Room"
-        imageSrc="/images/tanya.png"
-      >
-        <p>Are you sure you want to continue booking the room?</p>
-      </ConfirmationModal>
+        title="Confirm Booking"
+        message="Are you sure you want to proceed with this booking? This action cannot be undone."
+        confirmText="Confirm Booking"
+        cancelText="Cancel"
+        isLoading={isLoading}
+      />
     </>
   );
 };

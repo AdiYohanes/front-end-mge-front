@@ -1,6 +1,6 @@
 // src/features/booking/bookingSlice.js
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import { submitBooking } from "./bookingApi";
+import { submitBooking, validatePromoCode } from "./bookingApi";
 
 export const submitBookingThunk = createAsyncThunk(
   "booking/submit",
@@ -14,16 +14,41 @@ export const submitBookingThunk = createAsyncThunk(
   }
 );
 
+export const validatePromoThunk = createAsyncThunk(
+  "booking/validatePromo",
+  async (promoName, { rejectWithValue }) => {
+    try {
+      const response = await validatePromoCode(promoName);
+      return response;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || "Failed to validate promo code");
+    }
+  }
+);
+
 const initialState = {
   status: "idle",
   error: null,
   redirectUrl: null, // Untuk menyimpan snapUrl
+  promoValidation: {
+    status: "idle",
+    error: null,
+    promoData: null,
+  },
 };
 
 const bookingSlice = createSlice({
   name: "booking",
   initialState,
-  reducers: {},
+  reducers: {
+    clearPromoValidation: (state) => {
+      state.promoValidation = {
+        status: "idle",
+        error: null,
+        promoData: null,
+      };
+    },
+  },
   extraReducers: (builder) => {
     builder
       .addCase(submitBookingThunk.pending, (state) => {
@@ -38,8 +63,23 @@ const bookingSlice = createSlice({
       .addCase(submitBookingThunk.rejected, (state, action) => {
         state.status = "failed";
         state.error = action.payload;
+      })
+      .addCase(validatePromoThunk.pending, (state) => {
+        state.promoValidation.status = "loading";
+        state.promoValidation.error = null;
+      })
+      .addCase(validatePromoThunk.fulfilled, (state, action) => {
+        state.promoValidation.status = "succeeded";
+        state.promoValidation.promoData = action.payload.data[0] || null;
+        state.promoValidation.error = null;
+      })
+      .addCase(validatePromoThunk.rejected, (state, action) => {
+        state.promoValidation.status = "failed";
+        state.promoValidation.error = action.payload;
+        state.promoValidation.promoData = null;
       });
   },
 });
 
+export const { clearPromoValidation } = bookingSlice.actions;
 export default bookingSlice.reducer;

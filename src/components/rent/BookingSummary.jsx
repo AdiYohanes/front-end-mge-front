@@ -16,21 +16,22 @@ const BookingSummary = ({
   promoCode,
   onPromoChange,
   onApplyPromo,
+  isPromoLoading = false,
 }) => {
   const formattedDate = details.date
     ? new Date(details.date).toLocaleDateString("id-ID", {
-        weekday: "long",
-        year: "numeric",
-        month: "long",
-        day: "numeric",
-      })
+      weekday: "long",
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    })
     : null;
 
   const fnbValue =
     details.foodAndDrinks?.length > 0
       ? details.foodAndDrinks
-          .map((item) => `${item.name} (x${item.quantity})`)
-          .join(", ")
+        .map((item) => `${item.name} (x${item.quantity})`)
+        .join(", ")
       : null;
 
   const fnbTotal = details.foodAndDrinks?.reduce((total, item) => {
@@ -147,7 +148,7 @@ const BookingSummary = ({
               </div>
               {voucherDiscount > 0 && (
                 <div className="flex justify-between text-success">
-                  <span>Voucher "{details.voucherCode}"</span>
+                  <span>Voucher "{details.voucherCode}" ({details.promoPercentage}%)</span>
                   <span className="font-semibold">
                     -{formatPrice(voucherDiscount)}
                   </span>
@@ -171,16 +172,22 @@ const BookingSummary = ({
                 <input
                   id="promo-code"
                   type="text"
-                  placeholder="ex: MGEPERTAMA"
+                  placeholder="ex: OPENINGYUK"
                   className="input input-bordered join-item w-full"
                   value={promoCode}
                   onChange={onPromoChange}
+                  disabled={isPromoLoading}
                 />
                 <button
                   onClick={onApplyPromo}
-                  className="btn join-item bg-brand-gold text-white hover:bg-yellow-600"
+                  disabled={isPromoLoading || !promoCode.trim()}
+                  className="btn join-item bg-brand-gold text-white hover:bg-yellow-600 disabled:opacity-50"
                 >
-                  Apply
+                  {isPromoLoading ? (
+                    <span className="loading loading-spinner loading-sm"></span>
+                  ) : (
+                    "Apply"
+                  )}
                 </button>
               </div>
             </div>

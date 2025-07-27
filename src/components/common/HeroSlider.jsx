@@ -64,7 +64,7 @@ const HeroSlider = ({ onPricelistClick }) => {
 
           {/* Tombol "Book a Room" tetap sebagai Link navigasi */}
           <Link
-            to="/book"
+            to="/rent"
             className="text-base btn bg-brand-gold text-white font-funnel tracking-wider hover:bg-white hover:text-black"
           >
             <MdPhoneAndroid className="mr-2 h-5 w-5" />

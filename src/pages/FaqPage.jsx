@@ -58,11 +58,11 @@ const FaqPage = () => {
               name="faq-accordion"
               defaultChecked={index === 0}
             />
-            <div className="collapse-title text-xl font-medium">
+            <div className="collapse-title text-xl font-medium text-theme-primary">
               {faq.question}
             </div>
             <div className="collapse-content">
-              <p className="text-gray-600 whitespace-pre-line">{faq.answer}</p>
+              <p className="text-theme-secondary whitespace-pre-line">{faq.answer}</p>
             </div>
           </div>
         ))}
@@ -73,13 +73,13 @@ const FaqPage = () => {
   }
 
   return (
-    <div className="bg-base-200 min-h-[calc(100vh-15rem)]">
+    <div className="bg-theme-secondary min-h-[calc(100vh-15rem)]">
       <div className="container mx-auto px-4 py-16 lg:py-24">
         <div className="text-center mb-16 max-w-3xl mx-auto">
-          <h1 className="text-4xl lg:text-6xl font-minecraft mb-4 text-gray-800">
+          <h1 className="text-4xl lg:text-6xl font-minecraft mb-4 text-theme-primary">
             Frequently Asked Questions
           </h1>
-          <p className="text-gray-600 leading-relaxed">
+          <p className="text-theme-secondary leading-relaxed">
             Tidak menemukan jawaban yang Anda cari? Hubungi kami langsung. Kami
             siap membantu!
           </p>

@@ -29,11 +29,11 @@ const ConsolesSection = () => {
 
   if (status === "loading") {
     return (
-      <section className="bg-base-100 py-20 lg:py-24">
+      <section className="bg-theme-primary py-20 lg:py-24">
         <div className="container mx-auto px-4">
           <div className="flex items-center gap-4 mb-12">
             <div className="w-4 h-4 bg-brand-gold"></div>
-            <h2 className="text-4xl lg:text-9xl font-minecraft">Consoles</h2>
+            <h2 className="text-4xl lg:text-9xl font-minecraft text-theme-primary">Consoles</h2>
             <div className="w-4 h-4 bg-brand-gold"></div>
           </div>
           <div className="flex justify-center items-center h-64">
@@ -46,11 +46,11 @@ const ConsolesSection = () => {
 
   if (status === "failed") {
     return (
-      <section className="bg-base-100 py-20 lg:py-24">
+      <section className="bg-theme-primary py-20 lg:py-24">
         <div className="container mx-auto px-4">
           <div className="flex items-center gap-4 mb-12">
             <div className="w-4 h-4 bg-brand-gold"></div>
-            <h2 className="text-4xl lg:text-9xl font-minecraft">Consoles</h2>
+            <h2 className="text-4xl lg:text-9xl font-minecraft text-theme-primary">Consoles</h2>
             <div className="w-4 h-4 bg-brand-gold"></div>
           </div>
           <div className="text-center text-red-500">
@@ -62,12 +62,12 @@ const ConsolesSection = () => {
   }
 
   return (
-    <section className="bg-base-100 py-20 lg:py-24">
+    <section className="bg-theme-primary py-20 lg:py-24">
       <div className="container mx-auto px-4">
         {/* 1. Judul Section di Kiri Atas */}
         <div className="flex items-center gap-4 mb-12">
           <div className="w-4 h-4 bg-brand-gold"></div>
-          <h2 className="text-4xl lg:text-9xl font-minecraft">Consoles</h2>
+          <h2 className="text-4xl lg:text-9xl font-minecraft text-theme-primary">Consoles</h2>
           <div className="w-4 h-4 bg-brand-gold"></div>
         </div>
 
@@ -89,7 +89,7 @@ const ConsolesSection = () => {
                 <h3 className="text-3xl lg:text-6xl font-minecraft text-brand-gold mb-3">
                   {console.name}
                 </h3>
-                <p className="text-gray-600 leading-relaxed font-funnel">
+                <p className="text-theme-secondary leading-relaxed font-funnel">
                   {console.description}
                 </p>
               </div>

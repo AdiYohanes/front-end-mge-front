@@ -52,7 +52,7 @@ const ConsoleSelection = ({ selectedConsole, onSelectConsole }) => {
 
   return (
     <div className="mt-8 w-full">
-      <h3 className="text-2xl font-minecraft text-gray-700 mb-6">
+      <h3 className="text-2xl font-minecraft text-theme-primary mb-6">
         Console Selection :
       </h3>
 
@@ -87,7 +87,7 @@ const ConsoleSelection = ({ selectedConsole, onSelectConsole }) => {
             </figure>
             <div className="card-body p-6">
               <h2 className="card-title font-minecraft">{gameConsole.name}</h2>
-              <p className="text-sm text-gray-500 line-clamp-2">
+              <p className="text-sm text-theme-secondary line-clamp-2">
                 {gameConsole.description}
               </p>
               <div className="card-actions mt-4">

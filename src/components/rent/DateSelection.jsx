@@ -33,11 +33,11 @@ const DateSelection = ({ unitId, selectedDate, onDateSelect }) => {
   return (
     <div className="w-full flex flex-col items-center">
       <div className="w-full max-w-lg bg-base-100 p-6 rounded-lg shadow-lg border border-base-200">
-        <h3 className="text-3xl font-minecraft text-center mb-6">
+        <h3 className="text-3xl font-minecraft text-center mb-6 text-theme-primary">
           Select Date
         </h3>
         {status === "loading" && (
-          <p className="text-center text-sm mb-2">Checking availability...</p>
+          <p className="text-center text-sm mb-2 text-theme-secondary">Checking availability...</p>
         )}
         <Calendar
           onChange={onDateSelect}

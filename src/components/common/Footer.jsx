@@ -13,7 +13,7 @@ const Footer = () => {
   ];
 
   return (
-    <footer className="bg-[#1B1010] text-gray-400 p-8 lg:p-16">
+    <footer className="bg-theme-primary text-theme-secondary p-8 lg:p-16 border-t border-theme">
       <div className="container mx-auto">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-12 mb-8">
           {/* Kolom Kiri */}
@@ -21,10 +21,10 @@ const Footer = () => {
             <Link to="/">
               <img src="/images/logo.png" alt="Logo" className="h-12 w-auto" />
             </Link>
-            <h3 className="text-xl font-bold text-white">
+            <h3 className="text-xl font-bold text-theme-primary">
               Medan Gaming Ecosystem
             </h3>
-            <p className="text-sm leading-relaxed">
+            <p className="text-sm leading-relaxed text-theme-secondary">
               Lorem ipsum dolor sit amet, consectetur adipiscing elit.
               Vestibulum vestibulum odio sit amet auctor suscipit. Aenean a
               viverra nisi. Nunc faucibus vulputate augue eu convallis.
@@ -67,10 +67,10 @@ const Footer = () => {
 
         <div className="flex flex-col md:flex-row justify-between items-center gap-6 md:gap-4">
           <div className="flex flex-wrap justify-center gap-4 text-xs order-2 md:order-1">
-            <Link to="/" className="hover:text-white transition-colors">
+            <Link to="/" className="hover:text-theme-primary transition-colors">
               Home
             </Link>
-            <Link to="/terms" className="hover:text-white transition-colors">
+            <Link to="/terms" className="hover:text-theme-primary transition-colors">
               Terms
             </Link>
             <Link to="/privacy" className="hover:text-white transition-colors">
@@ -93,7 +93,7 @@ const Footer = () => {
                 href={social.link}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-gray-400 hover:text-white transition-colors"
+                className="text-theme-secondary hover:text-theme-primary transition-colors"
               >
                 {social.icon}
               </a>

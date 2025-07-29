@@ -49,8 +49,8 @@ const FoodAndDrinksSelection = ({
   return (
     <div className="mt-8 w-full">
       <div className="text-center mb-12">
-        <h3 className="text-3xl font-minecraft text-gray-800">Food & Drinks</h3>
-        <p className="text-gray-500 mt-2">
+        <h3 className="text-3xl font-minecraft text-theme-primary">Food & Drinks</h3>
+        <p className="text-theme-secondary mt-2">
           Tambahkan pesanan untuk menemani sesimu.
         </p>
       </div>
@@ -59,11 +59,10 @@ const FoodAndDrinksSelection = ({
       <div className="flex justify-center flex-wrap gap-2 mb-8">
         <button
           onClick={() => dispatch(setSelectedCategory("all"))}
-          className={`btn btn-sm capitalize ${
-            selectedCategory === "all"
+          className={`btn btn-sm capitalize ${selectedCategory === "all"
               ? "bg-brand-gold text-white"
               : "btn-ghost"
-          }`}
+            }`}
         >
           All
         </button>
@@ -71,11 +70,10 @@ const FoodAndDrinksSelection = ({
           <button
             key={cat.id}
             onClick={() => dispatch(setSelectedCategory(cat.category))}
-            className={`btn btn-sm capitalize ${
-              selectedCategory === cat.category
+            className={`btn btn-sm capitalize ${selectedCategory === cat.category
                 ? "bg-brand-gold text-white"
                 : "btn-ghost"
-            }`}
+              }`}
           >
             {cat.category}
           </button>
@@ -100,11 +98,10 @@ const FoodAndDrinksSelection = ({
               return (
                 <div
                   key={item.id}
-                  className={`card card-side bg-base-100 shadow-lg transition-all duration-300 ${
-                    quantity > 0
+                  className={`card card-side bg-base-100 shadow-lg transition-all duration-300 ${quantity > 0
                       ? "border-2 border-brand-gold"
                       : "border-2 border-transparent"
-                  }`}
+                    }`}
                 >
                   <figure className="w-1/3">
                     <img

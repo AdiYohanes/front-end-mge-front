@@ -170,7 +170,7 @@ const FoodPage = () => {
       {/* Header Section */}
       <div className="text-center w-full max-w-6xl mx-auto mb-12">
         <h1 className="text-5xl lg:text-6xl font-minecraft mb-4">
-          <span className="text-black">Food & </span>
+          <span className="text-theme-primary">Food & </span>
           <span className="text-brand-gold">Drinks</span>
         </h1>
         <div className="flex items-center gap-3 justify-center mb-8">
@@ -178,13 +178,13 @@ const FoodPage = () => {
           <div className="h-3 w-3 bg-black"></div>
           <div className="h-3 w-3 bg-brand-gold"></div>
         </div>
-        <p className="text-gray-600 text-lg max-w-2xl mx-auto mb-8">
+        <p className="text-theme-secondary text-lg max-w-2xl mx-auto mb-8">
           Pilih makanan dan minuman favoritmu untuk menemani sesi gaming yang seru!
         </p>
 
         {/* Booking Summary */}
-        <div className="bg-base-100 rounded-lg shadow-lg border border-brand-gold/20 max-w-2xl mx-auto mb-8">
-          <div className="flex justify-between items-center p-4 border-b border-base-200">
+        <div className="bg-white rounded-lg shadow-lg border border-brand-gold/20 max-w-2xl mx-auto mb-8">
+          <div className="flex justify-between items-center p-4 border-b border-gray-200">
             <h2 className="font-minecraft text-2xl text-brand-gold">
               Booking Summary
             </h2>
@@ -199,14 +199,14 @@ const FoodPage = () => {
             <div className="space-y-4">
               {/* Date & Time */}
               <div className="flex justify-between items-start">
-                <span className="font-bold text-base-content">Date & Time:</span>
-                <span className="text-base-content">Friday, 21st February 2025 at 10.00 - 11.00</span>
+                <span className="font-bold text-black">Date & Time:</span>
+                <span className="text-black">Friday, 21st February 2025 at 10.00 - 11.00</span>
               </div>
 
               {/* Food & Drinks */}
               <div className="flex justify-between items-start">
-                <span className="font-bold text-base-content">Food & Drinks:</span>
-                <span className="text-base-content">
+                <span className="font-bold text-black">Food & Drinks:</span>
+                <span className="text-black">
                   {selections.length > 0
                     ? selections.map(item => `${item.name} (${item.quantity})`).join(', ')
                     : '-'
@@ -260,7 +260,7 @@ const FoodPage = () => {
                 {/* Summary Table */}
                 <div className="p-6">
                   {/* Table Headers */}
-                  <div className="grid grid-cols-4 gap-4 pb-3 border-b border-gray-200 font-bold text-sm">
+                  <div className="grid grid-cols-4 gap-4 pb-3 border-b border-gray-200 font-bold text-sm text-black">
                     <div>Type</div>
                     <div>Description</div>
                     <div>Quantity</div>
@@ -271,7 +271,7 @@ const FoodPage = () => {
                   {selections.length > 0 ? (
                     <>
                       {selections.map((item, index) => (
-                        <div key={item.id} className="grid grid-cols-4 gap-4 py-3 text-sm">
+                        <div key={item.id} className="grid grid-cols-4 gap-4 py-3 text-sm text-black">
                           <div className="font-semibold">
                             {index === 0 ? "Food & Drinks" : ""}
                           </div>
@@ -282,7 +282,7 @@ const FoodPage = () => {
                       ))}
                     </>
                   ) : (
-                    <div className="grid grid-cols-4 gap-4 py-3 text-sm text-gray-500">
+                    <div className="grid grid-cols-4 gap-4 py-3 text-sm text-black">
                       <div className="font-semibold">Food & Drinks</div>
                       <div>-</div>
                       <div>-</div>
@@ -296,13 +296,13 @@ const FoodPage = () => {
                   {/* Totals */}
                   <div className="space-y-2">
                     {/* PPN */}
-                    <div className="flex justify-between items-center text-sm">
+                    <div className="flex justify-between items-center text-sm text-black">
                       <span>PPN 10%</span>
                       <span>{formatPrice(selections.reduce((sum, item) => sum + (item.price * item.quantity), 0) * 0.1)}</span>
                     </div>
 
                     {/* Subtotal */}
-                    <div className="flex justify-between items-center font-bold text-lg pt-2 border-t border-gray-200">
+                    <div className="flex justify-between items-center font-bold text-lg pt-2 border-t border-gray-200 text-black">
                       <span>Subtotal</span>
                       <span className="text-brand-gold">
                         {formatPrice(selections.reduce((sum, item) => sum + (item.price * item.quantity), 0) * 1.1)}
@@ -312,12 +312,12 @@ const FoodPage = () => {
 
                   {/* Promo Code Section */}
                   <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-                    <div className="text-sm font-medium text-gray-700 mb-3">Got any promo code?</div>
+                    <div className="text-sm font-medium text-black mb-3">Got any promo code?</div>
                     <div className="flex gap-2">
                       <input
                         type="text"
                         placeholder="ex: user@gmail.com"
-                        className="flex-1 input input-bordered input-sm bg-white"
+                        className="flex-1 input input-bordered input-sm bg-white text-black placeholder:text-gray-500"
                       />
                       <button className="btn btn-sm bg-brand-gold hover:bg-brand-gold/80 text-white">
                         Apply
@@ -424,7 +424,7 @@ const FoodPage = () => {
                 {/* Search Results Info */}
                 {(searchQuery || selectedCategory !== "all") && (
                   <div className="text-center mb-6">
-                    <p className="text-sm text-gray-600">
+                    <p className="text-sm text-theme-secondary">
                       {filteredItems.length > 0
                         ? `Found ${filteredItems.length} item${filteredItems.length > 1 ? 's' : ''}`
                         : 'No items found'
@@ -500,10 +500,10 @@ const FoodPage = () => {
                   <div className="text-center py-12">
                     <div className="bg-base-200 rounded-lg p-8 max-w-md mx-auto">
                       <FaSearch className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                      <h3 className="text-lg font-semibold text-gray-700 mb-2">
+                      <h3 className="text-lg font-semibold text-theme-primary mb-2">
                         No items found
                       </h3>
-                      <p className="text-gray-500 mb-4">
+                      <p className="text-theme-secondary mb-4">
                         {searchQuery
                           ? `No food & drinks found for "${searchQuery}"`
                           : `No items available in ${selectedCategory} category`

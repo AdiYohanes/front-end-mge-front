@@ -7,12 +7,12 @@ import { ImCross } from "react-icons/im";
 
 const TaglineSection = () => {
   return (
-    <section className="bg-base-200 text-base-content py-20 lg:py-32 relative overflow-hidden">
+    <section className="bg-theme-secondary text-theme-primary py-20 lg:py-32 relative overflow-hidden">
       {/* Dekorasi Ikon di Latar Belakang */}
-      <BsTriangleFill className="absolute -left-8 top-1/4 text-gray-200 text-8xl -rotate-12" />
-      <BsCircleFill className="absolute -right-10 top-1/2 text-gray-200 text-9xl" />
-      <ImCross className="absolute left-[15%] bottom-1/4 text-gray-200 text-7xl rotate-12" />
-      <BsSquareFill className="absolute right-[20%] top-[15%] text-gray-200 text-6xl rotate-6" />
+      <BsTriangleFill className="absolute -left-8 top-1/4 text-theme-muted text-8xl -rotate-12" />
+      <BsCircleFill className="absolute -right-10 top-1/2 text-theme-muted text-9xl" />
+      <ImCross className="absolute left-[15%] bottom-1/4 text-theme-muted text-7xl rotate-12" />
+      <BsSquareFill className="absolute right-[20%] top-[15%] text-theme-muted text-6xl rotate-6" />
 
       {/* Konten Utama */}
       <div className="container mx-auto px-4 relative z-10 flex flex-col items-center text-center">

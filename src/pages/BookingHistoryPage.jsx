@@ -1,28 +1,24 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useNavigate } from "react-router";
-import toast from "react-hot-toast";
+
 import {
   fetchHistoryThunk,
   fetchDetailThunk,
-  cancelBookingThunk,
-  rescheduleBookingThunk,
 } from "../features/history/historySlice";
 import BookingDetailModal from "../components/history/BookingDetailModal";
-import RescheduleModal from "../components/history/RescheduleModal";
-import ConfirmationModal from "../components/common/ConfirmationModal";
 import { FaSearch, FaFilter, FaGamepad } from "react-icons/fa";
 import { format } from "date-fns";
 
 // Komponen untuk satu baris item booking
-const BookingItem = ({ booking, onViewDetails, onCancel, onReschedule }) => {
+const BookingItem = ({ booking, onViewDetails }) => {
   const bookingDate = format(new Date(booking.start_time), "dd MMMM yyyy");
   const bookingTime = `${format(
     new Date(booking.start_time),
     "HH:mm"
   )} - ${format(new Date(booking.end_time), "HH:mm")}`;
   const fnbItems = booking.fnbs
-    .map((fnb) => `${fnb.name} (x${fnb.pivot.quantity})`)
+    .map((fnb) => fnb?.name ? `${fnb.name} (x${fnb.pivot?.quantity || 0})` : '')
+    .filter(item => item !== '')
     .join(", ");
 
   return (
@@ -33,7 +29,7 @@ const BookingItem = ({ booking, onViewDetails, onCancel, onReschedule }) => {
             <FaGamepad className="h-6 w-6 text-primary" />
           </div>
           <div>
-            <h3 className="font-bold text-lg">{booking.unit.name}</h3>
+            <h3 className="font-bold text-lg">{booking.unit?.name || 'Unknown Unit'}</h3>
             <p className="text-sm text-gray-500">
               {bookingDate}, {bookingTime}
             </p>
@@ -53,23 +49,6 @@ const BookingItem = ({ booking, onViewDetails, onCancel, onReschedule }) => {
             >
               View Details
             </button>
-            {/* Tampilkan tombol hanya jika booking masih aktif */}
-            {booking.status === "confirmed" && (
-              <>
-                <button
-                  onClick={() => onReschedule(booking)}
-                  className="btn btn-sm  btn-outline bg-brand-gold text-white"
-                >
-                  Reschedule
-                </button>
-                <button
-                  onClick={() => onCancel(booking)}
-                  className="btn btn-sm btn-outline btn-error"
-                >
-                  Cancel
-                </button>
-              </>
-            )}
           </div>
         </div>
       </div>
@@ -80,15 +59,11 @@ const BookingItem = ({ booking, onViewDetails, onCancel, onReschedule }) => {
 const BookingHistoryPage = () => {
   const [activeTab, setActiveTab] = useState("active");
   const [searchQuery, setSearchQuery] = useState("");
-  const [bookingToCancel, setBookingToCancel] = useState(null);
-  const [bookingToReschedule, setBookingToReschedule] = useState(null);
 
   const dispatch = useDispatch();
-  const navigate = useNavigate();
-  const { bookings, status, detailStatus, selectedBookingDetail } = useSelector(
+  const { bookings, status, selectedBookingDetail } = useSelector(
     (state) => state.history
   );
-  const isActionLoading = detailStatus === "loading";
 
   useEffect(() => {
     // Ambil data history hanya jika belum pernah diambil
@@ -103,9 +78,10 @@ const BookingHistoryPage = () => {
 
     const searchedBookings = bookings.filter((booking) => {
       const query = searchQuery.toLowerCase();
-      const unitName = booking.unit.name.toLowerCase();
+      const unitName = booking.unit?.name?.toLowerCase() || '';
       const fnbNames = booking.fnbs
-        .map((fnb) => fnb.name.toLowerCase())
+        .map((fnb) => fnb?.name?.toLowerCase() || '')
+        .filter(name => name !== '')
         .join(" ");
       return unitName.includes(query) || fnbNames.includes(query);
     });
@@ -125,48 +101,6 @@ const BookingHistoryPage = () => {
 
   const handleViewDetails = (bookingId) =>
     dispatch(fetchDetailThunk(bookingId));
-
-  const handleOpenCancelModal = (booking) => {
-    setBookingToCancel(booking);
-  };
-
-  const handleOpenRescheduleModal = (booking) => {
-    setBookingToReschedule(booking);
-  };
-
-  const handleConfirmCancel = () => {
-    if (bookingToCancel) {
-      dispatch(cancelBookingThunk(bookingToCancel.id))
-        .unwrap()
-        .then(() => {
-          setBookingToCancel(null);
-          toast.success("Booking cancelled successfully.");
-          navigate("/booking-cancelled");
-        })
-        .catch((error) => {
-          toast.error(error || "Failed to cancel booking.");
-          setBookingToCancel(null);
-        });
-    }
-  };
-
-  const handleReschedule = (rescheduleData) => {
-    if (bookingToReschedule) {
-      dispatch(rescheduleBookingThunk({
-        bookingId: bookingToReschedule.id,
-        rescheduleData
-      }))
-        .unwrap()
-        .then(() => {
-          setBookingToReschedule(null);
-          toast.success("Booking rescheduled successfully.");
-        })
-        .catch((error) => {
-          toast.error(error || "Failed to reschedule booking.");
-          setBookingToReschedule(null);
-        });
-    }
-  };
 
   return (
     <>
@@ -252,35 +186,12 @@ const BookingHistoryPage = () => {
                   key={booking.id}
                   booking={booking}
                   onViewDetails={handleViewDetails}
-                  onCancel={handleOpenCancelModal}
-                  onReschedule={handleOpenRescheduleModal}
                 />
               ))}
             </div>
           )}
         </div>
       </div>
-
-      <ConfirmationModal
-        isOpen={!!bookingToCancel}
-        onClose={() => setBookingToCancel(null)}
-        onConfirm={handleConfirmCancel}
-        title="Confirm Cancellation"
-        confirmText={isActionLoading ? "Cancelling..." : "Yes, Cancel Booking"}
-        imageSrc="/images/tanya.png"
-        isConfirmDisabled={isActionLoading}
-      >
-        <p>Are you sure you want to cancel this booking?</p>
-        <p className="text-xs text-gray-400 mt-2">
-          This action cannot be undone.
-        </p>
-      </ConfirmationModal>
-
-      <RescheduleModal
-        booking={bookingToReschedule}
-        onClose={() => setBookingToReschedule(null)}
-        onReschedule={handleReschedule}
-      />
 
       {selectedBookingDetail && <BookingDetailModal />}
     </>

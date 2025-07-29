@@ -50,12 +50,11 @@ const BookingNavigator = ({ currentStep, onStepClick }) => {
               key={step.id}
               onClick={() => onStepClick(step.id)}
               className={`flex-1 p-4 transition-all duration-300 ease-in-out border-b-4
-                ${
-                  isActive
-                    ? "bg-brand-gold text-white border-brand-gold shadow-md -translate-y-1"
-                    : isCompleted
-                    ? "bg-transparent text-black border-transparent" // Gaya untuk langkah yang sudah selesai
-                    : "bg-transparent text-gray-400 border-transparent hover:bg-base-200" // Gaya untuk langkah yang belum
+                ${isActive
+                  ? "bg-brand-gold text-white border-brand-gold shadow-md -translate-y-1"
+                  : isCompleted
+                    ? "bg-transparent text-theme-primary border-transparent" // Gaya untuk langkah yang sudah selesai
+                    : "bg-transparent text-theme-secondary border-transparent hover:bg-theme-secondary" // Gaya untuk langkah yang belum
                 }
                 ${index === 0 ? "rounded-tl-lg" : ""}
                 ${index === steps.length - 1 ? "rounded-tr-lg" : ""}
@@ -77,9 +76,8 @@ const BookingNavigator = ({ currentStep, onStepClick }) => {
                   </span>
                 )}
                 <span
-                  className={`font-semibold ${
-                    isActive ? "font-minecraft" : ""
-                  }`}
+                  className={`font-semibold ${isActive ? "font-minecraft" : ""
+                    }`}
                 >
                   {step.name}
                 </span>

@@ -5,6 +5,7 @@ import React from "react";
 import { Link, NavLink, useNavigate } from "react-router";
 import { useSelector, useDispatch } from "react-redux";
 import { logout } from "../../features/auth/authSlice";
+import ThemeToggle from "./ThemeToggle";
 
 const Navbar = () => {
   const dispatch = useDispatch();
@@ -19,22 +20,22 @@ const Navbar = () => {
   const menuItems = (
     <>
       <li>
-        <NavLink to="/" className="text-base font-minecraft">
+        <NavLink to="/" className="text-base font-minecraft text-theme-primary hover:text-brand-gold">
           MGE Rental
         </NavLink>
       </li>
       <li>
-        <NavLink to="/rent" className="text-base font-minecraft">
+        <NavLink to="/rent" className="text-base font-minecraft text-theme-primary hover:text-brand-gold">
           Rent
         </NavLink>
       </li>
       <li>
-        <NavLink to="/food-drinks" className="text-base font-minecraft">
+        <NavLink to="/food-drinks" className="text-base font-minecraft text-theme-primary hover:text-brand-gold">
           Food & Drinks
         </NavLink>
       </li>
       <li>
-        <NavLink to="/faq" className="text-base font-minecraft">
+        <NavLink to="/faq" className="text-base font-minecraft text-theme-primary hover:text-brand-gold">
           FAQ
         </NavLink>
       </li>
@@ -42,12 +43,12 @@ const Navbar = () => {
   );
 
   return (
-    <div className="bg-base-100 shadow-md sticky top-0 z-50">
+    <div className="bg-theme-primary shadow-md sticky top-0 z-50 border-b border-theme">
       <div className="navbar container mx-auto">
         <div className="navbar-start">
           {/* Dropdown untuk Tampilan Mobile */}
           <div className="dropdown">
-            <label tabIndex={0} className="btn btn-ghost lg:hidden">
+            <label tabIndex={0} className="btn btn-ghost lg:hidden  hover:bg-theme-secondary">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 className="h-6 w-6"
@@ -65,13 +66,13 @@ const Navbar = () => {
             </label>
             <ul
               tabIndex={0}
-              className="menu menu-compact dropdown-content mt-3 p-2 shadow bg-base-100 rounded-box w-52"
+              className="menu menu-compact dropdown-content mt-3 p-2 shadow bg-theme-primary rounded-box w-52 border border-theme"
             >
               {/* LOGO BARU UNTUK TAMPILAN MOBILE - diletakkan di dalam dropdown */}
               <li className="mb-2">
                 <Link
                   to="/"
-                  className="btn btn-ghost justify-start h-auto py-2"
+                  className="btn btn-ghost justify-start h-auto py-2 hover:bg-theme-secondary"
                 >
                   <img
                     src="/images/logo.png"
@@ -88,7 +89,7 @@ const Navbar = () => {
           {/* LOGO UNTUK TAMPILAN DESKTOP (lg) - disembunyikan di mobile */}
           <Link
             to="/"
-            className="btn btn-ghost normal-case text-xl hidden lg:flex"
+            className="btn btn-ghost normal-case text-xl hidden lg:flex hover:bg-theme-secondary"
           >
             <img src="/images/logo.png" alt="Logo" className="h-10 w-auto" />
           </Link>
@@ -99,15 +100,17 @@ const Navbar = () => {
         </div>
 
         <div className="navbar-end">
+          <ThemeToggle />
+          <div className="divider divider-horizontal mx-2"></div>
           {token ? (
             // DIHAPUS: Kelas bg-black yang tidak perlu dari div ini
-            <div className="dropdown dropdown-end bg-black">
+            <div className="dropdown dropdown-end border-2 border-black rounded-lg">
               <label
                 tabIndex={0}
-                className="btn btn-ghost flex items-center gap-2 px-2"
+                className="btn btn-ghost flex items-center gap-2 px-2 border-2 border-black dark:border-white hover:bg-theme-secondary"
               >
                 <div className="avatar ">
-                  <div className="w-8 rounded-full ">
+                  <div className="w-8 rounded-full bg-black">
                     {user?.avatar ? (
                       <img src={user.avatar} alt={user.name} />
                     ) : (
@@ -115,15 +118,15 @@ const Navbar = () => {
                     )}
                   </div>
                 </div>
-                <span className="sm:inline font-semibold font-minecraft text-white">
+                <span className="sm:inline font-semibold font-minecraft text-theme-primary">
                   {user?.name || "User"}
                 </span>
               </label>
               <ul
                 tabIndex={0}
-                className="mt-3 p-2 shadow menu menu-compact dropdown-content bg-base-100 rounded-box w-52"
+                className="mt-3 p-2 shadow menu menu-compact dropdown-content bg-theme-primary rounded-box w-52 border border-theme"
               >
-                <li className="p-2 font-semibold">
+                <li className="p-2 font-semibold text-theme-primary">
                   Hi, {user?.name || "User"}
                 </li>
                 <div className="divider my-0"></div>
@@ -143,7 +146,7 @@ const Navbar = () => {
           ) : (
             <Link
               to="/login"
-              className="btn btn-neutral text-white rounded-none"
+              className="btn bg-brand-gold hover:bg-yellow-600 text-white rounded-none border-2 border-black dark:border-white"
             >
               <img
                 src="/images/button-icon.png"

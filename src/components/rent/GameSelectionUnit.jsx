@@ -43,17 +43,17 @@ const GameSelectionUnit = ({
       className="mt-8 w-full p-6 bg-base-100 rounded-lg shadow-inner"
     >
       <div className="text-center">
-        <h3 className="text-2xl font-semibold">
+        <h3 className="text-2xl font-semibold text-theme-primary">
           Available Game List for {unitName}
         </h3>
-        <p className="text-sm text-gray-500 mt-1">
+        <p className="text-sm text-theme-secondary mt-1">
           Please select the first game you want to play:
         </p>
       </div>
 
       {/* Jika tidak ada game, tampilkan pesan */}
       {availableGames.length === 0 ? (
-        <p className="text-center text-gray-500 mt-6 py-8">
+        <p className="text-center text-theme-secondary mt-6 py-8">
           No specific games listed for this unit.
         </p>
       ) : (
@@ -66,10 +66,9 @@ const GameSelectionUnit = ({
               key={game.id}
               onClick={() => onSelectGame(game)}
               className={`flex items-center p-3 rounded-lg border transition-all duration-200 text-left
-                ${
-                  selectedGame?.id === game.id
-                    ? "bg-brand-gold text-white border-brand-gold shadow-lg ring-2 ring-brand-gold/30"
-                    : "border-base-300 bg-base-100 hover:bg-base-200 hover:shadow-md"
+                ${selectedGame?.id === game.id
+                  ? "bg-brand-gold text-white border-brand-gold shadow-lg ring-2 ring-brand-gold/30"
+                  : "border-base-300 bg-base-100 hover:bg-base-200 hover:shadow-md"
                 }
               `}
             >
@@ -88,7 +87,7 @@ const GameSelectionUnit = ({
         </div>
       )}
 
-      <p className="text-center text-sm text-gray-500 mt-6">
+      <p className="text-center text-sm text-theme-secondary mt-6">
         You can check the complete directory of our games{" "}
         <Link to="/games" className="link text-brand-gold font-semibold">
           here

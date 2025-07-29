@@ -45,7 +45,7 @@ const RoomTypeSelection = ({ rooms, selectedRoomType, onSelectRoomType }) => {
 
   return (
     <div className="mt-8 w-full">
-      <h3 className="text-2xl font-minecraft text-gray-700 mb-6">
+      <h3 className="text-2xl font-minecraft text-theme-primary mb-6">
         Room Type :
       </h3>
 
@@ -54,7 +54,7 @@ const RoomTypeSelection = ({ rooms, selectedRoomType, onSelectRoomType }) => {
           <p className="font-semibold">
             Tidak ada ruangan yang tersedia untuk jumlah orang tersebut.
           </p>
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-theme-secondary">
             Silakan coba pilih jumlah orang yang lebih sedikit.
           </p>
         </div>
@@ -67,11 +67,10 @@ const RoomTypeSelection = ({ rooms, selectedRoomType, onSelectRoomType }) => {
             <div
               key={room.id}
               onClick={() => onSelectRoomType(room)}
-              className={`card bg-base-100 shadow-lg cursor-pointer transition-all duration-300 ${
-                selectedRoomType?.id === room.id
+              className={`card bg-base-100 shadow-lg cursor-pointer transition-all duration-300 ${selectedRoomType?.id === room.id
                   ? "border-2 border-brand-gold ring-4 ring-brand-gold/20 -translate-y-2"
                   : "border-2 border-transparent hover:border-brand-gold/50"
-              }`}
+                }`}
             >
               <figure className="relative">
                 <img
@@ -86,16 +85,15 @@ const RoomTypeSelection = ({ rooms, selectedRoomType, onSelectRoomType }) => {
               </figure>
               <div className="card-body p-6">
                 <h2 className="card-title font-minecraft">{room.name}</h2>
-                <p className="text-sm text-gray-500 line-clamp-2">
+                <p className="text-sm text-theme-secondary line-clamp-2">
                   {room.description}
                 </p>
                 <div className="card-actions mt-4">
                   <button
-                    className={`btn w-full ${
-                      selectedRoomType?.id === room.id
+                    className={`btn w-full ${selectedRoomType?.id === room.id
                         ? "bg-brand-gold text-white border-brand-gold"
                         : "btn-outline border-gray-300 hover:bg-brand-gold hover:text-white hover:border-brand-gold"
-                    }`}
+                      }`}
                   >
                     {selectedRoomType?.id === room.id ? "Selected" : "Select"}
                   </button>

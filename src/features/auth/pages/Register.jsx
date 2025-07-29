@@ -164,8 +164,7 @@ const Register = () => {
           {/* Full Name */}
           <div className="form-control">
             <label className="label py-1" htmlFor="fullName">
-              <span className="label-text text-sm">
-                Full Name<span className="text-red-500">*</span>
+              <span className="label-text text-sm">Name<span className="text-red-500">*</span>
               </span>
             </label>
             <input
@@ -205,7 +204,7 @@ const Register = () => {
           <div className="form-control">
             <label className="label py-1" htmlFor="email">
               <span className="label-text text-sm">
-                Email address<span className="text-red-500">*</span>
+                Email<span className="text-red-500">*</span>
               </span>
             </label>
             <input
@@ -235,11 +234,13 @@ const Register = () => {
               id="phoneNumber"
               type="tel"
               placeholder="ex: 081234567890"
-              className={`input input-sm input-bordered w-full ${errors.phoneNumber || apiErrors.phoneNumber ? "input-error" : ""
-                }`}
+              className={`input input-sm input-bordered w-full ${errors.phoneNumber || apiErrors.phoneNumber ? "input-error" : ""}`}
               value={phoneNumber}
-              onChange={(e) => handleInputChange("phoneNumber", e.target.value, setPhoneNumber)}
+              onChange={(e) => handleInputChange("phoneNumber", e.target.value.slice(0, 14), setPhoneNumber)}
+              maxLength={14}
               disabled={isLoading}
+              aria-label="Phone Number"
+              tabIndex={0}
             />
             <ErrorMessage errors={errors} apiErrors={apiErrors} fieldName="phoneNumber" />
           </div>

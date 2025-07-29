@@ -39,33 +39,29 @@ const PersonalInfoForm = ({
 
       {/* Checkbox "Use my account information" */}
       <div
-        className={`mb-6 p-3 rounded-md border ${
-          user
-            ? "bg-yellow-50 border-brand-gold/30"
-            : "bg-gray-50 border-gray-200"
-        }`}
+        className={`mb-6 p-3 rounded-md border ${user
+          ? "bg-yellow-50 border-brand-gold/30"
+          : "bg-gray-50 border-gray-200"
+          }`}
       >
         <label
-          className={`flex items-center gap-3 ${
-            user ? "cursor-pointer" : "cursor-not-allowed"
-          }`}
+          className={`flex items-center gap-3 ${user ? "cursor-pointer" : "cursor-not-allowed"
+            }`}
         >
           <input
             type="checkbox"
-            className={`w-4 h-4 rounded focus:ring-2 ${
-              user
-                ? "text-brand-gold focus:ring-brand-gold/50"
-                : "text-gray-400 focus:ring-gray-300"
-            }`}
+            className={`w-4 h-4 rounded focus:ring-2 ${user
+              ? "text-brand-gold focus:ring-brand-gold/50"
+              : "text-gray-400 focus:ring-gray-300"
+              }`}
             checked={useLoginInfo}
             onChange={(e) => onUseLoginInfoChange(e.target.checked)}
             disabled={!user}
           />
           <div>
             <span
-              className={`text-sm font-medium ${
-                user ? "text-gray-900" : "text-gray-500"
-              }`}
+              className={`text-sm font-medium ${user ? "text-gray-900" : "text-gray-500"
+                }`}
             >
               Use my account information
             </span>
@@ -92,7 +88,7 @@ const PersonalInfoForm = ({
               name="fullName"
               value={formData.fullName}
               onChange={onFormChange}
-              className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-brand-gold focus:border-brand-gold outline-none"
+              className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-brand-gold focus:border-brand-gold outline-none text-black placeholder:text-gray-500"
               placeholder="Enter your full name"
               required
             />
@@ -110,7 +106,7 @@ const PersonalInfoForm = ({
               name="email"
               value={formData.email}
               onChange={onFormChange}
-              className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-brand-gold focus:border-brand-gold outline-none"
+              className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-brand-gold focus:border-brand-gold outline-none text-black placeholder:text-gray-500"
               placeholder="Enter your email address"
               required
             />
@@ -128,7 +124,7 @@ const PersonalInfoForm = ({
               name="phoneNumber"
               value={formData.phoneNumber}
               onChange={onFormChange}
-              className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-brand-gold focus:border-brand-gold outline-none"
+              className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-brand-gold focus:border-brand-gold outline-none text-black placeholder:text-gray-500"
               placeholder="Enter your phone number"
               required
             />

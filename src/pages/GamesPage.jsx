@@ -161,14 +161,14 @@ const GamesPage = () => {
   }
 
   return (
-    <div className="bg-base-200 min-h-screen">
+    <div className="bg-theme-secondary min-h-screen">
       <div className="container mx-auto px-4 py-16 lg:py-24">
         {/* Header Section */}
         <div ref={headerRef} className="text-center mb-16">
-          <h1 className="text-4xl lg:text-6xl font-minecraft mb-4 text-gray-800">
+          <h1 className="text-4xl lg:text-6xl font-minecraft mb-4 text-theme-primary">
             Game Library
           </h1>
-          <p className="text-gray-600 max-w-lg mx-auto leading-relaxed">
+          <p className="text-theme-secondary max-w-lg mx-auto leading-relaxed">
             Temukan dan jelajahi semua koleksi game yang kami sediakan untuk
             pengalaman bermain terbaikmu.
           </p>

@@ -45,10 +45,10 @@ const RoomsSection = () => {
   // Error state
   if (status === "failed") {
     return (
-      <section className="bg-base-100 py-20 lg:py-24">
+      <section className="bg-theme-primary py-20 lg:py-24">
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
-            <h2 className="text-4xl lg:text-8xl font-minecraft">Rooms</h2>
+            <h2 className="text-4xl lg:text-8xl font-minecraft text-theme-primary">Rooms</h2>
           </div>
           <div className="text-center text-red-500">
             <p>Failed to load rooms: {error}</p>
@@ -59,10 +59,10 @@ const RoomsSection = () => {
   }
 
   return (
-    <section className="bg-base-100 py-20 lg:py-24">
+    <section className="bg-theme-primary py-20 lg:py-24">
       <div className="container mx-auto px-4">
         <div className="text-center mb-12">
-          <h2 className="text-4xl lg:text-8xl font-minecraft">Rooms</h2>
+          <h2 className="text-4xl lg:text-8xl font-minecraft text-theme-primary">Rooms</h2>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">

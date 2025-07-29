@@ -143,13 +143,13 @@ const Login = () => {
             {isLoading ? "Logging in..." : "Login"}
           </button>
           <div className="divider text-xs my-1">or</div>
-          <button
+          {/* <button
             type="button"
             className="btn btn-sm btn-outline w-full flex items-center gap-2"
           >
             <FcGoogle size={20} />
             Sign in with Google
-          </button>
+          </button> */}
         </div>
         <div className="text-center mt-4">
           <p className="text-xs">

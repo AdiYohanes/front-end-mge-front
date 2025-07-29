@@ -235,7 +235,7 @@ const RentPage = () => {
   return (
     <div className="container mx-auto px-4 py-16 lg:py-24 flex flex-col items-center">
       <div ref={pageRef} className="flex flex-col items-center w-full">
-        <h1 className="text-4xl lg:text-5xl font-minecraft mb-6">
+        <h1 className="text-4xl lg:text-5xl font-minecraft mb-6 text-theme-primary">
           Book an Appointment
         </h1>
         <div className="flex items-center gap-2 mb-12">
@@ -265,7 +265,7 @@ const RentPage = () => {
             <div className="flex items-center justify-center gap-4 mb-8">
               <label
                 htmlFor="people-select"
-                className="text-2xl font-semibold text-gray-800 flex items-center gap-2"
+                className="text-2xl font-semibold text-theme-primary flex items-center gap-2"
               >
                 <IoMdPeople /> Number of People :
               </label>
@@ -300,7 +300,7 @@ const RentPage = () => {
               <div className="flex items-center justify-center gap-4 mt-8">
                 <label
                   htmlFor="ps-unit-select"
-                  className="text-2xl font-semibold text-gray-800"
+                  className="text-2xl font-semibold text-theme-primary"
                 >
                   PS Unit Selection :
                 </label>
@@ -354,7 +354,7 @@ const RentPage = () => {
                   <div className="flex items-center justify-center gap-4 mb-3">
                     <label
                       htmlFor="duration-select"
-                      className="text-2xl font-semibold text-gray-800 flex items-center gap-2"
+                      className="text-2xl font-semibold text-theme-primary flex items-center gap-2"
                     >
                       <FaClock /> Duration :
                     </label>
@@ -371,7 +371,7 @@ const RentPage = () => {
                       ))}
                     </select>
                   </div>
-                  <p className="text-xs text-gray-500">
+                  <p className="text-xs text-theme-secondary">
                     *Default booking duration is{" "}
                     <span className="font-bold">1 hour</span>.<br />
                     Every additional hour will cost{" "}

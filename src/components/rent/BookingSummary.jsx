@@ -99,7 +99,7 @@ const BookingSummary = ({
         </button>
       </div>
       <div className="p-6">
-        <div className="grid grid-cols-4 gap-4 text-sm font-semibold text-gray-500 mb-2">
+        <div className="grid grid-cols-4 gap-4 text-sm font-semibold text-theme-secondary mb-2">
           <span>Type</span>
           <span>Description</span>
           <span className="text-center">Quantity</span>
@@ -113,10 +113,10 @@ const BookingSummary = ({
               className="grid grid-cols-4 gap-4 items-center text-sm"
             >
               <span className="font-bold text-base-content">{item.label}</span>
-              <span className="text-gray-600 truncate">
+              <span className="text-theme-secondary truncate">
                 {item.value || "-"}
               </span>
-              <span className="text-center text-gray-600">{item.quantity}</span>
+              <span className="text-center text-theme-secondary">{item.quantity}</span>
               <span className="text-right font-semibold text-base-content">
                 {item.total || "-"}
               </span>
@@ -127,7 +127,7 @@ const BookingSummary = ({
         {details.notes && (
           <div className="mt-4 pt-4 border-t border-base-200 text-sm">
             <span className="font-bold text-base-content">Notes:</span>
-            <p className="text-gray-600 whitespace-pre-wrap mt-1">
+            <p className="text-theme-secondary whitespace-pre-wrap mt-1">
               {details.notes}
             </p>
           </div>
@@ -137,13 +137,13 @@ const BookingSummary = ({
           <>
             <div className="mt-6 pt-4 border-t border-base-200 space-y-2 text-sm">
               <div className="flex justify-between">
-                <span className="text-gray-600">Subtotal</span>
+                <span className="text-theme-secondary">Subtotal</span>
                 <span className="font-semibold">
                   {formatPrice(baseSubtotal)}
                 </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-600">PPN 11%</span>
+                <span className="text-theme-secondary">PPN 11%</span>
                 <span className="font-semibold">{formatPrice(ppn)}</span>
               </div>
               {voucherDiscount > 0 && (

@@ -100,26 +100,29 @@ const GamesPage = () => {
         className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8"
       >
         {games.map((game) => (
-          <Link
-            to={`/games/${game.id}`}
+          <div
             key={game.id}
-            className="block bg-base-100 rounded-lg shadow-md overflow-hidden group transition-all duration-300 hover:shadow-2xl hover:-translate-y-2 will-change-transform"
+            className="relative bg-base-100 rounded-lg shadow-md overflow-hidden group transition-all duration-300 hover:shadow-2xl hover:-translate-y-2 will-change-transform"
           >
             <div className="overflow-hidden h-64">
               <img
                 src={`${imageBaseUrl}/${game.image}`}
                 alt={game.title}
-                className="w-full h-full object-cover transition-transform duration-500 ease-in-out group-hover:scale-110"
+                className="w-full h-full object-cover transition-all duration-300 ease-in-out group-hover:scale-110 group-hover:opacity-60"
                 loading="lazy"
               />
             </div>
-            <div className="p-4">
-              <span className="badge badge-primary font-semibold">
-                {typeof game.genre === 'object' && game.genre?.name ? game.genre.name : game.genre || 'Unknown Genre'}
-              </span>
-              <h2 className="card-title mt-2 truncate">{game.title}</h2>
+            <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+              <div className="bg-black/70 backdrop-blur-sm rounded-lg p-6 mx-4 text-center">
+                <span className="badge badge-primary font-semibold mb-3">
+                  {typeof game.genre === 'object' && game.genre?.name ? game.genre.name : game.genre || 'Unknown Genre'}
+                </span>
+                <h2 className="text-white font-bold text-xl lg:text-2xl">
+                  {game.title}
+                </h2>
+              </div>
             </div>
-          </Link>
+          </div>
         ))}
       </div>
     );

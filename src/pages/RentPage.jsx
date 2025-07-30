@@ -55,6 +55,7 @@ const RentPage = () => {
   );
   const { units, status: unitsStatus } = useSelector((state) => state.units);
   const { status: fnbsStatus } = useSelector((state) => state.fnbs);
+  const { user } = useSelector((state) => state.auth);
 
   // Animasi masuk
   useEffect(() => {
@@ -228,7 +229,18 @@ const RentPage = () => {
   };
 
   const handleFinalizeBooking = () => {
-    navigate("/booking-payment", { state: { bookingDetails } });
+    if (user) {
+      // User is logged in, proceed to payment page
+      navigate("/booking-payment", { state: { bookingDetails } });
+    } else {
+      // User is not logged in, proceed to guest booking page
+      navigate("/booking-payment", {
+        state: {
+          bookingDetails,
+          isGuestBooking: true
+        }
+      });
+    }
   };
 
   const filteredRooms = allRooms.filter(

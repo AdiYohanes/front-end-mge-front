@@ -14,6 +14,14 @@ export const validatePromoCode = async (promoName) => {
 };
 
 export const submitBooking = async (bookingData) => {
+  console.log("Raw booking data:", bookingData); // Debug log
+
+  // Validate required customer data
+  if (!bookingData.customer?.fullName || !bookingData.customer?.phone) {
+    console.error("Missing customer data:", bookingData.customer);
+    throw new Error("Customer name and phone are required");
+  }
+
   // Format tanggal dan waktu sesuai yang diminta API
   const startTimeString = `${format(bookingData.date, "yyyy-MM-dd")} ${bookingData.startTime
     }`;
@@ -27,6 +35,17 @@ export const submitBooking = async (bookingData) => {
     quantity: item.quantity,
   }));
 
+  // Validate required booking data
+  if (!bookingData.psUnit?.id) {
+    throw new Error("Unit ID is required");
+  }
+  if (!bookingData.selectedGames?.[0]?.id) {
+    throw new Error("Game ID is required");
+  }
+  if (!bookingData.date || !bookingData.startTime) {
+    throw new Error("Date and start time are required");
+  }
+
   // Buat payload final sesuai format API
   const apiPayload = {
     unit_id: bookingData.psUnit.id,
@@ -35,10 +54,69 @@ export const submitBooking = async (bookingData) => {
     total_visitors: bookingData.numberOfPeople,
     start_time: startTimeString,
     end_time: endTimeString,
-    notes: bookingData.notes,
+    notes: bookingData.notes || "",
     fnbs: fnbsPayload,
+    // Customer data for guest booking
+    name: bookingData.customer.fullName,
+    phone: bookingData.customer.phone,
+    email: bookingData.customer.email || "",
   };
 
-  const response = await apiClient.post("/api/book-room", apiPayload);
+  console.log("API Payload:", apiPayload); // Debug log
+  console.log("Expected format:", {
+    unit_id: "number",
+    game_id: "number",
+    name: "string",
+    phone: "string",
+    email: "string (optional)",
+    promo_id: "number (optional)",
+    total_visitors: "number",
+    start_time: "YYYY-MM-DD HH:mm",
+    end_time: "YYYY-MM-DD HH:mm",
+    notes: "string (optional)",
+    fnbs: "array of {id: number, quantity: number}"
+  });
+
+  // Gunakan endpoint yang benar untuk guest booking
+  let response;
+  let lastError;
+
+  try {
+    // Coba authenticated endpoint dulu
+    response = await apiClient.post("/api/book-room", apiPayload);
+    console.log("Authenticated booking successful");
+  } catch (error) {
+    console.error("Error with authenticated booking:", error);
+    lastError = error;
+
+    // Jika gagal, coba public endpoint untuk guest booking
+    try {
+      response = await publicApiClient.post("/api/public/book-room", apiPayload);
+      console.log("Public booking successful");
+    } catch (publicError) {
+      console.error("Error with public booking:", publicError);
+      lastError = publicError;
+
+      // Coba endpoint alternatif
+      try {
+        response = await publicApiClient.post("/api/guest/book-room", apiPayload);
+        console.log("Guest booking successful");
+      } catch (guestError) {
+        console.error("Error with guest booking:", guestError);
+        lastError = guestError;
+
+        // Jika semua gagal, throw error terakhir
+        throw new Error(`All booking endpoints failed. Last error: ${lastError.message}`);
+      }
+    }
+  }
+
+  console.log("Booking Response:", response.data); // Debug log
+
+  // Validate response
+  if (!response.data) {
+    throw new Error("No response data from booking API");
+  }
+
   return response.data;
 };

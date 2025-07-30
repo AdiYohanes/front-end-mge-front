@@ -6,6 +6,8 @@ export const fetchBookingHistory = async () => {
   const response = await apiClient.get("/api/customer/booking-history");
   return response.data.data; // Mengambil array 'data'
 };
+
+
 export const fetchBookingDetail = async (bookingId) => {
   const response = await apiClient.get(
     `/api/customer/booking-details/${bookingId}`

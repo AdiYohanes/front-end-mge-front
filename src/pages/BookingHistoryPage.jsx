@@ -82,7 +82,7 @@ const BookingHistoryPage = () => {
       const fnbNames = booking.fnbs
         .map((fnb) => fnb?.name?.toLowerCase() || '')
         .filter(name => name !== '')
-        .join(" ");
+        .join(" ") || '';
       return unitName.includes(query) || fnbNames.includes(query);
     });
 

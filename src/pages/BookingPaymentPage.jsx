@@ -23,6 +23,7 @@ const BookingPaymentPage = () => {
   const isLoading = bookingStatus === "loading";
 
   const initialBookingDetails = location.state?.bookingDetails || null;
+  const isGuestBooking = location.state?.isGuestBooking || false;
 
   const [bookingDetails, setBookingDetails] = useState(initialBookingDetails);
   const [promoCode, setPromoCode] = useState("");
@@ -118,15 +119,38 @@ const BookingPaymentPage = () => {
 
   // Fungsi ini dipanggil dari dalam modal untuk submit
   const handleSubmitBooking = () => {
+    // Validate customer data before submitting
+    if (!personalInfo.fullName || !personalInfo.phoneNumber) {
+      toast.error("Name and phone number are required");
+      return;
+    }
+
     const finalData = {
       ...bookingDetails,
       notes: document.getElementById("booking-notes")?.value || "",
       customer: {
-        fullName: personalInfo.fullName,
-        email: personalInfo.email,
-        phone: personalInfo.phoneNumber,
+        fullName: personalInfo.fullName.trim(),
+        email: personalInfo.email.trim(),
+        phone: personalInfo.phoneNumber.trim(),
       },
     };
+
+    console.log("Final Booking Data:", finalData); // Debug log
+    console.log("Is Guest Booking:", isGuestBooking); // Debug log
+    console.log("Personal Info:", personalInfo); // Debug log
+
+    // Validate all required fields
+    const requiredFields = [
+      'psUnit', 'selectedGames', 'date', 'startTime', 'duration', 'numberOfPeople'
+    ];
+
+    const missingFields = requiredFields.filter(field => !finalData[field]);
+    if (missingFields.length > 0) {
+      console.error("Missing required fields:", missingFields);
+      toast.error(`Missing required fields: ${missingFields.join(', ')}`);
+      return;
+    }
+
     dispatch(submitBookingThunk(finalData));
   };
 
@@ -139,14 +163,32 @@ const BookingPaymentPage = () => {
           <h1 className="text-4xl lg:text-5xl font-minecraft">
             Payment Details
           </h1>
+          {isGuestBooking && (
+            <div className="mt-4 p-3 bg-yellow-100 border border-yellow-300 rounded-lg">
+              <p className="text-yellow-800 font-medium">
+                📝 Guest Booking - Please fill in your personal information below
+              </p>
+            </div>
+          )}
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
           <form onSubmit={handleProceed} className="lg:order-1 space-y-6">
+            {isGuestBooking && (
+              <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                <h3 className="text-lg font-semibold text-blue-800 mb-2">
+                  Guest Booking Information
+                </h3>
+                <p className="text-sm text-blue-700">
+                  Since you're booking as a guest, please provide your contact information below.
+                </p>
+              </div>
+            )}
             <PersonalInfoForm
               formData={personalInfo}
               onFormChange={handleInfoChange}
               useLoginInfo={useLoginInfo}
               onUseLoginInfoChange={setUseLoginInfo}
+              isGuestBooking={isGuestBooking}
             />
             <div className="form-control">
               <label className="label">

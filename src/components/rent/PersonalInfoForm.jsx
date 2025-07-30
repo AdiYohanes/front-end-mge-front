@@ -5,12 +5,13 @@ import { useSelector } from "react-redux";
 import { FaUser, FaEnvelope, FaPhone } from "react-icons/fa";
 import TermsModal from "../common/TermsModal";
 
-// Terima props: formData, onFormChange, useLoginInfo, onUseLoginInfoChange
+// Terima props: formData, onFormChange, useLoginInfo, onUseLoginInfoChange, isGuestBooking
 const PersonalInfoForm = ({
   formData,
   onFormChange,
   useLoginInfo,
   onUseLoginInfoChange,
+  isGuestBooking = false,
 }) => {
   const { user } = useSelector((state) => state.auth);
   const [showTermsModal, setShowTermsModal] = useState(false);
@@ -44,42 +45,44 @@ const PersonalInfoForm = ({
         Please provide your contact details.
       </p>
 
-      {/* Checkbox "Use my account information" */}
-      <div
-        className={`mb-6 p-3 rounded-md border ${user
-          ? "bg-yellow-50 border-brand-gold/30"
-          : "bg-gray-50 border-gray-200"
-          }`}
-      >
-        <label
-          className={`flex items-center gap-3 ${user ? "cursor-pointer" : "cursor-not-allowed"
+      {/* Checkbox "Use my account information" - Hidden for guest booking */}
+      {!isGuestBooking && (
+        <div
+          className={`mb-6 p-3 rounded-md border ${user
+            ? "bg-yellow-50 border-brand-gold/30"
+            : "bg-gray-50 border-gray-200"
             }`}
         >
-          <input
-            type="checkbox"
-            className={`w-4 h-4 rounded focus:ring-2 ${user
-              ? "text-brand-gold focus:ring-brand-gold/50"
-              : "text-gray-400 focus:ring-gray-300"
+          <label
+            className={`flex items-center gap-3 ${user ? "cursor-pointer" : "cursor-not-allowed"
               }`}
-            checked={useLoginInfo}
-            onChange={(e) => onUseLoginInfoChange(e.target.checked)}
-            disabled={!user}
-          />
-          <div>
-            <span
-              className={`text-sm font-medium ${user ? "text-gray-900" : "text-gray-500"
+          >
+            <input
+              type="checkbox"
+              className={`w-4 h-4 rounded focus:ring-2 ${user
+                ? "text-brand-gold focus:ring-brand-gold/50"
+                : "text-gray-400 focus:ring-gray-300"
                 }`}
-            >
-              Use my account information
-            </span>
-            {!user && (
-              <p className="text-xs text-gray-400 mt-0.5">
-                Please login to use this feature
-              </p>
-            )}
-          </div>
-        </label>
-      </div>
+              checked={useLoginInfo}
+              onChange={(e) => onUseLoginInfoChange(e.target.checked)}
+              disabled={!user}
+            />
+            <div>
+              <span
+                className={`text-sm font-medium ${user ? "text-gray-900" : "text-gray-500"
+                  }`}
+              >
+                Use my account information
+              </span>
+              {!user && (
+                <p className="text-xs text-gray-400 mt-0.5">
+                  Please login to use this feature
+                </p>
+              )}
+            </div>
+          </label>
+        </div>
+      )}
 
       {/* Form Fields */}
       <div className="space-y-4">

@@ -5,6 +5,7 @@ import { FaPlus, FaMinus, FaShoppingCart, FaSearch } from "react-icons/fa";
 import PersonalInfoForm from "../components/rent/PersonalInfoForm";
 import { toast } from "react-hot-toast";
 import { useNavigate } from "react-router";
+import { format } from "date-fns";
 
 // Helper untuk format harga
 const formatPrice = (price) =>
@@ -33,6 +34,15 @@ const FoodPage = () => {
   });
   const imageBaseUrl = import.meta.env.VITE_IMAGE_BASE_URL;
   const navigate = useNavigate();
+
+  // Get current date and time for booking summary
+  const getCurrentDateTime = () => {
+    const now = new Date();
+    const currentDate = format(now, "EEEE, do MMMM yyyy");
+    const currentTime = format(now, "HH:mm");
+    const nextHour = format(new Date(now.getTime() + 60 * 60 * 1000), "HH:mm");
+    return `${currentDate} at ${currentTime} - ${nextHour}`;
+  };
 
   useEffect(() => {
     if (status === "idle") {
@@ -120,13 +130,25 @@ const FoodPage = () => {
       return;
     }
 
-    // Prepare F&B data for API - only fnbs array required
+    // Prepare F&B data for API with personal information
     const fnbData = {
       fnbs: selections.map(item => ({
         id: item.id,
         quantity: item.quantity
-      }))
+      })),
+      // Add personal information for guest booking
+      name: personalInfoData.fullName.trim(),
+      phone: personalInfoData.phoneNumber.trim(),
+      email: personalInfoData.email.trim()
     };
+
+    console.log("Submitting F&B order:", fnbData); // Debug log
+    console.log("Expected API format:", {
+      fnbs: "array of {id: number, quantity: number}",
+      name: "string (required)",
+      phone: "string (required)",
+      email: "string (optional)"
+    });
 
     // Dispatch booking action
     dispatch(bookFnbsThunk(fnbData));
@@ -134,14 +156,32 @@ const FoodPage = () => {
 
   // Handle booking status changes
   useEffect(() => {
-    if (bookingStatus === "succeeded" && bookingData?.booking_data) {
-      // Redirect to success page with order details
-      const { invoice_number, total_price } = bookingData.booking_data;
-      navigate(`/food-drinks/success?invoice_number=${invoice_number}&total_price=${total_price}`);
+    if (bookingStatus === "succeeded" && bookingData?.data) {
+      console.log("F&B Booking successful:", bookingData);
+
+      // Check if snapUrl is available for direct redirect
+      if (bookingData.snapUrl) {
+        console.log("Redirecting to Midtrans:", bookingData.snapUrl);
+
+        // Show redirect message first
+        toast.success("Order submitted successfully! Redirecting to payment...");
+
+        // Redirect to Midtrans snap URL after a short delay
+        setTimeout(() => {
+          window.location.href = bookingData.snapUrl;
+        }, 1500);
+      } else {
+        // Fallback to success page with order details
+        console.warn("No snapUrl available, using fallback success page");
+        const { invoice_number, total_price } = bookingData.data;
+        navigate(`/food-drinks/success?invoice_number=${invoice_number}&total_price=${total_price}`);
+      }
 
       // Reset booking status
       dispatch(resetBookingStatus());
     } else if (bookingStatus === "failed" && bookingError) {
+      console.error("F&B Booking failed:", bookingError);
+
       // Handle validation errors
       if (bookingError.errors) {
         // Show specific validation errors
@@ -200,7 +240,7 @@ const FoodPage = () => {
               {/* Date & Time */}
               <div className="flex justify-between items-start">
                 <span className="font-bold text-black">Date & Time:</span>
-                <span className="text-black">Friday, 21st February 2025 at 10.00 - 11.00</span>
+                <span className="text-black">{getCurrentDateTime()}</span>
               </div>
 
               {/* Food & Drinks */}
@@ -344,6 +384,18 @@ const FoodPage = () => {
                   "Submit Order"
                 )}
               </button>
+
+              {/* Redirect Message */}
+              {bookingStatus === "succeeded" && bookingData?.snapUrl && (
+                <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                  <p className="text-blue-800 font-medium">
+                    🚀 Redirecting to payment gateway...
+                  </p>
+                  <p className="text-sm text-blue-600 mt-1">
+                    Please wait while we redirect you to complete your payment.
+                  </p>
+                </div>
+              )}
             </div>
           </div>
         ) : (

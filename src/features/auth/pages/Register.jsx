@@ -10,6 +10,7 @@ import { registerSchema } from "../authValidation"; // Import skema Zod
 
 import { FcGoogle } from "react-icons/fc";
 import { AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai";
+import TermsModal from "../../../components/common/TermsModal";
 
 // Komponen helper untuk menampilkan error
 const ErrorMessage = ({ errors, apiErrors, fieldName, className = "" }) => {
@@ -34,6 +35,9 @@ const Register = () => {
   // State untuk show/hide password
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+  // State untuk Terms Modal
+  const [showTermsModal, setShowTermsModal] = useState(false);
 
   // State lokal khusus untuk error validasi dari Zod
   const [errors, setErrors] = useState({});
@@ -76,6 +80,18 @@ const Register = () => {
     }
     if (apiErrors[field]) {
       setApiErrors(prev => ({ ...prev, [field]: undefined }));
+    }
+  };
+
+  // Handler untuk Terms Modal
+  const handleTermsAccept = () => {
+    setAgreed(true);
+    // Bersihkan error untuk checkbox
+    if (errors.agreed) {
+      setErrors(prev => ({ ...prev, agreed: undefined }));
+    }
+    if (apiErrors.agreed) {
+      setApiErrors(prev => ({ ...prev, agreed: undefined }));
     }
   };
 
@@ -322,7 +338,11 @@ const Register = () => {
               className="checkbox text-brand-gold rounded-none border-brand-gold checkbox-xs mt-1"
               checked={agreed}
               onChange={(e) => {
-                setAgreed(e.target.checked);
+                if (e.target.checked) {
+                  setShowTermsModal(true);
+                } else {
+                  setAgreed(false);
+                }
                 // Bersihkan error untuk checkbox
                 if (errors.agreed) {
                   setErrors(prev => ({ ...prev, agreed: undefined }));
@@ -339,12 +359,13 @@ const Register = () => {
               </span>
               <span className="label-text text-xs text-gray-600">
                 and agree to our{" "}
-                <a
-                  href="/terms"
+                <button
+                  type="button"
+                  onClick={() => setShowTermsModal(true)}
                   className="link text-brand-gold font-bold text-xs"
                 >
                   Terms & Conditions
-                </a>
+                </button>
               </span>
             </div>
           </label>
@@ -382,6 +403,13 @@ const Register = () => {
           </p>
         </div>
       </form>
+
+      {/* Terms Modal */}
+      <TermsModal
+        isOpen={showTermsModal}
+        onClose={() => setShowTermsModal(false)}
+        onAccept={handleTermsAccept}
+      />
     </div>
   );
 };

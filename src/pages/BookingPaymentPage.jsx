@@ -6,6 +6,7 @@ import { submitBookingThunk, validatePromoThunk, clearPromoValidation } from "..
 import BookingSummary from "../components/rent/BookingSummary";
 import PersonalInfoForm from "../components/rent/PersonalInfoForm";
 import ConfirmationModal from "../components/common/ConfirmationModal"; // Import modal
+import TermsModal from "../components/common/TermsModal";
 import toast from "react-hot-toast";
 
 const BookingPaymentPage = () => {
@@ -33,6 +34,7 @@ const BookingPaymentPage = () => {
   });
   const [useLoginInfo, setUseLoginInfo] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false); // State untuk modal
+  const [showTermsModal, setShowTermsModal] = useState(false); // State untuk terms modal
 
   useEffect(() => {
     if (!initialBookingDetails) {

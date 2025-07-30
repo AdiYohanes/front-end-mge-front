@@ -1,8 +1,9 @@
 // src/components/rent/PersonalInfoForm.jsx
 
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { FaUser, FaEnvelope, FaPhone } from "react-icons/fa";
+import TermsModal from "../common/TermsModal";
 
 // Terima props: formData, onFormChange, useLoginInfo, onUseLoginInfoChange
 const PersonalInfoForm = ({
@@ -12,6 +13,7 @@ const PersonalInfoForm = ({
   onUseLoginInfoChange,
 }) => {
   const { user } = useSelector((state) => state.auth);
+  const [showTermsModal, setShowTermsModal] = useState(false);
 
   useEffect(() => {
     // Gunakan onFormChange untuk memperbarui state di induk
@@ -27,6 +29,11 @@ const PersonalInfoForm = ({
       onFormChange({ target: { name: "phoneNumber", value: "" } });
     }
   }, [useLoginInfo, user, onFormChange]);
+
+  // Handler untuk Terms Modal
+  const handleTermsAccept = () => {
+    onFormChange({ target: { name: "agreed", type: "checkbox", checked: true } });
+  };
 
   return (
     <div className="bg-white border border-gray-200 rounded-lg shadow-sm p-6 w-full">
@@ -137,25 +144,37 @@ const PersonalInfoForm = ({
               type="checkbox"
               name="agreed"
               checked={formData.agreed}
-              onChange={onFormChange}
+              onChange={(e) => {
+                if (e.target.checked) {
+                  setShowTermsModal(true);
+                } else {
+                  onFormChange({ target: { name: "agreed", type: "checkbox", checked: false } });
+                }
+              }}
               className="w-4 h-4 text-brand-gold rounded focus:ring-brand-gold mt-0.5"
               required
             />
             <span className="text-sm text-gray-600 leading-relaxed">
               I agree to the{" "}
-              <a
-                href="/terms"
+              <button
+                type="button"
+                onClick={() => setShowTermsModal(true)}
                 className="text-brand-gold hover:underline font-medium"
-                target="_blank"
-                rel="noopener noreferrer"
               >
                 Terms & Conditions
-              </a>
+              </button>
               .
             </span>
           </label>
         </div>
       </div>
+
+      {/* Terms Modal */}
+      <TermsModal
+        isOpen={showTermsModal}
+        onClose={() => setShowTermsModal(false)}
+        onAccept={handleTermsAccept}
+      />
     </div>
   );
 };

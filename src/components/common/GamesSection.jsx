@@ -94,7 +94,7 @@ const GamesSection = () => {
                   <img
                     src={imageUrl}
                     alt={game.title}
-                    className="w-full h-80 object-cover"
+                    className="w-full h-80 object-cover group-hover:blur-sm transition-all duration-300"
                     onError={(e) => {
                       e.target.src = "/images/playstation.png"; // Fallback if image fails to load
                     }}

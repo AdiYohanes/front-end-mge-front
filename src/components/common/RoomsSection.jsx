@@ -73,8 +73,7 @@ const RoomsSection = () => {
               : "/images/roomsnya.jpg"; // Fallback image
 
             return (
-              <Link
-                to={`/book/${room.id}`}
+              <div
                 key={room.id}
                 className="card bg-base-200 shadow-xl group transition-all duration-300 ease-in-out transform hover:-translate-y-2"
               >
@@ -113,7 +112,7 @@ const RoomsSection = () => {
                     )}
                   </div>
                 </div>
-              </Link>
+              </div>
             );
           })}
         </div>

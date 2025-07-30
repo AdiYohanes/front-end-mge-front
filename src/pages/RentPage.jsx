@@ -351,57 +351,88 @@ const RentPage = () => {
         )}
 
         {currentStep === 3 && (
-          <div>
-            <DateSelection
-              unitId={bookingDetails.psUnit?.id}
-              selectedDate={bookingDetails.date}
-              onDateSelect={handleSelectDate}
-            />
-            {bookingDetails.date && (
-              <TimeSelection
-                selectedTime={bookingDetails.startTime}
-                onTimeSelect={handleSelectTime}
-                selectedDate={bookingDetails.date}
-              />
-            )}
-            {bookingDetails.startTime && (
-              <div className="mt-8 w-full flex flex-col items-center">
-                <div className="w-full max-w-lg text-center">
-                  <div className="flex items-center justify-center gap-4 mb-3">
-                    <label
-                      htmlFor="duration-select"
-                      className="text-2xl font-semibold text-theme-primary flex items-center gap-2"
-                    >
-                      <FaClock /> Duration :
-                    </label>
-                    <select
-                      id="duration-select"
-                      className="select select-bordered"
-                      value={bookingDetails.duration}
-                      onChange={handleDurationChange}
-                    >
-                      {[...Array(12)].map((_, i) => (
-                        <option key={i + 1} value={i + 1}>
-                          {i + 1} {i > 0 ? "Hours" : "Hour"}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  <p className="text-xs text-theme-secondary mb-6">
-                    *Default booking duration is{" "}
-                    <span className="font-bold">1 hour</span>.<br />
-                    Every additional hour will cost{" "}
-                    <span className="font-bold">Rp5.000/hour</span>.
-                  </p>
+          <div className="w-full">
+            {/* Date and Time Selection Container */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+              {/* Date Selection */}
+              <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200">
+                <h3 className="text-2xl font-minecraft text-theme-primary mb-4 text-center">
+                  📅 Choose Date
+                </h3>
+                <DateSelection
+                  unitId={bookingDetails.psUnit?.id}
+                  selectedDate={bookingDetails.date}
+                  onDateSelect={handleSelectDate}
+                />
+              </div>
 
-                  {/* Next Step Button */}
-                  <div className="flex justify-end mt-6">
-                    <button
-                      onClick={handleNextToStep4}
-                      className="btn bg-brand-gold hover:bg-brand-gold/80 text-white font-minecraft tracking-wider text-lg px-8 py-3 transition-all duration-300 transform hover:scale-105"
-                    >
-                      Next Step
-                    </button>
+              {/* Time Selection */}
+              <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200">
+                <h3 className="text-2xl font-minecraft text-theme-primary mb-4 text-center">
+                  ⏰ Choose Time
+                </h3>
+                {bookingDetails.date ? (
+                  <TimeSelection
+                    selectedTime={bookingDetails.startTime}
+                    onTimeSelect={handleSelectTime}
+                    selectedDate={bookingDetails.date}
+                  />
+                ) : (
+                  <div className="flex items-center justify-center h-64">
+                    <div className="text-center text-gray-500">
+                      <div className="text-4xl mb-2">📅</div>
+                      <p className="text-lg font-medium">Please select a date first</p>
+                      <p className="text-sm">Choose a date to see available time slots</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Duration and Next Step */}
+            {bookingDetails.startTime && (
+              <div className="w-full max-w-4xl mx-auto">
+                <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200">
+                  <div className="flex flex-col lg:flex-row items-center justify-between gap-6">
+                    {/* Duration Selection */}
+                    <div className="flex-1">
+                      <div className="flex items-center justify-center gap-4 mb-4">
+                        <label
+                          htmlFor="duration-select"
+                          className="text-2xl font-semibold text-theme-primary flex items-center gap-2"
+                        >
+                          <FaClock /> Duration :
+                        </label>
+                        <select
+                          id="duration-select"
+                          className="select select-bordered select-lg"
+                          value={bookingDetails.duration}
+                          onChange={handleDurationChange}
+                        >
+                          {[...Array(12)].map((_, i) => (
+                            <option key={i + 1} value={i + 1}>
+                              {i + 1} {i > 0 ? "Hours" : "Hour"}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                      <p className="text-xs text-theme-secondary text-center">
+                        *Default booking duration is{" "}
+                        <span className="font-bold">1 hour</span>.<br />
+                        Every additional hour will cost{" "}
+                        <span className="font-bold">Rp5.000/hour</span>.
+                      </p>
+                    </div>
+
+                    {/* Next Step Button */}
+                    <div className="flex-shrink-0">
+                      <button
+                        onClick={handleNextToStep4}
+                        className="btn bg-brand-gold hover:bg-brand-gold/80 text-white font-minecraft tracking-wider text-lg px-8 py-3 transition-all duration-300 transform hover:scale-105 shadow-lg"
+                      >
+                        Next Step →
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>

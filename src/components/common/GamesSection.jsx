@@ -100,10 +100,12 @@ const GamesSection = () => {
                     }}
                   />
                 </figure>
-                <div className="card-body justify-end opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                  <h2 className="card-title text-white font-bold">
-                    {game.title}
-                  </h2>
+                <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                  <div className="bg-black/50 backdrop-blur-sm rounded-lg p-4 mx-4">
+                    <h2 className="text-white font-bold text-xl lg:text-2xl text-center">
+                      {game.title}
+                    </h2>
+                  </div>
                 </div>
               </div>
             );

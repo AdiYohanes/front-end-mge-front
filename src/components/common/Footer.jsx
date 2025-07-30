@@ -36,8 +36,8 @@ const Footer = () => {
             <div className="rounded-lg overflow-hidden shadow-lg mb-4">
               <iframe
                 src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3982.045181464701!2d98.66470481086259!3d3.57708959638205!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3031302c469c3ffd%3A0xf2807430a139f076!2sJl.%20Jenderal%20Sudirman%20No.67%2C%20Petisah%20Hulu%2C%20Kec.%20Medan%20Baru%2C%20Kota%20Medan%2C%20Sumatera%20Utara%2020152!5e0!3m2!1sid!2sid!4v1752165586953!5m2!1sid!2sid"
-                width="600"
-                height="450"
+                width="800"
+                height="250"
                 allowFullScreen=""
                 loading="lazy"
                 referrerPolicy="no-referrer-when-downgrade"

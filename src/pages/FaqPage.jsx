@@ -50,7 +50,7 @@ const FaqPage = () => {
         {faqs.map((faq, index) => (
           <div
             key={faq.id}
-            className="collapse collapse-plus bg-base-100 shadow-sm rounded-lg"
+            className="collapse bg-base-100 shadow-sm rounded-lg"
           >
             {/* Menggunakan radio input agar hanya satu item yang bisa terbuka */}
             <input
@@ -58,8 +58,21 @@ const FaqPage = () => {
               name="faq-accordion"
               defaultChecked={index === 0}
             />
-            <div className="collapse-title text-xl font-medium text-theme-primary">
-              {faq.question}
+            <div className="collapse-title text-xl font-medium text-theme-primary flex items-center justify-between">
+              <span>{faq.question}</span>
+              <svg
+                className="w-5 h-5 transition-transform duration-200 collapse-icon"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M19 9l-7 7-7-7"
+                />
+              </svg>
             </div>
             <div className="collapse-content">
               <p className="text-theme-secondary whitespace-pre-line">{faq.answer}</p>

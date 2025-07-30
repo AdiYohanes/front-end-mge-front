@@ -3,8 +3,28 @@
 import React from "react";
 import { useSelector } from "react-redux";
 
-const TimeSelection = ({ selectedTime, onTimeSelect }) => {
+const TimeSelection = ({ selectedTime, onTimeSelect, selectedDate }) => {
   const { timeSlots, status } = useSelector((state) => state.availability);
+
+  // Function to check if time slot is in the past
+  const isTimeSlotInPast = (timeString) => {
+    const now = new Date();
+    
+    // If selected date is today, check against current time
+    if (selectedDate) {
+      const selectedDateStr = selectedDate.toISOString().split('T')[0];
+      const today = now.toISOString().split('T')[0];
+      
+      if (selectedDateStr === today) {
+        // Create a Date object for the time slot today
+        const timeSlotDate = new Date(`${today}T${timeString}:00`);
+        return timeSlotDate < now;
+      }
+    }
+    
+    // If it's a future date, no time slots are in the past
+    return false;
+  };
 
   if (status === "loading") {
     return (
@@ -18,29 +38,38 @@ const TimeSelection = ({ selectedTime, onTimeSelect }) => {
     <div className="mt-8 w-full flex flex-col items-center">
       <h3 className="text-2xl font-minecraft text-theme-primary mb-6">Start Time</h3>
       <div className="grid grid-cols-3 sm:grid-cols-4 gap-3 max-w-lg w-full">
-        {timeSlots.map((slot) => (
-          <button
-            key={slot.time}
-            onClick={() => onTimeSelect(slot.time)}
-            disabled={!slot.is_available}
-            className={`btn normal-case font-semibold transition-all duration-200
-              ${selectedTime === slot.time
-                ? "bg-brand-gold text-white border-brand-gold"
-                : "bg-transparent border-theme text-theme-primary hover:border-brand-gold"
-              }
-              ${!slot.is_available
-                ? "bg-theme-tertiary text-theme-muted border-theme cursor-not-allowed line-through"
-                : ""
-              }
-            `}
-          >
-            {slot.time}
-          </button>
-        ))}
+        {timeSlots.map((slot) => {
+          const isPastTime = isTimeSlotInPast(slot.time);
+          const isDisabled = !slot.is_available || isPastTime;
+
+          return (
+            <button
+              key={slot.time}
+              onClick={() => onTimeSelect(slot.time)}
+              disabled={isDisabled}
+              className={`btn normal-case font-semibold transition-all duration-200
+                ${selectedTime === slot.time
+                  ? "bg-brand-gold text-white border-brand-gold"
+                  : "bg-transparent border-theme text-theme-primary hover:border-brand-gold"
+                }
+                ${isDisabled
+                  ? "bg-theme-tertiary text-theme-muted border-theme cursor-not-allowed line-through"
+                  : ""
+                }
+              `}
+              title={isPastTime ? "Waktu ini sudah lewat" : ""}
+            >
+              {slot.time}
+            </button>
+          );
+        })}
       </div>
-      <p className="text-xs text-theme-secondary mt-4">
-        *Default booking duration is <span className="font-bold">1 hour</span>.
-      </p>
+      <div className="text-xs text-theme-secondary mt-4 space-y-1">
+        <p>*Default booking duration is <span className="font-bold">1 hour</span>.</p>
+        <p className="text-red-500">
+          ⚠️ Time slots yang sudah lewat akan otomatis di-disable
+        </p>
+      </div>
     </div>
   );
 };

@@ -188,6 +188,9 @@ const RentPage = () => {
       ...prev,
       duration: parseInt(e.target.value, 10),
     }));
+  };
+
+  const handleNextToStep4 = () => {
     setTimeout(() => {
       setCurrentStep(4);
     }, 300);
@@ -346,6 +349,7 @@ const RentPage = () => {
               <TimeSelection
                 selectedTime={bookingDetails.startTime}
                 onTimeSelect={handleSelectTime}
+                selectedDate={bookingDetails.date}
               />
             )}
             {bookingDetails.startTime && (
@@ -371,12 +375,22 @@ const RentPage = () => {
                       ))}
                     </select>
                   </div>
-                  <p className="text-xs text-theme-secondary">
+                  <p className="text-xs text-theme-secondary mb-6">
                     *Default booking duration is{" "}
                     <span className="font-bold">1 hour</span>.<br />
                     Every additional hour will cost{" "}
                     <span className="font-bold">Rp5.000/hour</span>.
                   </p>
+
+                  {/* Next Step Button */}
+                  <div className="flex justify-end mt-6">
+                    <button
+                      onClick={handleNextToStep4}
+                      className="btn bg-brand-gold hover:bg-brand-gold/80 text-white font-minecraft tracking-wider text-lg px-8 py-3 transition-all duration-300 transform hover:scale-105"
+                    >
+                      Next Step
+                    </button>
+                  </div>
                 </div>
               </div>
             )}

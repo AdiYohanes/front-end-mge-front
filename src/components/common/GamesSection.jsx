@@ -86,10 +86,9 @@ const GamesSection = () => {
               : "/images/playstation.png"; // Fallback image
 
             return (
-              <Link
-                to={`/games/${game.id}`}
+              <div
                 key={game.id}
-                className="card card-compact bg-base-100 shadow-xl image-full transform hover:-translate-y-2 transition-transform duration-300"
+                className="card card-compact bg-base-100 shadow-xl image-full transform hover:-translate-y-2 transition-transform duration-300 group"
               >
                 <figure>
                   <img
@@ -101,12 +100,12 @@ const GamesSection = () => {
                     }}
                   />
                 </figure>
-                <div className="card-body justify-end">
+                <div className="card-body justify-end opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                   <h2 className="card-title text-white font-bold">
                     {game.title}
                   </h2>
                 </div>
-              </Link>
+              </div>
             );
           })}
         </div>

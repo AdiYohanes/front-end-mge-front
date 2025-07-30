@@ -115,7 +115,7 @@ const GamesPage = () => {
             </div>
             <div className="p-4">
               <span className="badge badge-primary font-semibold">
-                {game.genre}
+                {typeof game.genre === 'object' && game.genre?.name ? game.genre.name : game.genre || 'Unknown Genre'}
               </span>
               <h2 className="card-title mt-2 truncate">{game.title}</h2>
             </div>

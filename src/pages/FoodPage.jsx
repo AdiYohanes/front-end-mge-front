@@ -6,6 +6,7 @@ import PersonalInfoForm from "../components/rent/PersonalInfoForm";
 import { toast } from "react-hot-toast";
 import { useNavigate } from "react-router";
 import { format } from "date-fns";
+import { enUS } from "date-fns/locale";
 
 // Helper untuk format harga
 const formatPrice = (price) =>
@@ -35,13 +36,11 @@ const FoodPage = () => {
   const imageBaseUrl = import.meta.env.VITE_IMAGE_BASE_URL;
   const navigate = useNavigate();
 
-  // Get current date and time for booking summary
+  // Get current date for booking summary
   const getCurrentDateTime = () => {
     const now = new Date();
-    const currentDate = format(now, "EEEE, do MMMM yyyy");
-    const currentTime = format(now, "HH:mm");
-    const nextHour = format(new Date(now.getTime() + 60 * 60 * 1000), "HH:mm");
-    return `${currentDate} at ${currentTime} - ${nextHour}`;
+    const currentDate = format(now, "EEEE, do MMMM yyyy", { locale: enUS });
+    return currentDate;
   };
 
   useEffect(() => {

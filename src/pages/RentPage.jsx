@@ -137,9 +137,12 @@ const RentPage = () => {
       unitPrice: 0,
       foodAndDrinks: [],
     }));
-    setTimeout(() => {
+  };
+
+  const handleNextToStep2 = () => {
+    if (bookingDetails.console) {
       setCurrentStep(2);
-    }, 300);
+    }
   };
 
   const handleSelectRoomType = (room) => {
@@ -166,9 +169,12 @@ const RentPage = () => {
 
   const handleSelectGame = (game) => {
     setBookingDetails((prev) => ({ ...prev, selectedGames: [game] }));
-    setTimeout(() => {
+  };
+
+  const handleNextToStep3 = () => {
+    if (bookingDetails.psUnit && bookingDetails.selectedGames.length > 0) {
       setCurrentStep(3);
-    }, 300);
+    }
   };
 
   const handleSelectDate = (date) => {
@@ -192,9 +198,11 @@ const RentPage = () => {
   };
 
   const handleNextToStep4 = () => {
-    setTimeout(() => {
-      setCurrentStep(4);
-    }, 300);
+    if (bookingDetails.startTime && bookingDetails.duration) {
+      setTimeout(() => {
+        setCurrentStep(4);
+      }, 300);
+    }
   };
 
   const handleFnbChange = (item, newQuantity) => {
@@ -255,24 +263,37 @@ const RentPage = () => {
         </h1>
         <div className="flex items-center gap-2 mb-12">
           <div className="h-3 w-3 bg-black"></div>
-          <div className="h-3 w-3 bg-primary"></div>
+          <div className="h-3 w-3 bg-brand-gold"></div>
           <div className="h-3 w-3 bg-black"></div>
         </div>
         <BookingSummary details={bookingDetails} />
         <BookingNavigator
           currentStep={currentStep}
           onStepClick={setCurrentStep}
+          bookingDetails={bookingDetails}
         />
       </div>
 
       <div className="mt-8 w-full">
         {currentStep === 1 && (
-          <ConsoleSelection
-            onSelectConsole={handleSelectConsole}
-            selectedConsole={
-              bookingDetails.console ? { name: bookingDetails.console } : null
-            }
-          />
+          <div>
+            <ConsoleSelection
+              onSelectConsole={handleSelectConsole}
+              selectedConsole={
+                bookingDetails.console ? { name: bookingDetails.console } : null
+              }
+            />
+            {bookingDetails.console && (
+              <div className="flex justify-center mt-8">
+                <button
+                  onClick={handleNextToStep2}
+                  className="btn bg-brand-gold hover:bg-brand-gold/80 text-white font-minecraft tracking-wider text-lg px-8 py-3 transition-all duration-300 transform hover:scale-105 shadow-lg"
+                >
+                  Next Step →
+                </button>
+              </div>
+            )}
+          </div>
         )}
 
         {currentStep === 2 && (
@@ -340,12 +361,24 @@ const RentPage = () => {
               </div>
             )}
             {bookingDetails.psUnit && (
-              <GameSelectionUnit
-                unitName={bookingDetails.psUnit.name}
-                availableGames={bookingDetails.psUnit.games}
-                selectedGame={bookingDetails.selectedGames[0]}
-                onSelectGame={handleSelectGame}
-              />
+              <div>
+                <GameSelectionUnit
+                  unitName={bookingDetails.psUnit.name}
+                  availableGames={bookingDetails.psUnit.games}
+                  selectedGame={bookingDetails.selectedGames[0]}
+                  onSelectGame={handleSelectGame}
+                />
+                {bookingDetails.selectedGames.length > 0 && (
+                  <div className="flex justify-center mt-8">
+                    <button
+                      onClick={handleNextToStep3}
+                      className="btn bg-brand-gold hover:bg-brand-gold/80 text-white font-minecraft tracking-wider text-lg px-8 py-3 transition-all duration-300 transform hover:scale-105 shadow-lg"
+                    >
+                      Next Step →
+                    </button>
+                  </div>
+                )}
+              </div>
             )}
           </div>
         )}

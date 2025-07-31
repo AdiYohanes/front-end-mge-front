@@ -36,25 +36,73 @@ const steps = [
   },
 ];
 
-const BookingNavigator = ({ currentStep, onStepClick }) => {
+const BookingNavigator = ({ currentStep, onStepClick, bookingDetails }) => {
+  // Function to check if a step is accessible
+  const isStepAccessible = (stepId) => {
+    switch (stepId) {
+      case 1:
+        return true; // Step 1 is always accessible
+      case 2:
+        return bookingDetails.console !== null;
+      case 3:
+        return bookingDetails.console !== null &&
+          bookingDetails.psUnit !== null &&
+          bookingDetails.selectedGames.length > 0;
+      case 4:
+        return bookingDetails.console !== null &&
+          bookingDetails.psUnit !== null &&
+          bookingDetails.selectedGames.length > 0 &&
+          bookingDetails.startTime !== null &&
+          bookingDetails.duration > 0;
+      default:
+        return false;
+    }
+  };
+
+  // Function to check if a step is completed
+  const isStepCompleted = (stepId) => {
+    switch (stepId) {
+      case 1:
+        return bookingDetails.console !== null;
+      case 2:
+        return bookingDetails.console !== null &&
+          bookingDetails.psUnit !== null &&
+          bookingDetails.selectedGames.length > 0;
+      case 3:
+        return bookingDetails.console !== null &&
+          bookingDetails.psUnit !== null &&
+          bookingDetails.selectedGames.length > 0 &&
+          bookingDetails.startTime !== null &&
+          bookingDetails.duration > 0;
+      case 4:
+        return currentStep > 4; // Step 4 is completed when we move past it
+      default:
+        return false;
+    }
+  };
+
   return (
     <div className="w-full max-w-3xl mt-8">
       <div className="flex border-b-2 border-base-200">
         {steps.map((step, index) => {
           const isActive = currentStep === step.id;
-          // --- KONDISI BARU DI SINI ---
-          const isCompleted = currentStep > step.id;
+          const isCompleted = isStepCompleted(step.id);
+          const isAccessible = isStepAccessible(step.id);
+          const isDisabled = !isAccessible && !isActive;
 
           return (
             <button
               key={step.id}
-              onClick={() => onStepClick(step.id)}
+              onClick={() => isAccessible && onStepClick(step.id)}
+              disabled={isDisabled}
               className={`flex-1 p-4 transition-all duration-300 ease-in-out border-b-4
                 ${isActive
                   ? "bg-brand-gold text-white border-brand-gold shadow-md -translate-y-1"
                   : isCompleted
-                    ? "bg-transparent text-theme-primary border-transparent" // Gaya untuk langkah yang sudah selesai
-                    : "bg-transparent text-theme-secondary border-transparent hover:bg-theme-secondary" // Gaya untuk langkah yang belum
+                    ? "bg-transparent text-theme-primary border-transparent cursor-pointer"
+                    : isDisabled
+                      ? "bg-transparent text-gray-400 border-transparent cursor-not-allowed opacity-50"
+                      : "bg-transparent text-theme-secondary border-transparent hover:bg-theme-secondary cursor-pointer"
                 }
                 ${index === 0 ? "rounded-tl-lg" : ""}
                 ${index === steps.length - 1 ? "rounded-tr-lg" : ""}

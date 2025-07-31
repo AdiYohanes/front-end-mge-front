@@ -64,7 +64,7 @@ const ConsoleSelection = ({ selectedConsole, onSelectConsole }) => {
           <div
             key={gameConsole.id}
             onClick={() => onSelectConsole(gameConsole)}
-            className={`card bg-base-100 shadow-lg cursor-pointer transition-all duration-300 ${selectedConsole?.id === gameConsole.id
+            className={`card bg-base-100 shadow-lg cursor-pointer transition-all duration-300 ${selectedConsole?.name === gameConsole.name
               ? "border-2 border-brand-gold ring-4 ring-brand-gold/20 -translate-y-2"
               : "border-2 border-transparent hover:border-brand-gold/50"
               }`}
@@ -92,12 +92,12 @@ const ConsoleSelection = ({ selectedConsole, onSelectConsole }) => {
               </p>
               <div className="card-actions mt-4">
                 <button
-                  className={`btn w-full ${selectedConsole?.id === gameConsole.id
+                  className={`btn w-full ${selectedConsole?.name === gameConsole.name
                     ? "bg-brand-gold text-white border-brand-gold"
                     : "btn-outline border-gray-300 hover:bg-brand-gold hover:text-white hover:border-brand-gold"
                     }`}
                 >
-                  {selectedConsole?.id === gameConsole.id ? "Selected" : "Select"}
+                  {selectedConsole?.name === gameConsole.name ? "Selected" : "Select"}
                 </button>
               </div>
             </div>

@@ -9,19 +9,19 @@ const TimeSelection = ({ selectedTime, onTimeSelect, selectedDate }) => {
   // Function to check if time slot is in the past
   const isTimeSlotInPast = (timeString) => {
     const now = new Date();
-    
+
     // If selected date is today, check against current time
     if (selectedDate) {
       const selectedDateStr = selectedDate.toISOString().split('T')[0];
       const today = now.toISOString().split('T')[0];
-      
+
       if (selectedDateStr === today) {
         // Create a Date object for the time slot today
         const timeSlotDate = new Date(`${today}T${timeString}:00`);
         return timeSlotDate < now;
       }
     }
-    
+
     // If it's a future date, no time slots are in the past
     return false;
   };
@@ -31,7 +31,7 @@ const TimeSelection = ({ selectedTime, onTimeSelect, selectedDate }) => {
     const slots = [];
     const startHour = 10; // Start from 10:00
     const endHour = 23; // End at 23:00
-    
+
     for (let hour = startHour; hour <= endHour; hour++) {
       // Add full hour slot (e.g., 10:00, 11:00, etc.)
       const fullHour = hour.toString().padStart(2, '0') + ':00';
@@ -40,7 +40,7 @@ const TimeSelection = ({ selectedTime, onTimeSelect, selectedDate }) => {
         is_available: true,
         is_generated: true
       });
-      
+
       // Add 30-minute slot (e.g., 10:30, 11:30, etc.)
       const halfHour = hour.toString().padStart(2, '0') + ':30';
       slots.push({
@@ -49,7 +49,7 @@ const TimeSelection = ({ selectedTime, onTimeSelect, selectedDate }) => {
         is_generated: true
       });
     }
-    
+
     return slots;
   };
 
@@ -57,13 +57,13 @@ const TimeSelection = ({ selectedTime, onTimeSelect, selectedDate }) => {
   const getAllTimeSlots = () => {
     const apiSlots = timeSlots || [];
     const generatedSlots = generate30MinuteSlots();
-    
+
     // Create a map of existing API slots
     const apiSlotsMap = new Map();
     apiSlots.forEach(slot => {
       apiSlotsMap.set(slot.time, slot);
     });
-    
+
     // Combine slots, prioritizing API slots
     const combinedSlots = generatedSlots.map(generatedSlot => {
       const apiSlot = apiSlotsMap.get(generatedSlot.time);
@@ -72,7 +72,7 @@ const TimeSelection = ({ selectedTime, onTimeSelect, selectedDate }) => {
       }
       return generatedSlot; // Use generated slot if no API slot
     });
-    
+
     return combinedSlots;
   };
 
@@ -85,44 +85,64 @@ const TimeSelection = ({ selectedTime, onTimeSelect, selectedDate }) => {
   }
 
   return (
-    <div className="mt-8 w-full flex flex-col items-center">
-      <h3 className="text-2xl font-minecraft text-theme-primary mb-6">Start Time</h3>
-      <div className="grid grid-cols-3 sm:grid-cols-4 gap-3 max-w-lg w-full">
-        {getAllTimeSlots().map((slot) => {
-          const isPastTime = isTimeSlotInPast(slot.time);
-          const isDisabled = !slot.is_available || isPastTime;
+    <div className="w-full">
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 p-6">
+        <div className="text-center mb-6">
+          <h3 className="text-2xl font-minecraft text-gray-800 dark:text-white mb-2">
+            ⏰ Select Time
+          </h3>
+          <p className="text-sm text-gray-600 dark:text-gray-400">
+            Choose your preferred booking time
+          </p>
+        </div>
 
-          return (
-            <button
-              key={slot.time}
-              onClick={() => onTimeSelect(slot.time)}
-              disabled={isDisabled}
-              className={`btn normal-case font-semibold transition-all duration-200
-                ${selectedTime === slot.time
-                  ? "bg-brand-gold text-white border-brand-gold"
-                  : "bg-transparent border-theme text-theme-primary hover:border-brand-gold"
-                }
-                ${isDisabled
-                  ? "bg-theme-tertiary text-theme-muted border-theme cursor-not-allowed line-through"
-                  : ""
-                }
-                ${slot.is_generated && slot.is_available ? "border-dashed" : ""}
-              `}
-              title={isPastTime ? "Waktu ini sudah lewat" : slot.is_generated ? "Slot 30 menit" : ""}
-            >
-              {slot.time}
-            </button>
-          );
-        })}
-      </div>
-      <div className="text-xs text-theme-secondary mt-4 space-y-1">
-        <p>*Default booking duration is <span className="font-bold">1 hour</span>.</p>
-        <p className="text-blue-500">
-          📅 Time slots tersedia setiap 30 menit (10:00, 10:30, 11:00, 11:30, dst.)
-        </p>
-        <p className="text-red-500">
-          ⚠️ Time slots yang sudah lewat akan otomatis di-disable
-        </p>
+        {status === "loading" && (
+          <div className="flex items-center justify-center mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 dark:border-blue-400 mr-2"></div>
+            <span className="text-sm text-blue-700 dark:text-blue-300">Loading time slots...</span>
+          </div>
+        )}
+
+        <div className="grid grid-cols-3 sm:grid-cols-4 gap-3 max-w-lg w-full mx-auto">
+          {getAllTimeSlots().map((slot) => {
+            const isPastTime = isTimeSlotInPast(slot.time);
+            const isDisabled = !slot.is_available || isPastTime;
+
+            return (
+              <button
+                key={slot.time}
+                onClick={() => onTimeSelect(slot.time)}
+                disabled={isDisabled}
+                className={`btn normal-case font-semibold transition-all duration-200
+                  ${selectedTime === slot.time
+                    ? "bg-brand-gold text-white border-brand-gold"
+                    : "bg-transparent border-gray-300 dark:border-gray-600 text-gray-800 dark:text-white hover:border-brand-gold"
+                  }
+                  ${isDisabled
+                    ? "bg-gray-100 dark:bg-gray-700 text-gray-400 dark:text-gray-500 border-gray-200 dark:border-gray-600 cursor-not-allowed line-through"
+                    : ""
+                  }
+                  ${slot.is_generated && slot.is_available ? "border-dashed" : ""}
+                `}
+                title={isPastTime ? "Waktu ini sudah lewat" : slot.is_generated ? "Slot 30 menit" : ""}
+              >
+                {slot.time}
+              </button>
+            );
+          })}
+        </div>
+
+        <div className="mt-6 text-center">
+          <div className="flex flex-col items-center gap-2 text-xs text-gray-600 dark:text-gray-400">
+            <p>*Default booking duration is <span className="font-bold">1 hour</span>.</p>
+            <p className="text-blue-600 dark:text-blue-400">
+              📅 Time slots tersedia setiap 30 menit (10:00, 10:30, 11:00, 11:30, dst.)
+            </p>
+            <p className="text-red-600 dark:text-red-400">
+              ⚠️ Time slots yang sudah lewat akan otomatis di-disable
+            </p>
+          </div>
+        </div>
       </div>
     </div>
   );

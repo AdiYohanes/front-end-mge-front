@@ -14,7 +14,7 @@ const Navbar = () => {
 
   const handleLogout = () => {
     dispatch(logout());
-    navigate("/login");
+    navigate("/");
   };
 
   const menuItems = (
@@ -103,22 +103,17 @@ const Navbar = () => {
           <ThemeToggle />
           <div className="divider divider-horizontal mx-2"></div>
           {token ? (
-            // DIHAPUS: Kelas bg-black yang tidak perlu dari div ini
-            <div className="dropdown dropdown-end border-2 border-black rounded-lg">
+            <div className="dropdown dropdown-end">
               <label
                 tabIndex={0}
-                className="btn btn-ghost flex items-center gap-2 px-2 border-2 border-black dark:border-white hover:bg-theme-secondary"
+                className="btn bg-brand-gold hover:bg-yellow-600 text-white rounded-none border-2 border-white flex items-center gap-2"
               >
-                <div className="avatar ">
-                  <div className="w-8 rounded-full bg-black">
-                    {user?.avatar ? (
-                      <img src={user.avatar} alt={user.name} />
-                    ) : (
-                      <img src="/images/button-icon.png" alt="Default Avatar" />
-                    )}
-                  </div>
-                </div>
-                <span className="sm:inline font-semibold font-minecraft text-theme-primary">
+                <img
+                  src="/images/button-icon.png"
+                  alt="user"
+                  className="h-6 w-6"
+                />
+                <span className="font-minecraft tracking-widest">
                   {user?.name || "User"}
                 </span>
               </label>

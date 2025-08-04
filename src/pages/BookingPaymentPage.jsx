@@ -36,6 +36,7 @@ const BookingPaymentPage = () => {
   const [useLoginInfo, setUseLoginInfo] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false); // State untuk modal
   const [showTermsModal, setShowTermsModal] = useState(false); // State untuk terms modal
+  const [showPaymentModal, setShowPaymentModal] = useState(false); // State untuk payment modal
 
   useEffect(() => {
     if (!initialBookingDetails) {
@@ -46,7 +47,8 @@ const BookingPaymentPage = () => {
 
   useEffect(() => {
     if (redirectUrl) {
-      window.location.href = redirectUrl;
+      // Buka modal payment dengan iframe Midtrans
+      setShowPaymentModal(true);
     }
   }, [redirectUrl]);
 
@@ -154,6 +156,13 @@ const BookingPaymentPage = () => {
     dispatch(submitBookingThunk(finalData));
   };
 
+  // Handle payment modal close
+  const handleClosePaymentModal = () => {
+    setShowPaymentModal(false);
+    // Optional: Navigate back or show message
+    toast.info("Payment was cancelled");
+  };
+
   if (!bookingDetails) return null;
 
   return (
@@ -190,13 +199,13 @@ const BookingPaymentPage = () => {
               onUseLoginInfoChange={setUseLoginInfo}
               isGuestBooking={isGuestBooking}
             />
-            <div className="form-control">
-              <label className="label">
-                <span className="label-text">Additional Notes (Optional)</span>
-              </label>
+            <div className="flex flex-col space-y-2">
+              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                Additional Notes <span className="text-gray-500">(Optional)</span>
+              </span>
               <textarea
                 id="booking-notes"
-                className="textarea textarea-bordered h-24"
+                className="textarea textarea-bordered h-24 w-full bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 text-gray-800 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:border-brand-gold dark:focus:border-brand-gold focus:outline-none resize-none"
                 placeholder="Request extra controller, etc."
               ></textarea>
             </div>
@@ -225,12 +234,71 @@ const BookingPaymentPage = () => {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onConfirm={handleSubmitBooking}
-        title="Confirm Booking"
-        message="Are you sure you want to proceed with this booking? This action cannot be undone."
+        title="Are you sure you want to continue booking the room?"
+        imageSrc="/images/tanya.png"
         confirmText="Confirm Booking"
-        cancelText="Cancel"
         isLoading={isLoading}
-      />
+      >
+      </ConfirmationModal>
+
+      {/* Payment Modal dengan iframe Midtrans */}
+      {showPaymentModal && redirectUrl && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-4xl h-[80vh] flex flex-col">
+            {/* Header */}
+            <div className="flex items-center justify-between p-6 border-b border-gray-200">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 bg-brand-gold rounded-full flex items-center justify-center">
+                  <span className="text-white font-bold">💳</span>
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold text-gray-800">Payment Gateway</h3>
+                  <p className="text-sm text-gray-600">Complete your payment securely</p>
+                </div>
+              </div>
+              <button
+                onClick={handleClosePaymentModal}
+                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                <svg className="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            {/* iframe Container */}
+            <div className="flex-1 p-6">
+              <div className="w-full h-full rounded-lg overflow-hidden border border-gray-200">
+                <iframe
+                  src={redirectUrl}
+                  className="w-full h-full"
+                  title="Payment Gateway"
+                  frameBorder="0"
+                  allow="payment"
+                />
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="p-6 border-t border-gray-200 bg-gray-50">
+              <div className="flex items-center justify-between text-sm text-gray-600">
+                <div className="flex items-center gap-2">
+                  <svg className="w-4 h-4 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
+                  </svg>
+                  <span>Secure Payment</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <svg className="w-4 h-4 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                  </svg>
+                  <span>Powered by Midtrans</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 };

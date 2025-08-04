@@ -27,7 +27,7 @@ Project ini telah diimplementasikan dengan dukungan dark mode yang sederhana dan
   --bg-primary: #ffffff;
   --bg-secondary: #f8fafc;
   --bg-tertiary: #f1f5f9;
-  --text-primary: #1e293b;
+  --text-primary: #000000;
   --text-secondary: #64748b;
   --text-muted: #94a3b8;
   --border-color: #e2e8f0;
@@ -36,7 +36,7 @@ Project ini telah diimplementasikan dengan dukungan dark mode yang sederhana dan
 
 [data-theme="dark"] {
   --bg-primary: #0f172a;
-  --bg-secondary: #1e293b;
+  --bg-secondary: #000000;
   --bg-tertiary: #334155;
   --text-primary: #f1f5f9;
   --text-secondary: #cbd5e1;

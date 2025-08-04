@@ -10,6 +10,7 @@ const ConfirmationModal = ({
   confirmText,
   imageSrc,
   children,
+  isLoading = false,
 }) => {
   if (!isOpen) return null;
 
@@ -36,11 +37,23 @@ const ConfirmationModal = ({
         <div className="space-y-2">
           <button
             onClick={onConfirm}
-            className="btn bg-brand-gold text-white w-full"
+            disabled={isLoading}
+            className="btn bg-brand-gold text-white w-full disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {confirmText}
+            {isLoading ? (
+              <div className="flex items-center gap-2">
+                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                Processing...
+              </div>
+            ) : (
+              confirmText
+            )}
           </button>
-          <button onClick={onClose} className="btn btn-ghost w-full">
+          <button
+            onClick={onClose}
+            disabled={isLoading}
+            className="btn btn-ghost w-full disabled:opacity-50 disabled:cursor-not-allowed"
+          >
             Change details
           </button>
         </div>

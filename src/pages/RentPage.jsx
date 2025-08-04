@@ -36,11 +36,11 @@ const RentPage = () => {
     selectedGames: [],
     date: new Date(),
     startTime: null,
-    duration: 1,
+    duration: null,
     foodAndDrinks: [],
     notes: "",
     subtotal: 0,
-    numberOfPeople: 1,
+    numberOfPeople: null,
   });
   const [currentStep, setCurrentStep] = useState(1);
   const pageRef = useRef(null);
@@ -193,7 +193,7 @@ const RentPage = () => {
   const handleDurationChange = (e) => {
     setBookingDetails((prev) => ({
       ...prev,
-      duration: parseInt(e.target.value, 10),
+      duration: e.target.value ? parseInt(e.target.value, 10) : null,
     }));
   };
 
@@ -287,7 +287,7 @@ const RentPage = () => {
               <div className="flex justify-center mt-8">
                 <button
                   onClick={handleNextToStep2}
-                  className="btn bg-brand-gold hover:bg-brand-gold/80 text-white font-minecraft tracking-wider text-lg px-8 py-3 transition-all duration-300 transform hover:scale-105 shadow-lg"
+                  className="btn w-full bg-brand-gold hover:bg-brand-gold/80 text-white font-minecraft tracking-wider text-lg px-8 py-3 transition-all duration-300 transform hover:scale-105 shadow-lg"
                 >
                   Next Step →
                 </button>
@@ -307,12 +307,12 @@ const RentPage = () => {
               </label>
               <select
                 id="people-select"
-                className="select select-bordered select-primary"
-                value={bookingDetails.numberOfPeople}
+                className="select select-bordered  border-brand-gold focus:border-brand-gold focus:outline-none cursor-pointer"
+                value={bookingDetails.numberOfPeople || ""}
                 onChange={(e) =>
                   setBookingDetails((prev) => ({
                     ...prev,
-                    numberOfPeople: parseInt(e.target.value),
+                    numberOfPeople: e.target.value ? parseInt(e.target.value) : null,
                     roomType: null,
                     psUnit: null,
                     selectedGames: [],
@@ -320,6 +320,9 @@ const RentPage = () => {
                   }))
                 }
               >
+                <option value="" disabled>
+                  Select number of people
+                </option>
                 {[...Array(10)].map((_, i) => (
                   <option key={i + 1} value={i + 1}>
                     {i + 1} {i > 0 ? "People" : "Person"}
@@ -372,7 +375,7 @@ const RentPage = () => {
                   <div className="flex justify-center mt-8">
                     <button
                       onClick={handleNextToStep3}
-                      className="btn bg-brand-gold hover:bg-brand-gold/80 text-white font-minecraft tracking-wider text-lg px-8 py-3 transition-all duration-300 transform hover:scale-105 shadow-lg"
+                      className="btn w-full bg-brand-gold hover:bg-brand-gold/80 text-white font-minecraft tracking-wider text-lg px-8 py-3 transition-all duration-300 transform hover:scale-105 shadow-lg"
                     >
                       Next Step →
                     </button>
@@ -388,8 +391,8 @@ const RentPage = () => {
             {/* Date and Time Selection Container */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
               {/* Date Selection */}
-              <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200">
-                <h3 className="text-2xl font-minecraft text-theme-primary mb-4 text-center">
+              <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border border-gray-200 dark:border-gray-700">
+                <h3 className="text-2xl font-minecraft text-gray-800 dark:text-black mb-4 text-center">
                   📅 Choose Date
                 </h3>
                 <DateSelection
@@ -400,8 +403,8 @@ const RentPage = () => {
               </div>
 
               {/* Time Selection */}
-              <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200">
-                <h3 className="text-2xl font-minecraft text-theme-primary mb-4 text-center">
+              <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border border-gray-200 dark:border-gray-700">
+                <h3 className="text-2xl font-minecraft text-gray-800 dark:text-black mb-4 text-center">
                   ⏰ Choose Time
                 </h3>
                 {bookingDetails.date ? (
@@ -425,30 +428,33 @@ const RentPage = () => {
             {/* Duration and Next Step */}
             {bookingDetails.startTime && (
               <div className="w-full">
-                <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200">
+                <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border border-gray-200 dark:border-gray-700">
                   {/* Duration Selection - Full Width */}
                   <div className="w-full mb-6">
                     <div className="flex flex-col lg:flex-row items-center justify-center gap-4 mb-4">
                       <label
                         htmlFor="duration-select"
-                        className="text-2xl font-semibold text-theme-primary flex items-center gap-2"
+                        className="text-2xl font-semibold text-gray-800 dark:text-black flex items-center gap-2"
                       >
                         <FaClock /> Duration :
                       </label>
                       <select
                         id="duration-select"
-                        className="select select-bordered select-lg min-w-[200px]"
-                        value={bookingDetails.duration}
+                        className="select select-bordered select-lg min-w-[200px] bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-800 dark:text-white focus:border-brand-gold dark:focus:border-brand-gold cursor-pointer"
+                        value={bookingDetails.duration || ""}
                         onChange={handleDurationChange}
                       >
+                        <option value="" disabled>
+                          Select duration
+                        </option>
                         {[...Array(12)].map((_, i) => (
-                          <option key={i + 1} value={i + 1}>
+                          <option key={i + 1} value={i + 1} className="bg-white  dark:bg-gray-700 text-gray-800 dark:text-white">
                             {i + 1} {i > 0 ? "Hours" : "Hour"}
                           </option>
                         ))}
                       </select>
                     </div>
-                    <p className="text-xs text-theme-secondary text-center">
+                    <p className="text-xs text-gray-600 dark:text-gray-400 text-center">
                       *Default booking duration is{" "}
                       <span className="font-bold">1 hour</span>.<br />
                       Every additional hour will cost{" "}
@@ -460,7 +466,7 @@ const RentPage = () => {
                   <div className="flex justify-center">
                     <button
                       onClick={handleNextToStep4}
-                      className="btn bg-brand-gold hover:bg-brand-gold/80 text-white font-minecraft tracking-wider text-lg px-8 py-3 transition-all duration-300 transform hover:scale-105 shadow-lg"
+                      className="btn w-full bg-brand-gold hover:bg-brand-gold/80 text-white font-minecraft tracking-wider text-lg px-8 py-3 transition-all duration-300 transform hover:scale-105 shadow-lg"
                     >
                       Next Step →
                     </button>

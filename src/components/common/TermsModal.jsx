@@ -51,7 +51,7 @@ const TermsModal = ({ isOpen, onClose, onAccept, title = "Terms & Conditions" })
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
             <div className="bg-white rounded-xl shadow-2xl max-w-5xl w-full max-h-[90vh] flex flex-col border border-gray-200">
                 {/* Header */}
                 <div className="border-b border-gray-200 bg-gradient-to-r from-brand-gold/5 to-yellow-50/50">

@@ -61,7 +61,7 @@ const Login = () => {
           <div className="form-control">
             <label className="label py-1" htmlFor="username">
               <span className="label-text text-sm">
-                Username<span className="text-red-500">*</span>
+                Username/Phone/Email<span className="text-red-500">*</span>
               </span>
             </label>
             <input

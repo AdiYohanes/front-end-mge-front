@@ -220,13 +220,13 @@ const Register = () => {
           <div className="form-control">
             <label className="label py-1" htmlFor="email">
               <span className="label-text text-sm">
-                Email
+                Email <span className="text-gray-500">(Optional)</span>
               </span>
             </label>
             <input
               id="email"
               type="email"
-              placeholder="ex: user@gmail.com"
+              placeholder="ex: user@gmail.com (optional)"
               className={`input input-sm input-bordered w-full ${errors.email || apiErrors.email ? "input-error" : ""
                 }`}
               value={email}

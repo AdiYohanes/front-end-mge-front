@@ -220,7 +220,7 @@ const Register = () => {
           <div className="form-control">
             <label className="label py-1" htmlFor="email">
               <span className="label-text text-sm">
-                Email<span className="text-red-500">*</span>
+                Email
               </span>
             </label>
             <input

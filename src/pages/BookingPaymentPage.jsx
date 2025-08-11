@@ -37,6 +37,28 @@ const BookingPaymentPage = () => {
   const [isModalOpen, setIsModalOpen] = useState(false); // State untuk modal
   const [showTermsModal, setShowTermsModal] = useState(false); // State untuk terms modal
   const [showPaymentModal, setShowPaymentModal] = useState(false); // State untuk payment modal
+  const [showExitWarning, setShowExitWarning] = useState(false); // State untuk exit warning modal
+
+  // Handle browser back button and page refresh
+  useEffect(() => {
+    const handleBeforeUnload = (e) => {
+      e.preventDefault();
+      e.returnValue = '';
+    };
+
+    const handlePopState = (e) => {
+      e.preventDefault();
+      setShowExitWarning(true);
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    window.addEventListener('popstate', handlePopState);
+
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      window.removeEventListener('popstate', handlePopState);
+    };
+  }, []);
 
   useEffect(() => {
     if (!initialBookingDetails) {
@@ -163,11 +185,34 @@ const BookingPaymentPage = () => {
     toast.info("Payment was cancelled");
   };
 
+  // Handle exit warning modal
+  const handleContinueBooking = () => {
+    setShowExitWarning(false);
+  };
+
+  const handleExitPage = () => {
+    setShowExitWarning(false);
+    navigate("/rent");
+  };
+
   if (!bookingDetails) return null;
 
   return (
     <>
       <div className="container mx-auto px-4 py-16 lg:py-24">
+        {/* Back Button */}
+        <div className="mb-8">
+          <button
+            onClick={() => setShowExitWarning(true)}
+            className="btn btn-ghost text-gray-600 hover:text-gray-800 flex items-center gap-2"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+            Back to Booking
+          </button>
+        </div>
+
         <div className="text-center mb-12">
           <h1 className="text-4xl lg:text-5xl font-minecraft">
             Payment Details
@@ -205,7 +250,7 @@ const BookingPaymentPage = () => {
               </span>
               <textarea
                 id="booking-notes"
-                className="textarea textarea-bordered h-24 w-full bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 text-gray-800 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:border-brand-gold dark:focus:border-brand-gold focus:outline-none resize-none"
+                className="textarea textarea-bordered h-24 w-full bg-white border-gray-300 text-black placeholder-gray-500 focus:border-brand-gold focus:outline-none resize-none"
                 placeholder="Request extra controller, etc."
               ></textarea>
             </div>
@@ -240,6 +285,46 @@ const BookingPaymentPage = () => {
         isLoading={isLoading}
       >
       </ConfirmationModal>
+
+      {/* Exit Warning Modal - Menggunakan struktur ConfirmationModal */}
+      {showExitWarning && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          {/* Modal Content */}
+          <div className="bg-base-100 rounded-lg shadow-xl w-full max-w-sm text-center p-6">
+            {/* Gambar Kustom di Atas - Sama dengan ConfirmationModal */}
+            <div className="flex justify-center mb-4">
+              <img
+                src="/images/tanya.png"
+                alt="warning icon"
+                className="h-16 w-auto"
+              />
+            </div>
+
+            {/* Judul & Children (Isi Pesan) */}
+            <h3 className="text-lg font-bold mb-2">Exit Warning</h3>
+            <div className="text-sm text-gray-500 mb-6">
+              <p className="mb-2">Are you sure you want to exit this page?</p>
+              <p className="font-semibold">Your booking process won't be saved.</p>
+            </div>
+
+            {/* Tombol Aksi */}
+            <div className="space-y-2">
+              <button
+                onClick={handleContinueBooking}
+                className="btn bg-brand-gold text-white w-full"
+              >
+                Continue Booking
+              </button>
+              <button
+                onClick={handleExitPage}
+                className="btn btn-ghost w-full"
+              >
+                Exit
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Payment Modal dengan iframe Midtrans */}
       {showPaymentModal && redirectUrl && (

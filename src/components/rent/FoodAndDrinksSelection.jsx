@@ -60,8 +60,8 @@ const FoodAndDrinksSelection = ({
         <button
           onClick={() => dispatch(setSelectedCategory("all"))}
           className={`btn btn-sm capitalize ${selectedCategory === "all"
-              ? "bg-brand-gold text-white"
-              : "btn-ghost"
+            ? "bg-brand-gold text-white"
+            : "btn-ghost"
             }`}
         >
           All
@@ -71,8 +71,8 @@ const FoodAndDrinksSelection = ({
             key={cat.id}
             onClick={() => dispatch(setSelectedCategory(cat.category))}
             className={`btn btn-sm capitalize ${selectedCategory === cat.category
-                ? "bg-brand-gold text-white"
-                : "btn-ghost"
+              ? "bg-brand-gold text-white"
+              : "btn-ghost"
               }`}
           >
             {cat.category}
@@ -99,8 +99,8 @@ const FoodAndDrinksSelection = ({
                 <div
                   key={item.id}
                   className={`card card-side bg-base-100 shadow-lg transition-all duration-300 ${quantity > 0
-                      ? "border-2 border-brand-gold"
-                      : "border-2 border-transparent"
+                    ? "border-2 border-brand-gold"
+                    : "border-2 border-transparent"
                     }`}
                 >
                   <figure className="w-1/3">
@@ -146,7 +146,7 @@ const FoodAndDrinksSelection = ({
           <div className="text-center mt-12">
             <button
               onClick={onNextStep}
-              className="btn bg-brand-gold text-white font-minecraft tracking-wider"
+              className="btn w-full bg-brand-gold text-white font-minecraft tracking-wider"
             >
               Next Step
             </button>

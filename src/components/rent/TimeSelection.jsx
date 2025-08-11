@@ -86,20 +86,20 @@ const TimeSelection = ({ selectedTime, onTimeSelect, selectedDate }) => {
 
   return (
     <div className="w-full">
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 p-6">
+      <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
         <div className="text-center mb-6">
-          <h3 className="text-2xl font-minecraft text-gray-800 dark:text-white mb-2">
+          <h3 className="text-2xl font-minecraft text-black mb-2">
             ⏰ Select Time
           </h3>
-          <p className="text-sm text-gray-600 dark:text-gray-400">
+          <p className="text-sm text-black">
             Choose your preferred booking time
           </p>
         </div>
 
         {status === "loading" && (
-          <div className="flex items-center justify-center mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
-            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 dark:border-blue-400 mr-2"></div>
-            <span className="text-sm text-blue-700 dark:text-blue-300">Loading time slots...</span>
+          <div className="flex items-center justify-center mb-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
+            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mr-2"></div>
+            <span className="text-sm text-blue-700">Loading time slots...</span>
           </div>
         )}
 
@@ -116,10 +116,10 @@ const TimeSelection = ({ selectedTime, onTimeSelect, selectedDate }) => {
                 className={`btn normal-case font-semibold transition-all duration-200
                   ${selectedTime === slot.time
                     ? "bg-brand-gold text-white border-brand-gold"
-                    : "bg-transparent border-gray-300 dark:border-gray-600 text-gray-800 dark:text-white hover:border-brand-gold"
+                    : "bg-transparent border-gray-300 text-black hover:border-brand-gold"
                   }
                   ${isDisabled
-                    ? "bg-gray-100 dark:bg-gray-700 text-gray-400 dark:text-gray-500 border-gray-200 dark:border-gray-600 cursor-not-allowed line-through"
+                    ? "bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed line-through"
                     : ""
                   }
                   ${slot.is_generated && slot.is_available ? "border-dashed" : ""}
@@ -133,14 +133,8 @@ const TimeSelection = ({ selectedTime, onTimeSelect, selectedDate }) => {
         </div>
 
         <div className="mt-6 text-center">
-          <div className="flex flex-col items-center gap-2 text-xs text-gray-600 dark:text-gray-400">
+          <div className="flex flex-col items-center gap-2 text-xs text-black">
             <p>*Default booking duration is <span className="font-bold">1 hour</span>.</p>
-            <p className="text-blue-600 dark:text-blue-400">
-              📅 Time slots tersedia setiap 30 menit (10:00, 10:30, 11:00, 11:30, dst.)
-            </p>
-            <p className="text-red-600 dark:text-red-400">
-              ⚠️ Time slots yang sudah lewat akan otomatis di-disable
-            </p>
           </div>
         </div>
       </div>

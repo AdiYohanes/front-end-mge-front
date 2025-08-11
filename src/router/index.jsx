@@ -6,6 +6,7 @@ import { Toaster } from "react-hot-toast";
 // Layouts
 import AuthLayout from "../components/layout/AuthLayout";
 import MainLayout from "../components/layout/MainLayout";
+import ScrollToTop from "../components/common/ScrollToTop";
 
 // Auth Pages
 import Login from "../features/auth/pages/Login";
@@ -31,6 +32,7 @@ import BookingCancelledPage from "../pages/BookingCancelledPage";
 const AppRouter = () => {
   return (
     <BrowserRouter>
+      <ScrollToTop />
       <Toaster position="top-center" reverseOrder={false} />
       <Routes>
         {/* Rute Autentikasi */}

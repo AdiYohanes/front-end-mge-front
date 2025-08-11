@@ -1,9 +1,13 @@
 import React, { useEffect, useRef } from "react";
 import { Outlet, Link } from "react-router";
 import { gsap } from "gsap";
+import useScrollToTop from "../../utils/useScrollToTop";
 
 const AuthLayout = () => {
   const imageUrl = "/images/authbanner.png";
+
+  // Hook untuk scroll ke atas setiap kali route berubah
+  useScrollToTop();
 
   // Ref untuk menampung elemen yang akan dianimasikan
   const decorationRef = useRef(null);

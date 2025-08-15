@@ -59,6 +59,7 @@ const BookingItem = ({ booking, onViewDetails }) => {
 const BookingHistoryPage = () => {
   const [activeTab, setActiveTab] = useState("active");
   const [searchQuery, setSearchQuery] = useState("");
+  const [sortFilter, setSortFilter] = useState("newest");
 
   const dispatch = useDispatch();
   const { bookings, status, selectedBookingDetail } = useSelector(
@@ -93,8 +94,26 @@ const BookingHistoryPage = () => {
         past.push(booking);
       }
     });
-    return { activeBookings: active, pastBookings: past };
-  }, [bookings, searchQuery]);
+
+    // Sort bookings based on selected filter
+    const sortBookings = (bookingsList) => {
+      return [...bookingsList].sort((a, b) => {
+        const dateA = new Date(a.start_time);
+        const dateB = new Date(b.start_time);
+
+        if (sortFilter === "newest") {
+          return dateB - dateA; // Newest first (descending)
+        } else {
+          return dateA - dateB; // Oldest first (ascending)
+        }
+      });
+    };
+
+    return {
+      activeBookings: sortBookings(active),
+      pastBookings: sortBookings(past)
+    };
+  }, [bookings, searchQuery, sortFilter]);
 
   const currentBookings =
     activeTab === "active" ? activeBookings : pastBookings;
@@ -156,10 +175,20 @@ const BookingHistoryPage = () => {
                 className="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-52 z-10"
               >
                 <li>
-                  <a>Newest</a>
+                  <a
+                    onClick={() => setSortFilter("newest")}
+                    className={sortFilter === "newest" ? "active" : ""}
+                  >
+                    Newest
+                  </a>
                 </li>
                 <li>
-                  <a>Oldest</a>
+                  <a
+                    onClick={() => setSortFilter("oldest")}
+                    className={sortFilter === "oldest" ? "active" : ""}
+                  >
+                    Oldest
+                  </a>
                 </li>
               </ul>
             </div>

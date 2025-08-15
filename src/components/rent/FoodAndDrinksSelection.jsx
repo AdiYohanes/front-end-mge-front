@@ -148,7 +148,7 @@ const FoodAndDrinksSelection = ({
               onClick={onNextStep}
               className="btn w-full bg-brand-gold text-white font-minecraft tracking-wider"
             >
-              Next Step
+              Continue to Payment
             </button>
           </div>
         </>

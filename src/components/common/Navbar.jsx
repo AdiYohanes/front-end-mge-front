@@ -48,7 +48,7 @@ const Navbar = () => {
         <div className="navbar-start">
           {/* Dropdown untuk Tampilan Mobile */}
           <div className="dropdown">
-            <label tabIndex={0} className="btn btn-ghost lg:hidden  hover:bg-theme-secondary">
+            <label tabIndex={0} className="btn btn-ghost lg:hidden rounded hover:bg-theme-secondary">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 className="h-6 w-6"
@@ -89,7 +89,7 @@ const Navbar = () => {
           {/* LOGO UNTUK TAMPILAN DESKTOP (lg) - disembunyikan di mobile */}
           <Link
             to="/"
-            className="btn btn-ghost normal-case text-xl hidden lg:flex hover:bg-theme-secondary"
+            className="btn btn-ghost normal-case text-xl hidden lg:flex rounded hover:bg-theme-secondary"
           >
             <img src="/images/logo.png" alt="Logo" className="h-10 w-auto" />
           </Link>
@@ -106,7 +106,7 @@ const Navbar = () => {
             <div className="dropdown dropdown-end">
               <label
                 tabIndex={0}
-                className="btn bg-brand-gold hover:bg-yellow-600 text-white rounded-none border-2 border-white flex items-center gap-2"
+                className="btn bg-brand-gold hover:bg-yellow-600 text-white rounded border-2 border-white flex items-center gap-2"
               >
                 <img
                   src="/images/button-icon.png"
@@ -141,7 +141,7 @@ const Navbar = () => {
           ) : (
             <Link
               to="/login"
-              className="btn bg-brand-gold hover:bg-yellow-600 text-white rounded-none border-2 border-white"
+              className="btn bg-brand-gold hover:bg-yellow-600 text-white rounded border-2 border-white"
             >
               <img
                 src="/images/button-icon.png"

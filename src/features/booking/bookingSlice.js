@@ -69,9 +69,17 @@ const bookingSlice = createSlice({
         state.promoValidation.error = null;
       })
       .addCase(validatePromoThunk.fulfilled, (state, action) => {
-        state.promoValidation.status = "succeeded";
-        state.promoValidation.promoData = action.payload.data[0] || null;
-        state.promoValidation.error = null;
+        // Check if data array exists and has items
+        if (action.payload.data && action.payload.data.length > 0) {
+          state.promoValidation.status = "succeeded";
+          state.promoValidation.promoData = action.payload.data[0];
+          state.promoValidation.error = null;
+        } else {
+          // No promo codes found - treat as failed
+          state.promoValidation.status = "failed";
+          state.promoValidation.promoData = null;
+          state.promoValidation.error = "Kode promo tidak lagi tersedia";
+        }
       })
       .addCase(validatePromoThunk.rejected, (state, action) => {
         state.promoValidation.status = "failed";

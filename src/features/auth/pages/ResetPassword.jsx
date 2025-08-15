@@ -90,9 +90,8 @@ const ResetPassword = () => {
               id="password"
               type="password"
               placeholder="Enter new password"
-              className={`input input-bordered w-full ${
-                errors.password ? "input-error" : ""
-              }`}
+              className={`input input-bordered w-full ${errors.password ? "input-error" : ""
+                }`}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               disabled={isLoading}
@@ -113,9 +112,8 @@ const ResetPassword = () => {
               id="confirmPassword"
               type="password"
               placeholder="Confirm new password"
-              className={`input input-bordered w-full ${
-                errors.confirmPassword ? "input-error" : ""
-              }`}
+              className={`input input-bordered w-full ${errors.confirmPassword ? "input-error" : ""
+                }`}
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               disabled={isLoading}

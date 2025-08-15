@@ -38,6 +38,8 @@ const BookingPaymentPage = () => {
   const [showTermsModal, setShowTermsModal] = useState(false); // State untuk terms modal
   const [showPaymentModal, setShowPaymentModal] = useState(false); // State untuk payment modal
   const [showExitWarning, setShowExitWarning] = useState(false); // State untuk exit warning modal
+  const [showPromoModal, setShowPromoModal] = useState(false); // State untuk promo modal
+  const [promoModalMessage, setPromoModalMessage] = useState(""); // State untuk pesan promo modal
 
   // Handle browser back button and page refresh
   useEffect(() => {
@@ -82,6 +84,9 @@ const BookingPaymentPage = () => {
 
   // Handle promo validation response
   useEffect(() => {
+    console.log("Promo validation status:", promoValidation.status); // Debug log
+    console.log("Promo validation data:", promoValidation.promoData); // Debug log
+
     if (promoValidation.status === "succeeded" && promoValidation.promoData) {
       const promo = promoValidation.promoData;
       if (promo.is_active) {
@@ -95,10 +100,14 @@ const BookingPaymentPage = () => {
         }));
         toast.success(`Voucher "${promo.name}" applied! ${promo.percentage}% discount`);
       } else {
-        toast.error("This promo code is not active");
+        // Show modal for inactive promo code
+        setPromoModalMessage("This promo code is not active");
+        setShowPromoModal(true);
       }
     } else if (promoValidation.status === "failed") {
-      toast.error(promoValidation.error || "Invalid promo code");
+      // Show modal for promo code not found or API error
+      setPromoModalMessage(promoValidation.error || "Kode promo tidak lagi tersedia");
+      setShowPromoModal(true);
     }
   }, [promoValidation, bookingDetails.subtotal]);
 
@@ -115,6 +124,8 @@ const BookingPaymentPage = () => {
       toast.error("Please enter a promo code");
       return;
     }
+
+    console.log("Applying promo code:", promoCode.trim().toUpperCase()); // Debug log
 
     // Clear previous validation
     dispatch(clearPromoValidation());
@@ -226,7 +237,7 @@ const BookingPaymentPage = () => {
           )}
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
-          <form onSubmit={handleProceed} className="lg:order-1 space-y-6">
+          <div className="lg:order-1 space-y-6">
             {isGuestBooking && (
               <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
                 <h3 className="text-lg font-semibold text-blue-800 mb-2">
@@ -254,13 +265,8 @@ const BookingPaymentPage = () => {
                 placeholder="Request extra controller, etc."
               ></textarea>
             </div>
-            <button
-              type="submit"
-              className="btn w-full bg-brand-gold text-white font-minecraft tracking-wider text-lg hover:bg-yellow-600"
-            >
-              Proceed to Payment
-            </button>
-          </form>
+          </div>
+
           <div className="lg:order-2">
             <BookingSummary
               details={bookingDetails}
@@ -271,6 +277,16 @@ const BookingPaymentPage = () => {
               isPromoLoading={promoValidation.status === "loading"}
             />
           </div>
+        </div>
+
+        {/* Proceed to Payment Button - Full Width at Bottom */}
+        <div className="mt-12">
+          <button
+            onClick={handleProceed}
+            className="btn w-full bg-brand-gold text-white font-minecraft tracking-wider text-lg hover:bg-yellow-600 transition-all duration-300 transform hover:scale-105 shadow-lg"
+          >
+            Proceed to Payment
+          </button>
         </div>
       </div>
 
@@ -326,62 +342,57 @@ const BookingPaymentPage = () => {
         </div>
       )}
 
-      {/* Payment Modal dengan iframe Midtrans */}
-      {showPaymentModal && redirectUrl && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-          <div className="bg-white rounded-xl shadow-2xl w-full max-w-4xl h-[80vh] flex flex-col">
-            {/* Header */}
-            <div className="flex items-center justify-between p-6 border-b border-gray-200">
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 bg-brand-gold rounded-full flex items-center justify-center">
-                  <span className="text-white font-bold">💳</span>
-                </div>
-                <div>
-                  <h3 className="text-xl font-bold text-gray-800">Payment Gateway</h3>
-                  <p className="text-sm text-gray-600">Complete your payment securely</p>
-                </div>
-              </div>
-              <button
-                onClick={handleClosePaymentModal}
-                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-              >
-                <svg className="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
+      {/* Promo Code Modal */}
+      {showPromoModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-base-100 rounded-lg shadow-xl w-full max-w-sm text-center p-6">
+            {/* Warning Icon */}
+            <div className="flex justify-center mb-4">
+              <img
+                src="/images/tanya.png"
+                alt="warning icon"
+                className="h-16 w-auto"
+              />
             </div>
 
-            {/* iframe Container */}
-            <div className="flex-1 p-6">
-              <div className="w-full h-full rounded-lg overflow-hidden border border-gray-200">
-                <iframe
-                  src={redirectUrl}
-                  className="w-full h-full"
-                  title="Payment Gateway"
-                  frameBorder="0"
-                  allow="payment"
-                />
-              </div>
+            {/* Message */}
+            <h3 className="text-lg font-bold mb-2">Promo Code Error</h3>
+            <div className="text-sm text-gray-500 mb-6">
+              <p>{promoModalMessage}</p>
             </div>
 
-            {/* Footer */}
-            <div className="p-6 border-t border-gray-200 bg-gray-50">
-              <div className="flex items-center justify-between text-sm text-gray-600">
-                <div className="flex items-center gap-2">
-                  <svg className="w-4 h-4 text-green-500" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
-                  </svg>
-                  <span>Secure Payment</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <svg className="w-4 h-4 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
-                  </svg>
-                  <span>Powered by Midtrans</span>
-                </div>
-              </div>
-            </div>
+            {/* Close Button */}
+            <button
+              onClick={() => setShowPromoModal(false)}
+              className="btn bg-brand-gold text-white w-full"
+            >
+              OK
+            </button>
           </div>
+        </div>
+      )}
+
+      {/* Payment Modal dengan iframe Midtrans - Full Screen */}
+      {showPaymentModal && redirectUrl && (
+        <div className="fixed inset-0 z-50 bg-white">
+          {/* Close Button - Minimal */}
+          <button
+            onClick={handleClosePaymentModal}
+            className="absolute top-4 right-4 z-10 p-2 bg-white/80 hover:bg-white rounded-full shadow-lg transition-colors"
+          >
+            <svg className="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+
+          {/* iframe Midtrans - Full Screen */}
+          <iframe
+            src={redirectUrl}
+            className="w-full h-full"
+            title="Payment Gateway"
+            frameBorder="0"
+            allow="payment"
+          />
         </div>
       )}
     </>

@@ -38,10 +38,10 @@ const PersonalInfoForm = ({
 
   return (
     <div className="bg-white border border-gray-200 rounded-lg shadow-sm p-6 w-full">
-      <h2 className="text-xl font-semibold text-gray-900 mb-1">
+      <h2 className="text-xl font-semibold text-gray-900 mb-1 text-left">
         Personal Information
       </h2>
-      <p className="text-sm text-gray-600 mb-6">
+      <p className="text-sm text-gray-600 mb-6 text-left">
         Please provide your contact details.
       </p>
 
@@ -88,7 +88,7 @@ const PersonalInfoForm = ({
       <div className="space-y-4">
         {/* Full Name */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-medium text-gray-700 mb-1 text-left">
             Full Name *
           </label>
           <div className="relative">
@@ -106,7 +106,7 @@ const PersonalInfoForm = ({
         </div>
         {/* Email */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-medium text-gray-700 mb-1 text-left">
             Email Address *
           </label>
           <div className="relative">
@@ -124,7 +124,7 @@ const PersonalInfoForm = ({
         </div>
         {/* Phone Number */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-medium text-gray-700 mb-1 text-left">
             Phone Number *
           </label>
           <div className="relative">

@@ -74,9 +74,8 @@ const ChangePasswordForm = () => {
               value={formData.password}
               onChange={handleChange}
               placeholder="Enter new password"
-              className={`input input-bordered w-full pl-12 pr-10 focus:border-brand-gold focus:ring-brand-gold ${
-                errors.password ? "input-error" : ""
-              }`}
+              className={`input input-bordered w-full pr-10 focus:border-brand-gold focus:ring-brand-gold ${errors.password ? "input-error" : ""
+                }`}
             />
             <button
               type="button"
@@ -108,9 +107,8 @@ const ChangePasswordForm = () => {
               value={formData.password_confirmation}
               onChange={handleChange}
               placeholder="Confirm new password"
-              className={`input input-bordered w-full pl-12 pr-10 focus:border-brand-gold focus:ring-brand-gold ${
-                errors.password_confirmation ? "input-error" : ""
-              }`}
+              className={`input input-bordered w-full  pr-10 focus:border-brand-gold focus:ring-brand-gold ${errors.password_confirmation ? "input-error" : ""
+                }`}
             />
             <button
               type="button"
@@ -131,9 +129,8 @@ const ChangePasswordForm = () => {
         <div className="card-actions justify-end pt-4">
           <button
             type="submit"
-            className={`btn bg-brand-gold text-white w-full sm:w-auto ${
-              isLoading ? "loading" : ""
-            }`}
+            className={`btn bg-brand-gold text-white w-full sm:w-auto ${isLoading ? "loading" : ""
+              }`}
             disabled={isLoading}
           >
             {isLoading ? "Saving..." : "Save Changes"}

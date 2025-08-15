@@ -32,19 +32,10 @@ const DateSelection = ({ unitId, selectedDate, onDateSelect }) => {
 
   return (
     <div className="w-full">
-      <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
-        <div className="text-center mb-6">
-          <h3 className="text-2xl font-minecraft text-black mb-2">
-            📅 Select Date
-          </h3>
-          <p className="text-sm text-black">
-            Choose your preferred booking date
-          </p>
-        </div>
-
+      <div className="bg-white rounded-xl  p-6">
         {status === "loading" && (
-          <div className="flex items-center justify-center mb-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
-            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mr-2"></div>
+          <div className="flex items-center justify-center mb-4 p-3 bg-blue-50 rounded-lg ">
+            <div className="animate-spin rounded-full h-4 w-4 mr-2"></div>
             <span className="text-sm text-blue-700">Checking availability...</span>
           </div>
         )}

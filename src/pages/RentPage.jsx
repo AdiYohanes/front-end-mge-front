@@ -476,14 +476,16 @@ const RentPage = () => {
                   </div>
 
                   {/* Next Step Button - Centered */}
-                  <div className="flex justify-center">
-                    <button
-                      onClick={handleNextToStep4}
-                      className="btn w-full bg-brand-gold hover:bg-brand-gold/80 text-white font-minecraft tracking-wider text-lg px-8 py-3 transition-all duration-300 transform hover:scale-105 shadow-lg"
-                    >
-                      Next Step →
-                    </button>
-                  </div>
+                  {bookingDetails.duration && (
+                    <div className="flex justify-center">
+                      <button
+                        onClick={handleNextToStep4}
+                        className="btn w-full bg-brand-gold hover:bg-brand-gold/80 text-white font-minecraft tracking-wider text-lg px-8 py-3 transition-all duration-300 transform hover:scale-105 shadow-lg"
+                      >
+                        Next Step →
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
             )}

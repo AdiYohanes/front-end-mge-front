@@ -59,7 +59,7 @@ const FoodAndDrinksSelection = ({
       <div className="flex justify-center flex-wrap gap-2 mb-8">
         <button
           onClick={() => dispatch(setSelectedCategory("all"))}
-          className={`btn btn-sm capitalize ${selectedCategory === "all"
+          className={`btn btn-sm capitalize text-base ${selectedCategory === "all"
             ? "bg-brand-gold text-white"
             : "btn-ghost"
             }`}
@@ -70,7 +70,7 @@ const FoodAndDrinksSelection = ({
           <button
             key={cat.id}
             onClick={() => dispatch(setSelectedCategory(cat.category))}
-            className={`btn btn-sm capitalize ${selectedCategory === cat.category
+            className={`btn btn-sm capitalize text-base ${selectedCategory === cat.category
               ? "bg-brand-gold text-white"
               : "btn-ghost"
               }`}
@@ -116,7 +116,7 @@ const FoodAndDrinksSelection = ({
                   </figure>
                   <div className="card-body w-2/3 p-4">
                     <h2 className="card-title text-base">{item.name}</h2>
-                    <p className="text-sm font-bold text-brand-gold">
+                    <p className="text-base font-bold text-brand-gold">
                       {formatPrice(item.price)}
                     </p>
                     <div className="card-actions justify-end items-center mt-2">
@@ -127,7 +127,7 @@ const FoodAndDrinksSelection = ({
                       >
                         <FaMinus />
                       </button>
-                      <span className="font-bold text-lg w-8 text-center">
+                      <span className="font-bold text-base w-8 text-center">
                         {quantity}
                       </span>
                       <button

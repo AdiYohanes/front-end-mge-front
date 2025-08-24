@@ -209,14 +209,36 @@ const ProfileRewardsPage = () => {
         };
 
         const loadUserRewards = async () => {
-            if (!user?.id) return;
+            if (!user?.id) {
+                console.log("No user ID, skipping user rewards load");
+                return;
+            }
 
+            console.log("Loading user rewards for user:", user.id);
             setUserRewardsLoading(true);
             setUserRewardsError("");
+            setUserRewards([]); // Clear previous data
+
             try {
                 const res = await getUserRewards();
+                console.log("User rewards API response:", res);
+                console.log("Response data:", res.data);
+                console.log("Response type:", typeof res);
+                console.log("Is res.data array:", Array.isArray(res.data));
+                console.log("Is res array:", Array.isArray(res));
+
                 const list = Array.isArray(res.data) ? res.data : Array.isArray(res) ? res : [];
+                console.log("Extracted list:", list);
+                console.log("List length:", list.length);
+
+                if (list.length === 0) {
+                    console.log("API returned empty array - user has no rewards");
+                    setUserRewards([]);
+                    return;
+                }
+
                 const normalized = list.map((r) => {
+                    console.log("Processing reward:", r);
                     return {
                         id: r.id,
                         title: r.name || r.title,
@@ -227,10 +249,14 @@ const ProfileRewardsPage = () => {
                         expires_at: r.expires_at,
                     };
                 });
+
+                console.log("Normalized user rewards:", normalized);
                 setUserRewards(normalized);
             } catch (error) {
                 console.error("Failed to load user rewards:", error);
+                console.error("Error details:", error.response?.data);
                 setUserRewardsError("Failed to load your rewards");
+                setUserRewards([]); // Ensure empty state on error
             } finally {
                 setUserRewardsLoading(false);
             }
@@ -264,26 +290,45 @@ const ProfileRewardsPage = () => {
                     </Link>
                 </div>
 
-                {userRewardsLoading ? (
-                    <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                        {[...Array(3)].map((_, i) => (
-                            <div key={i} className="h-56 bg-base-200 rounded animate-pulse"></div>
-                        ))}
-                    </div>
-                ) : userRewardsError ? (
-                    <p className="mt-4 text-error">{userRewardsError}</p>
-                ) : userRewards.length === 0 ? (
-                    <div className="mt-4 text-center py-8">
-                        <p className="text-theme-secondary">You don't have any rewards yet.</p>
-                        <p className="text-sm text-theme-secondary mt-1">Redeem some rewards below to get started!</p>
-                    </div>
-                ) : (
-                    <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                        {userRewards.map((item) => (
-                            <RewardCard key={item.id} item={item} actionLabel="Use Now" />
-                        ))}
-                    </div>
-                )}
+                {(() => {
+                    console.log("Render conditions debug:");
+                    console.log("userRewardsLoading:", userRewardsLoading);
+                    console.log("userRewardsError:", userRewardsError);
+                    console.log("userRewards:", userRewards);
+                    console.log("userRewards.length:", userRewards.length);
+                    console.log("userRewards.length === 0:", userRewards.length === 0);
+
+                    if (userRewardsLoading) {
+                        console.log("Rendering loading state");
+                        return (
+                            <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                                {[...Array(3)].map((_, i) => (
+                                    <div key={i} className="h-56 bg-base-200 rounded animate-pulse"></div>
+                                ))}
+                            </div>
+                        );
+                    } else if (userRewardsError) {
+                        console.log("Rendering error state");
+                        return <p className="mt-4 text-error">{userRewardsError}</p>;
+                    } else if (userRewards.length === 0) {
+                        console.log("Rendering empty state");
+                        return (
+                            <div className="mt-4 text-center py-8">
+                                <p className="text-theme-secondary">You don't have any rewards yet.</p>
+                                <p className="text-sm text-theme-secondary mt-1">Redeem some rewards below to get started!</p>
+                            </div>
+                        );
+                    } else {
+                        console.log("Rendering rewards data");
+                        return (
+                            <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                                {userRewards.map((item) => (
+                                    <RewardCard key={item.id} item={item} actionLabel="Use Now" />
+                                ))}
+                            </div>
+                        );
+                    }
+                })()}
             </div>
 
             <div className="mt-10">

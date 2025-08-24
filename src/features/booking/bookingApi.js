@@ -89,8 +89,8 @@ export const submitBooking = async (bookingData) => {
       throw new Error("Invalid phone number format");
     }
 
-    // Validate email format if provided
-    if (customerEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(customerEmail)) {
+    // Email is optional, only validate if provided
+    if (customerEmail && customerEmail !== "" && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(customerEmail)) {
       throw new Error("Invalid email format");
     }
 

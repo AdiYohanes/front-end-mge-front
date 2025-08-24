@@ -74,6 +74,12 @@ const bookingSlice = createSlice({
         promoData: null,
       };
     },
+    clearBookingState: (state) => {
+      state.status = "idle";
+      state.error = null;
+      state.redirectUrl = null;
+      state.invoiceNumber = null;
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -134,5 +140,5 @@ const bookingSlice = createSlice({
   },
 });
 
-export const { clearPromoValidation } = bookingSlice.actions;
+export const { clearPromoValidation, clearBookingState } = bookingSlice.actions;
 export default bookingSlice.reducer;

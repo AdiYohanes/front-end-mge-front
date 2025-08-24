@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
-import { FaUser, FaEnvelope, FaPhone } from "react-icons/fa";
+import { FaUser, FaPhone } from "react-icons/fa";
 import TermsModal from "../common/TermsModal";
 
 // Terima props: formData, onFormChange, useLoginInfo, onUseLoginInfoChange, isGuestBooking
@@ -20,13 +20,11 @@ const PersonalInfoForm = ({
     // Gunakan onFormChange untuk memperbarui state di induk
     if (useLoginInfo && user) {
       onFormChange({ target: { name: "fullName", value: user.name || "" } });
-      onFormChange({ target: { name: "email", value: user.email || "" } });
       onFormChange({
         target: { name: "phoneNumber", value: user.phone || "" },
       });
     } else if (!useLoginInfo) {
       onFormChange({ target: { name: "fullName", value: "" } });
-      onFormChange({ target: { name: "email", value: "" } });
       onFormChange({ target: { name: "phoneNumber", value: "" } });
     }
   }, [useLoginInfo, user, onFormChange]);
@@ -104,24 +102,7 @@ const PersonalInfoForm = ({
             />
           </div>
         </div>
-        {/* Email */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1 text-left">
-            Email Address *
-          </label>
-          <div className="relative">
-            <FaEnvelope className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm" />
-            <input
-              type="email"
-              name="email"
-              value={formData.email}
-              onChange={onFormChange}
-              className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-brand-gold focus:border-brand-gold outline-none text-black placeholder:text-gray-500"
-              placeholder="Enter your email address"
-              required
-            />
-          </div>
-        </div>
+
         {/* Phone Number */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1 text-left">

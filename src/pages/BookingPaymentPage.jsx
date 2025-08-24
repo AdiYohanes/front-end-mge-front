@@ -31,7 +31,6 @@ const BookingPaymentPage = () => {
   const [promoCode, setPromoCode] = useState("");
   const [personalInfo, setPersonalInfo] = useState({
     fullName: "",
-    email: "",
     phoneNumber: "",
     agreed: false,
   });
@@ -89,8 +88,14 @@ const BookingPaymentPage = () => {
         const normalized = String(status || "").toLowerCase();
         const shouldRedirect = ["settlement", "capture", "success", "pending"].includes(normalized);
         if (shouldRedirect) {
+          console.log("Payment successful, setting session marker");
+          // Set session marker for successful payment
+          sessionStorage.setItem("recentBookingComplete", "true");
+
           const qs = invoiceNumber ? `?invoice_number=${encodeURIComponent(invoiceNumber)}` : "";
-          navigate(`/booking-success${qs}`);
+          navigate(`/booking-success${qs}`, {
+            state: { paymentCompleted: true }
+          });
         }
       } catch (_) {
         // ignore parse errors
@@ -197,10 +202,9 @@ const BookingPaymentPage = () => {
     }
     if (
       !personalInfo.fullName ||
-      !personalInfo.email ||
       !personalInfo.phoneNumber
     ) {
-      toast.error("Please fill in all personal information fields.");
+      toast.error("Please fill in your name and phone number.");
       return;
     }
     setIsModalOpen(true); // Buka modal jika validasi berhasil
@@ -229,7 +233,7 @@ const BookingPaymentPage = () => {
       notes: document.getElementById("booking-notes")?.value || "",
       customer: {
         fullName: personalInfo.fullName.trim(),
-        email: personalInfo.email.trim(),
+        email: "", // Empty email since it's not required
         phone: personalInfo.phoneNumber.trim(),
       },
     };
@@ -279,9 +283,13 @@ const BookingPaymentPage = () => {
   // Handle payment modal close
   const handleClosePaymentModal = () => {
     setShowPaymentModal(false);
+    // Set session marker for fallback access
+    sessionStorage.setItem("recentBookingComplete", "true");
     // Redirect to success page as a fallback when payment flow ends
     const qs = invoiceNumber ? `?invoice_number=${encodeURIComponent(invoiceNumber)}` : "";
-    navigate(`/booking-success${qs}`);
+    navigate(`/booking-success${qs}`, {
+      state: { paymentCompleted: true }
+    });
   };
 
   // Handle exit warning modal

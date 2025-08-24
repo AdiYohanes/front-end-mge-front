@@ -20,6 +20,7 @@ const BookingPaymentPage = () => {
     error: bookingError,
     redirectUrl,
     promoValidation,
+    invoiceNumber,
   } = useSelector((state) => state.booking);
   const isLoading = bookingStatus === "loading";
 
@@ -72,6 +73,27 @@ const BookingPaymentPage = () => {
       navigate("/rent");
     }
   }, [initialBookingDetails, navigate]);
+
+  // Fallback listener: if the iframe posts a success-like message, redirect to success page
+  useEffect(() => {
+    const handlePaymentMessage = (event) => {
+      try {
+        const data = event.data;
+        if (!data) return;
+        const status = data.transaction_status || data.status || data.resultType;
+        const normalized = String(status || "").toLowerCase();
+        const shouldRedirect = ["settlement", "capture", "success", "pending"].includes(normalized);
+        if (shouldRedirect) {
+          const qs = invoiceNumber ? `?invoice_number=${encodeURIComponent(invoiceNumber)}` : "";
+          navigate(`/booking-success${qs}`);
+        }
+      } catch (_) {
+        // ignore parse errors
+      }
+    };
+    window.addEventListener("message", handlePaymentMessage);
+    return () => window.removeEventListener("message", handlePaymentMessage);
+  }, [navigate, invoiceNumber]);
 
   useEffect(() => {
     // Fetch taxes and service fee for payment calculation
@@ -217,8 +239,9 @@ const BookingPaymentPage = () => {
   // Handle payment modal close
   const handleClosePaymentModal = () => {
     setShowPaymentModal(false);
-    // Optional: Navigate back or show message
-    toast.info("Payment was cancelled");
+    // Redirect to success page as a fallback when payment flow ends
+    const qs = invoiceNumber ? `?invoice_number=${encodeURIComponent(invoiceNumber)}` : "";
+    navigate(`/booking-success${qs}`);
   };
 
   // Handle exit warning modal

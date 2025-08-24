@@ -30,6 +30,7 @@ const initialState = {
   status: "idle",
   error: null,
   redirectUrl: null, // Untuk menyimpan snapUrl
+  invoiceNumber: null,
   promoValidation: {
     status: "idle",
     error: null,
@@ -59,6 +60,15 @@ const bookingSlice = createSlice({
       .addCase(submitBookingThunk.fulfilled, (state, action) => {
         state.status = "succeeded";
         state.redirectUrl = action.payload.snapUrl; // Simpan snapUrl ke state
+        // Simpan invoice number bila tersedia dari berbagai kemungkinan field
+        const p = action.payload || {};
+        state.invoiceNumber =
+          p.invoice_number ||
+          p.invoiceNumber ||
+          p.order_id ||
+          p.orderId ||
+          (p.data && (p.data.invoice_number || p.data.order_id)) ||
+          null;
       })
       .addCase(submitBookingThunk.rejected, (state, action) => {
         state.status = "failed";

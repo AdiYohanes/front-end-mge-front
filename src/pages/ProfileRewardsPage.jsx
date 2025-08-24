@@ -3,14 +3,9 @@ import React from "react";
 import { Link } from "react-router";
 import { useSelector } from "react-redux";
 import publicApiClient from "../lib/publicApiClient";
+import { redeemReward, applyReward, getUserRewards } from "../features/rewards/rewardsApi";
 
-const mockUserRewards = [
-    { id: "r1", title: "Gratis Coca-cola", desc: "Gratis 1 kaleng Coca-cola ukuran 250ml.", daysLeft: 6, used: false, image: "/images/coin.png" },
-    { id: "r2", title: "Gratis Coca-cola", desc: "Gratis 1 kaleng Coca-cola ukuran 250ml.", daysLeft: 6, used: true, image: "/images/coin.png" },
-    { id: "r3", title: "Gratis Coca-cola", desc: "Gratis 1 kaleng Coca-cola ukuran 250ml.", daysLeft: 6, used: false, image: "/images/coin.png" },
-];
-
-// Available rewards will be fetched from API
+// Available rewards and user rewards will be fetched from API
 
 const categoryList = ["All", "Food & Drinks", "Room"];
 
@@ -20,11 +15,82 @@ const ProfileRewardsPage = () => {
     const [searchQuery, setSearchQuery] = React.useState("");
     const [activeCategory, setActiveCategory] = React.useState("All");
     const [availableRewards, setAvailableRewards] = React.useState([]);
+    const [userRewards, setUserRewards] = React.useState([]);
     const [loading, setLoading] = React.useState(false);
+    const [userRewardsLoading, setUserRewardsLoading] = React.useState(false);
     const [error, setError] = React.useState("");
+    const [userRewardsError, setUserRewardsError] = React.useState("");
+    const [redeemingId, setRedeemingId] = React.useState(null);
+    const [redeemError, setRedeemError] = React.useState("");
+    const [redeemSuccess, setRedeemSuccess] = React.useState("");
+    const [applyingId, setApplyingId] = React.useState(null);
+    const [applyError, setApplyError] = React.useState("");
+    const [applySuccess, setApplySuccess] = React.useState("");
 
     const handleSearchChange = (e) => setSearchQuery(e.target.value);
     const handleSelectCategory = (cat) => setActiveCategory(cat);
+
+    const handleRedeemReward = async (rewardId) => {
+        if (!user?.id) {
+            setRedeemError("Please login to redeem rewards");
+            return;
+        }
+
+        setRedeemingId(rewardId);
+        setRedeemError("");
+        setRedeemSuccess("");
+
+        try {
+            await redeemReward(rewardId);
+            setRedeemSuccess("Reward redeemed successfully!");
+
+            // Remove redeemed reward from available list
+            setAvailableRewards(prev => prev.filter(reward => reward.id !== rewardId));
+
+            // Clear success message after 3 seconds
+            setTimeout(() => setRedeemSuccess(""), 3000);
+        } catch (error) {
+            const message = error.response?.data?.message || error.message || "Failed to redeem reward";
+            setRedeemError(message);
+
+            // Clear error message after 5 seconds
+            setTimeout(() => setRedeemError(""), 5000);
+        } finally {
+            setRedeemingId(null);
+        }
+    };
+
+    const handleApplyReward = async (rewardId) => {
+        if (!user?.id) {
+            setApplyError("Please login to apply rewards");
+            return;
+        }
+
+        setApplyingId(rewardId);
+        setApplyError("");
+        setApplySuccess("");
+
+        try {
+            await applyReward(rewardId);
+            setApplySuccess("Reward applied successfully!");
+
+            // Update the reward as used in the state
+            setUserRewards(prev => prev.map(reward =>
+                reward.id === rewardId ? { ...reward, used: true } : reward
+            ));
+
+            // Clear success message after 3 seconds
+            setTimeout(() => setApplySuccess(""), 3000);
+        } catch (error) {
+            const message = error.response?.data?.message || error.message || "Failed to apply reward";
+            setApplyError(message);
+
+            // Clear error message after 5 seconds
+            setTimeout(() => setApplyError(""), 5000);
+        } finally {
+            setApplyingId(null);
+        }
+    };
 
     const renderHeader = () => {
         return (
@@ -47,6 +113,8 @@ const ProfileRewardsPage = () => {
     };
 
     const RewardCard = ({ item, actionLabel }) => {
+        const isApplying = applyingId === item.id;
+
         return (
             <div className="card bg-theme-primary border border-theme shadow-md">
                 <figure className="h-40 overflow-hidden">
@@ -62,11 +130,12 @@ const ProfileRewardsPage = () => {
                     <p className="text-xs text-theme-secondary leading-snug">{item.desc}</p>
                     <div className="card-actions mt-2">
                         <button
-                            className="btn btn-sm bg-brand-gold hover:bg-yellow-600 text-white w-full disabled:opacity-60"
-                            disabled={item.used}
-                            aria-disabled={item.used}
+                            onClick={() => !item.used && handleApplyReward(item.id)}
+                            className="btn btn-sm bg-brand-gold hover:bg-yellow-600 text-white w-full disabled:opacity-60 disabled:cursor-not-allowed"
+                            disabled={item.used || isApplying}
+                            aria-disabled={item.used || isApplying}
                         >
-                            {item.used ? "Used" : actionLabel}
+                            {isApplying ? "Applying..." : item.used ? "Used" : actionLabel}
                         </button>
                     </div>
                 </div>
@@ -75,6 +144,9 @@ const ProfileRewardsPage = () => {
     };
 
     const AvailableRewardCard = ({ item }) => {
+        const isRedeeming = redeemingId === item.id;
+        const canRedeem = userPoints >= item.points;
+
         return (
             <div className="card bg-theme-primary border border-theme shadow-md">
                 <figure className="h-40 overflow-hidden">
@@ -86,9 +158,16 @@ const ProfileRewardsPage = () => {
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-1 text-xs">
                             <img src="/images/coin.png" alt="point" className="h-4 w-4" />
-                            <span>{item.points} Point</span>
+                            <span className={canRedeem ? "text-theme-primary" : "text-error"}>{item.points} Point</span>
                         </div>
-                        <button className="btn btn-sm bg-brand-gold hover:bg-yellow-600 text-white">Redeem</button>
+                        <button
+                            onClick={() => handleRedeemReward(item.id)}
+                            disabled={isRedeeming || !canRedeem}
+                            className="btn btn-sm bg-brand-gold hover:bg-yellow-600 text-white disabled:opacity-60 disabled:cursor-not-allowed"
+                            aria-disabled={isRedeeming || !canRedeem}
+                        >
+                            {isRedeeming ? "Redeeming..." : canRedeem ? "Redeem" : "Not enough points"}
+                        </button>
                     </div>
                 </div>
             </div>
@@ -128,11 +207,53 @@ const ProfileRewardsPage = () => {
                 setLoading(false);
             }
         };
+
+        const loadUserRewards = async () => {
+            if (!user?.id) return;
+
+            setUserRewardsLoading(true);
+            setUserRewardsError("");
+            try {
+                const res = await getUserRewards();
+                const list = Array.isArray(res.data) ? res.data : Array.isArray(res) ? res : [];
+                const normalized = list.map((r) => {
+                    return {
+                        id: r.id,
+                        title: r.name || r.title,
+                        desc: r.description || r.desc,
+                        daysLeft: r.days_left || r.daysLeft,
+                        used: r.is_used || r.used || false,
+                        image: r.image || "/images/coin.png",
+                        expires_at: r.expires_at,
+                    };
+                });
+                setUserRewards(normalized);
+            } catch (error) {
+                console.error("Failed to load user rewards:", error);
+                setUserRewardsError("Failed to load your rewards");
+            } finally {
+                setUserRewardsLoading(false);
+            }
+        };
+
         loadAvailable();
-    }, []);
+        loadUserRewards();
+    }, [user?.id]);
 
     return (
         <div className="container mx-auto px-4 py-6">
+            {/* Success/Error Messages */}
+            {(redeemSuccess || applySuccess) && (
+                <div className="alert alert-success mb-4">
+                    <span>✅ {redeemSuccess || applySuccess}</span>
+                </div>
+            )}
+            {(redeemError || applyError) && (
+                <div className="alert alert-error mb-4">
+                    <span>❌ {redeemError || applyError}</span>
+                </div>
+            )}
+
             {renderHeader()}
 
             <div className="mt-8">
@@ -143,11 +264,26 @@ const ProfileRewardsPage = () => {
                     </Link>
                 </div>
 
-                <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {mockUserRewards.map((item) => (
-                        <RewardCard key={item.id} item={item} actionLabel="Use Now" />
-                    ))}
-                </div>
+                {userRewardsLoading ? (
+                    <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {[...Array(3)].map((_, i) => (
+                            <div key={i} className="h-56 bg-base-200 rounded animate-pulse"></div>
+                        ))}
+                    </div>
+                ) : userRewardsError ? (
+                    <p className="mt-4 text-error">{userRewardsError}</p>
+                ) : userRewards.length === 0 ? (
+                    <div className="mt-4 text-center py-8">
+                        <p className="text-theme-secondary">You don't have any rewards yet.</p>
+                        <p className="text-sm text-theme-secondary mt-1">Redeem some rewards below to get started!</p>
+                    </div>
+                ) : (
+                    <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {userRewards.map((item) => (
+                            <RewardCard key={item.id} item={item} actionLabel="Use Now" />
+                        ))}
+                    </div>
+                )}
             </div>
 
             <div className="mt-10">

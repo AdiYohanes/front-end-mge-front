@@ -6,10 +6,35 @@ export const submitBookingThunk = createAsyncThunk(
   "booking/submit",
   async (bookingData, { rejectWithValue }) => {
     try {
+      console.log("SubmitBookingThunk - Starting booking process...");
       const response = await submitBooking(bookingData);
-      return response; // Kirim seluruh response (termasuk snapUrl)
+      console.log("SubmitBookingThunk - Booking successful:", response);
+
+      // Ensure we return only serializable data
+      const serializedResponse = JSON.parse(JSON.stringify(response));
+      console.log("SubmitBookingThunk - Serialized response:", serializedResponse);
+
+      return serializedResponse;
     } catch (error) {
-      return rejectWithValue(error.response?.data?.message || "Booking failed");
+      console.error("SubmitBookingThunk - Booking failed:", error);
+
+      // Extract detailed error message
+      let errorMessage = "Booking failed";
+
+      if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error.response?.data?.error) {
+        errorMessage = error.response.data.error;
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+
+      // Add status code context if available
+      if (error.response?.status) {
+        errorMessage = `${errorMessage} (Status: ${error.response.status})`;
+      }
+
+      return rejectWithValue(errorMessage);
     }
   }
 );
@@ -59,16 +84,26 @@ const bookingSlice = createSlice({
       })
       .addCase(submitBookingThunk.fulfilled, (state, action) => {
         state.status = "succeeded";
-        state.redirectUrl = action.payload.snapUrl; // Simpan snapUrl ke state
-        // Simpan invoice number bila tersedia dari berbagai kemungkinan field
-        const p = action.payload || {};
+
+        // Ensure payload is serializable - extract only the data we need
+        const payload = action.payload || {};
+        console.log("Booking fulfilled payload:", payload);
+
+        // Extract snapUrl safely
+        state.redirectUrl = payload.snapUrl || payload.snap_url || null;
+
+        // Extract invoice number safely from various possible locations
         state.invoiceNumber =
-          p.invoice_number ||
-          p.invoiceNumber ||
-          p.order_id ||
-          p.orderId ||
-          (p.data && (p.data.invoice_number || p.data.order_id)) ||
+          payload.invoice_number ||
+          payload.invoiceNumber ||
+          payload.order_id ||
+          payload.orderId ||
+          (payload.data && typeof payload.data === 'object' ?
+            (payload.data.invoice_number || payload.data.order_id) : null) ||
           null;
+
+        console.log("Extracted redirectUrl:", state.redirectUrl);
+        console.log("Extracted invoiceNumber:", state.invoiceNumber);
       })
       .addCase(submitBookingThunk.rejected, (state, action) => {
         state.status = "failed";

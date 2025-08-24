@@ -69,10 +69,15 @@ const BookingPaymentPage = () => {
 
   useEffect(() => {
     if (!initialBookingDetails) {
+      console.error("Missing booking details on page load");
+      console.error("Location state:", location.state);
       toast.error("Booking details not found, please start again.");
       navigate("/rent");
+      return;
     }
-  }, [initialBookingDetails, navigate]);
+
+    console.log("BookingPaymentPage loaded with details:", initialBookingDetails);
+  }, [initialBookingDetails, navigate, location.state]);
 
   // Fallback listener: if the iframe posts a success-like message, redirect to success page
   useEffect(() => {
@@ -125,6 +130,8 @@ const BookingPaymentPage = () => {
 
   useEffect(() => {
     if (bookingStatus === "failed" && bookingError) {
+      console.error("Booking failed with error:", bookingError);
+      console.error("Booking status:", bookingStatus);
       toast.error(bookingError);
     }
   }, [bookingStatus, bookingError]);
@@ -201,9 +208,19 @@ const BookingPaymentPage = () => {
 
   // Fungsi ini dipanggil dari dalam modal untuk submit
   const handleSubmitBooking = () => {
+    console.log("HandleSubmitBooking called");
+
     // Validate customer data before submitting
     if (!personalInfo.fullName || !personalInfo.phoneNumber) {
       toast.error("Name and phone number are required");
+      return;
+    }
+
+    // Validate bookingDetails exists
+    if (!bookingDetails) {
+      console.error("No booking details available");
+      toast.error("Booking details are missing. Please start the booking process again.");
+      navigate("/rent");
       return;
     }
 
@@ -221,18 +238,41 @@ const BookingPaymentPage = () => {
     console.log("Is Guest Booking:", isGuestBooking); // Debug log
     console.log("Personal Info:", personalInfo); // Debug log
 
-    // Validate all required fields
+    // Validate all required fields with detailed logging
     const requiredFields = [
       'psUnit', 'selectedGames', 'date', 'startTime', 'duration', 'numberOfPeople'
     ];
 
-    const missingFields = requiredFields.filter(field => !finalData[field]);
+    const missingFields = requiredFields.filter(field => {
+      const fieldValue = finalData[field];
+      const isMissing = !fieldValue;
+      if (isMissing) {
+        console.error(`Missing field '${field}':`, fieldValue);
+      }
+      return isMissing;
+    });
+
     if (missingFields.length > 0) {
       console.error("Missing required fields:", missingFields);
+      console.error("Full final data:", finalData);
       toast.error(`Missing required fields: ${missingFields.join(', ')}`);
       return;
     }
 
+    // Additional validation for critical fields
+    if (!finalData.psUnit?.id) {
+      console.error("Missing PS Unit ID:", finalData.psUnit);
+      toast.error("PS Unit information is missing");
+      return;
+    }
+
+    if (!finalData.selectedGames?.[0]?.id) {
+      console.error("Missing Game ID:", finalData.selectedGames);
+      toast.error("Game selection is missing");
+      return;
+    }
+
+    console.log("All validations passed, submitting booking...");
     dispatch(submitBookingThunk(finalData));
   };
 

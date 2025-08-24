@@ -191,7 +191,19 @@ const RentPage = () => {
   };
 
   const handleSelectTime = (time) => {
-    setBookingDetails((prev) => ({ ...prev, startTime: time }));
+    setBookingDetails((prev) => {
+      const maxDuration = getMaxDuration(time);
+      const currentDuration = prev.duration;
+
+      // Reset duration if current duration exceeds max allowed for this time
+      const newDuration = currentDuration && currentDuration <= maxDuration ? currentDuration : null;
+
+      return {
+        ...prev,
+        startTime: time,
+        duration: newDuration
+      };
+    });
   };
 
   const handleDurationChange = (e) => {
@@ -199,6 +211,35 @@ const RentPage = () => {
       ...prev,
       duration: e.target.value ? parseInt(e.target.value, 10) : null,
     }));
+  };
+
+  // Helper function to calculate maximum duration based on start time
+  const getMaxDuration = (startTime) => {
+    if (!startTime) return 2; // Default max duration
+
+    // Extract hour from time string (format: "HH:mm")
+    const startHour = parseInt(startTime.split(':')[0], 10);
+
+    // Operating hours: 10:00 - 24:00 (10 AM to 12 AM)
+    const closingHour = 24;
+
+    // Calculate maximum hours until closing
+    const maxPossibleDuration = closingHour - startHour;
+
+    // Limit to maximum 2 hours and ensure it doesn't exceed closing time
+    return Math.min(2, maxPossibleDuration);
+  };
+
+  // Helper function to get available duration options
+  const getAvailableDurations = (startTime) => {
+    const maxDuration = getMaxDuration(startTime);
+    const durations = [];
+
+    for (let i = 1; i <= maxDuration; i++) {
+      durations.push(i);
+    }
+
+    return durations;
   };
 
   const handleNextToStep4 = () => {
@@ -465,13 +506,44 @@ const RentPage = () => {
                         value={bookingDetails.duration || ""}
                         onChange={handleDurationChange}
                       >
-                        <option value=""></option>
-                        {[...Array(12)].map((_, i) => (
-                          <option key={i + 1} value={i + 1} className="bg-white text-black">
-                            {i + 1} {i > 0 ? "Hours" : "Hour"}
+                        <option value="">Select Duration</option>
+                        {getAvailableDurations(bookingDetails.startTime).map((duration) => (
+                          <option key={duration} value={duration} className="bg-white text-black">
+                            {duration} {duration > 1 ? "Hours" : "Hour"}
                           </option>
                         ))}
                       </select>
+                    </div>
+
+                    {/* Duration Info */}
+                    <div className="text-center text-sm text-gray-600 mt-2">
+                      <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                        <p className="font-medium text-blue-800 mb-1">
+                          ⏰ Operating Hours: 10:00 AM - 12:00 AM (Midnight)
+                        </p>
+                        <p className="text-blue-700">
+                          {bookingDetails.startTime && (
+                            <>
+                              Selected time: <span className="font-semibold">{bookingDetails.startTime}</span>
+                              {(() => {
+                                const maxDuration = getMaxDuration(bookingDetails.startTime);
+                                const startHour = parseInt(bookingDetails.startTime.split(':')[0], 10);
+                                const endHour = startHour + (bookingDetails.duration || maxDuration);
+                                return (
+                                  <span>
+                                    {bookingDetails.duration && (
+                                      <> • Ends at: <span className="font-semibold">{endHour}:00</span></>
+                                    )}
+                                    {maxDuration < 2 && (
+                                      <> • Maximum {maxDuration} hour{maxDuration > 1 ? 's' : ''} available</>
+                                    )}
+                                  </span>
+                                );
+                              })()}
+                            </>
+                          )}
+                        </p>
+                      </div>
                     </div>
                   </div>
 

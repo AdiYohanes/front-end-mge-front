@@ -33,9 +33,13 @@ const VerificationPage = () => {
 
   // Handle verification result
   useEffect(() => {
+    console.log("Verification status changed:", { status, error });
+
     if (status === "succeeded" && !error) {
+      console.log("Verification successful, redirecting to login...");
       toast.success("Verification successful! Please login to continue.");
       setTimeout(() => {
+        console.log("Navigating to /login");
         navigate("/login");
       }, 1500);
     } else if (status === "failed" && error) {
@@ -70,9 +74,16 @@ const VerificationPage = () => {
       phone: registrationPhone,
       token: otp
     };
-    console.log("API Payload:", payload);
+    console.log("Sending verification request with payload:", payload);
 
-    dispatch(verifyOTPThunk(payload));
+    dispatch(verifyOTPThunk(payload))
+      .unwrap()
+      .then((result) => {
+        console.log("Verification thunk successful:", result);
+      })
+      .catch((error) => {
+        console.error("Verification thunk failed:", error);
+      });
   };
 
   // Fungsi baru untuk menangani Resend OTP

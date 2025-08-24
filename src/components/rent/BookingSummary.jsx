@@ -17,6 +17,8 @@ const BookingSummary = ({
   onPromoChange,
   onApplyPromo,
   isPromoLoading = false,
+  taxInfo = null,
+  serviceFees = [],
 }) => {
   const formattedDate = details.date
     ? new Date(details.date).toLocaleDateString("id-ID", {
@@ -84,9 +86,16 @@ const BookingSummary = ({
   ];
 
   const baseSubtotal = details.subtotal || 0;
-  const ppn = isPaymentPage ? baseSubtotal * 0.11 : 0;
+  const taxPercentage = isPaymentPage && taxInfo?.is_active ? Number(taxInfo.percentage) || 0 : 0;
+  const taxAmount = baseSubtotal * (taxPercentage / 100);
+  const activeServiceFees = Array.isArray(serviceFees)
+    ? serviceFees.filter((f) => !!f?.is_active)
+    : [];
+  const serviceFeeTotal = isPaymentPage
+    ? activeServiceFees.reduce((sum, f) => sum + (parseFloat(f.amount) || 0), 0)
+    : 0;
   const voucherDiscount = details.voucherDiscount || 0;
-  const finalTotal = baseSubtotal + ppn - voucherDiscount;
+  const finalTotal = baseSubtotal + taxAmount + serviceFeeTotal - voucherDiscount;
 
   return (
     <div className="bg-white rounded-lg shadow-lg border border-gray-200 w-full max-w-3xl">
@@ -142,10 +151,18 @@ const BookingSummary = ({
                   {formatPrice(baseSubtotal)}
                 </span>
               </div>
-              <div className="flex justify-between">
-                <span className="text-black">PPN 11%</span>
-                <span className="font-semibold text-black">{formatPrice(ppn)}</span>
-              </div>
+              {taxPercentage > 0 && (
+                <div className="flex justify-between">
+                  <span className="text-black">{taxInfo?.name} {taxPercentage}%</span>
+                  <span className="font-semibold text-black">{formatPrice(taxAmount)}</span>
+                </div>
+              )}
+              {activeServiceFees.map((fee) => (
+                <div key={fee.id} className="flex justify-between">
+                  <span className="text-black">{fee.name}</span>
+                  <span className="font-semibold text-black">{formatPrice(parseFloat(fee.amount) || 0)}</span>
+                </div>
+              ))}
               {voucherDiscount > 0 && (
                 <div className="flex justify-between text-green-600">
                   <span>Voucher "{details.voucherCode}" ({details.promoPercentage}%)</span>

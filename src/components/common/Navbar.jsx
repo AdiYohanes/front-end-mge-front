@@ -132,6 +132,9 @@ const Navbar = () => {
                   <Link to="/book-history">Booking History</Link>
                 </li>
                 <li>
+                  <Link to="/profile-rewards">Rewards</Link>
+                </li>
+                <li>
                   <button onClick={handleLogout} className="flex items-center">
                     Logout
                   </button>

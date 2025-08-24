@@ -14,6 +14,7 @@ import Register from "../features/auth/pages/Register";
 import ForgotPassword from "../features/auth/pages/ForgotPassword";
 import ResetPassword from "../features/auth/pages/ResetPassword";
 import HomePage from "../pages/HomePage";
+import ProfileRewardsPage from "../pages/ProfileRewardsPage";
 // Main Pages (Placeholders)
 import RentalPage from "../pages/RentalPage";
 import RentPage from "../pages/RentPage";
@@ -62,6 +63,7 @@ const AppRouter = () => {
           <Route path="book-history" element={<BookingHistoryPage />} />{" "}
           <Route path="booking-cancelled" element={<BookingCancelledPage />} />
           <Route path="games" element={<GamesPage />} />
+          <Route path="profile-rewards" element={<ProfileRewardsPage />} />
         </Route>
       </Routes>
     </BrowserRouter>

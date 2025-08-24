@@ -4,6 +4,7 @@ import { useLocation, useNavigate } from "react-router";
 import { useDispatch, useSelector } from "react-redux";
 import { submitBookingThunk, validatePromoThunk, clearPromoValidation } from "../features/booking/bookingSlice";
 import BookingSummary from "../components/rent/BookingSummary";
+import publicApiClient from "../lib/publicApiClient";
 import PersonalInfoForm from "../components/rent/PersonalInfoForm";
 import ConfirmationModal from "../components/common/ConfirmationModal"; // Import modal
 import TermsModal from "../components/common/TermsModal";
@@ -41,6 +42,9 @@ const BookingPaymentPage = () => {
   const [showPromoModal, setShowPromoModal] = useState(false); // State untuk promo modal
   const [promoModalMessage, setPromoModalMessage] = useState(""); // State untuk pesan promo modal
 
+  const [taxInfo, setTaxInfo] = useState(null);
+  const [serviceFees, setServiceFees] = useState([]);
+
   // Handle browser back button and page refresh
   useEffect(() => {
     const handleBeforeUnload = (e) => {
@@ -68,6 +72,27 @@ const BookingPaymentPage = () => {
       navigate("/rent");
     }
   }, [initialBookingDetails, navigate]);
+
+  useEffect(() => {
+    // Fetch taxes and service fee for payment calculation
+    const fetchCharges = async () => {
+      try {
+        const [taxRes, feeRes] = await Promise.all([
+          publicApiClient.get("/api/public/taxes"),
+          publicApiClient.get("/api/public/services-fee"),
+        ]);
+        const activeTax = Array.isArray(taxRes.data)
+          ? taxRes.data.find((t) => t.is_active)
+          : null;
+        const fees = Array.isArray(feeRes.data) ? feeRes.data : [];
+        setTaxInfo(activeTax || null);
+        setServiceFees(fees);
+      } catch (err) {
+        console.error("Failed to load taxes or service fees", err);
+      }
+    };
+    fetchCharges();
+  }, []);
 
   useEffect(() => {
     if (redirectUrl) {
@@ -275,6 +300,8 @@ const BookingPaymentPage = () => {
               onPromoChange={(e) => setPromoCode(e.target.value)}
               onApplyPromo={handleApplyPromo}
               isPromoLoading={promoValidation.status === "loading"}
+              taxInfo={taxInfo}
+              serviceFees={serviceFees}
             />
           </div>
         </div>

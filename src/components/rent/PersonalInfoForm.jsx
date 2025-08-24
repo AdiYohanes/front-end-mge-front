@@ -40,7 +40,7 @@ const PersonalInfoForm = ({
         Personal Information
       </h2>
       <p className="text-sm text-gray-600 mb-6 text-left">
-        Please provide your contact details.
+        Please provide your name and phone number.
       </p>
 
       {/* Checkbox "Use my account information" - Hidden for guest booking */}

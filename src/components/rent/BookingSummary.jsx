@@ -161,7 +161,7 @@ const BookingSummary = ({
               )}
               {activeServiceFees.map((fee) => (
                 <div key={fee.id} className="flex justify-between">
-                  <span className="text-black">{fee.name}</span>
+                  <span className="text-black">Service Fee</span>
                   <span className="font-semibold text-black">{formatPrice(parseFloat(fee.amount) || 0)}</span>
                 </div>
               ))}

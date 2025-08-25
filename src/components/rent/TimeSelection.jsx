@@ -42,12 +42,15 @@ const TimeSelection = ({ selectedTime, onTimeSelect, selectedDate }) => {
       });
 
       // Add 30-minute slot (e.g., 10:30, 11:30, etc.)
-      const halfHour = hour.toString().padStart(2, '0') + ':30';
-      slots.push({
-        time: halfHour,
-        is_available: true,
-        is_generated: true
-      });
+      // But exclude 23:30 as it's too close to closing time (24:00)
+      if (hour < 23) {
+        const halfHour = hour.toString().padStart(2, '0') + ':30';
+        slots.push({
+          time: halfHour,
+          is_available: true,
+          is_generated: true
+        });
+      }
     }
 
     return slots;

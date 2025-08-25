@@ -86,7 +86,9 @@ const BookingSummary = ({
   ];
 
   const baseSubtotal = details.subtotal || 0;
-  const taxPercentage = isPaymentPage && taxInfo?.is_active ? Number(taxInfo.percentage) || 0 : 0;
+  // Only apply tax if there are food and drinks orders
+  const hasFoodOrDrinks = details.foodAndDrinks?.length > 0;
+  const taxPercentage = isPaymentPage && taxInfo?.is_active && hasFoodOrDrinks ? Number(taxInfo.percentage) || 0 : 0;
   const taxAmount = baseSubtotal * (taxPercentage / 100);
   const activeServiceFees = Array.isArray(serviceFees)
     ? serviceFees.filter((f) => !!f?.is_active)

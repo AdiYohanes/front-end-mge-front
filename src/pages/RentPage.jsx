@@ -519,12 +519,12 @@ const RentPage = () => {
                     <div className="text-center text-sm text-gray-600 mt-2">
                       <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
                         <p className="font-medium text-blue-800 mb-1">
-                          ⏰ Operating Hours: 10:00 AM - 12:00 AM (Midnight)
+                          ⏰ Jam Operasional: 10:00 AM - 12:00 AM
                         </p>
                         <p className="text-blue-700">
                           {bookingDetails.startTime && (
                             <>
-                              Selected time: <span className="font-semibold">{bookingDetails.startTime}</span>
+                              Waktu yang dipilih: <span className="font-semibold">{bookingDetails.startTime}</span>
                               {(() => {
                                 const maxDuration = getMaxDuration(bookingDetails.startTime);
                                 const startHour = parseInt(bookingDetails.startTime.split(':')[0], 10);
@@ -532,10 +532,10 @@ const RentPage = () => {
                                 return (
                                   <span>
                                     {bookingDetails.duration && (
-                                      <> • Ends at: <span className="font-semibold">{endHour}:00</span></>
+                                      <> • Berakhir pada: <span className="font-semibold">{endHour}:00</span></>
                                     )}
                                     {maxDuration < 2 && (
-                                      <> • Maximum {maxDuration} hour{maxDuration > 1 ? 's' : ''} available</>
+                                      <> • Maksimum {maxDuration} jam{maxDuration > 1 ? 's' : ''} tersedia</>
                                     )}
                                   </span>
                                 );

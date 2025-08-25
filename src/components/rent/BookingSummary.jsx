@@ -19,6 +19,7 @@ const BookingSummary = ({
   isPromoLoading = false,
   taxInfo = null,
   serviceFees = [],
+  onClose = null,
 }) => {
   const formattedDate = details.date
     ? new Date(details.date).toLocaleDateString("id-ID", {
@@ -105,7 +106,11 @@ const BookingSummary = ({
         <h2 className="font-minecraft text-2xl text-brand-gold">
           Booking Summary
         </h2>
-        <button className="btn btn-ghost btn-sm btn-circle">
+        <button
+          className="btn btn-ghost btn-sm btn-circle"
+          onClick={onClose}
+          disabled={!onClose}
+        >
           <IoClose size={24} />
         </button>
       </div>

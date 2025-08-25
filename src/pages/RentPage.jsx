@@ -43,6 +43,7 @@ const RentPage = () => {
     numberOfPeople: null,
   });
   const [currentStep, setCurrentStep] = useState(1);
+  const [showBookingSummary, setShowBookingSummary] = useState(true);
   const pageRef = useRef(null);
 
   const dispatch = useDispatch();
@@ -302,6 +303,10 @@ const RentPage = () => {
     (room) => room.max_visitors >= bookingDetails.numberOfPeople
   );
 
+  const handleToggleBookingSummary = () => {
+    setShowBookingSummary(prev => !prev);
+  };
+
   return (
     <div className="container mx-auto px-4 py-16 lg:py-24 flex flex-col items-center">
       <div ref={pageRef} className="flex flex-col items-center w-full">
@@ -313,7 +318,21 @@ const RentPage = () => {
           <div className="h-3 w-3 bg-brand-gold"></div>
           <div className="h-3 w-3 bg-black"></div>
         </div>
-        <BookingSummary details={bookingDetails} />
+        {showBookingSummary ? (
+          <BookingSummary
+            details={bookingDetails}
+            onClose={handleToggleBookingSummary}
+          />
+        ) : (
+          <div className="w-full max-w-3xl mb-6">
+            <button
+              onClick={handleToggleBookingSummary}
+              className="btn w-full bg-brand-gold hover:bg-brand-gold/80 text-white font-minecraft tracking-wider"
+            >
+              Show Booking Summary
+            </button>
+          </div>
+        )}
         <BookingNavigator
           currentStep={currentStep}
           onStepClick={setCurrentStep}

@@ -14,8 +14,8 @@ const ConsolesSection = () => {
     }
   }, [dispatch, status]);
 
-  // Filter consoles with amount > 0 (show all available consoles)
-  const availableConsoles = consoles.filter(console => console.amount > 0);
+  // Show only active consoles from API
+  const availableConsoles = consoles.filter((consoleItem) => consoleItem.is_active);
 
   // Debug logging
   console.log("All consoles from API:", consoles);
@@ -84,13 +84,13 @@ const ConsolesSection = () => {
 
           {/* 4. Kolom Kanan: Semua Console yang Tersedia */}
           <div className="space-y-10">
-            {availableConsoles.map((console) => (
-              <div key={console.id}>
+            {availableConsoles.map((consoleItem) => (
+              <div key={consoleItem.id}>
                 <h3 className="text-3xl lg:text-6xl font-minecraft text-brand-gold mb-3">
-                  {console.name}
+                  {consoleItem.name}
                 </h3>
                 <p className="text-theme-secondary leading-relaxed font-funnel">
-                  {console.description}
+                  {consoleItem.description}
                 </p>
               </div>
             ))}

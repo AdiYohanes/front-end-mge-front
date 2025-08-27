@@ -26,11 +26,33 @@ const TimeSelection = ({ selectedTime, onTimeSelect, selectedDate }) => {
     return false;
   };
 
-  // Function to generate 30-minute interval slots
+  // Function to get operating hours based on day of week
+  const getOperatingHours = (date) => {
+    if (!date) return { start: 10, end: 23 };
+
+    const dayOfWeek = date.getDay(); // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
+
+    switch (dayOfWeek) {
+      case 1: // Monday
+      case 2: // Tuesday  
+      case 3: // Wednesday
+      case 4: // Thursday
+        return { start: 10, end: 23 }; // 10:00 - 00:00 (23:00 last slot)
+      case 5: // Friday
+        return { start: 14, end: 24 }; // 14:00 - 01:00 (00:00 last slot)
+      case 6: // Saturday
+        return { start: 10, end: 24 }; // 10:00 - 01:00 (00:00 last slot)
+      case 0: // Sunday
+        return { start: 10, end: 23 }; // 10:00 - 00:00 (23:00 last slot)
+      default:
+        return { start: 10, end: 23 };
+    }
+  };
+
+  // Function to generate 30-minute interval slots based on operating hours
   const generate30MinuteSlots = () => {
     const slots = [];
-    const startHour = 10; // Start from 10:00
-    const endHour = 23; // End at 23:00
+    const { start: startHour, end: endHour } = getOperatingHours(selectedDate);
 
     for (let hour = startHour; hour <= endHour; hour++) {
       // Add full hour slot (e.g., 10:00, 11:00, etc.)
@@ -42,8 +64,8 @@ const TimeSelection = ({ selectedTime, onTimeSelect, selectedDate }) => {
       });
 
       // Add 30-minute slot (e.g., 10:30, 11:30, etc.)
-      // But exclude 23:30 as it's too close to closing time (24:00)
-      if (hour < 23) {
+      // Don't add 30-minute slot for the last hour to avoid going past closing
+      if (hour < endHour) {
         const halfHour = hour.toString().padStart(2, '0') + ':30';
         slots.push({
           time: halfHour,

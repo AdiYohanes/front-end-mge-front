@@ -1,5 +1,5 @@
 /* eslint-disable no-unused-vars */
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useLocation, useNavigate } from "react-router";
 import { useDispatch, useSelector } from "react-redux";
 import { submitBookingThunk, validatePromoThunk, clearPromoValidation } from "../features/booking/bookingSlice";
@@ -38,24 +38,38 @@ const BookingPaymentPage = () => {
   const [isModalOpen, setIsModalOpen] = useState(false); // State untuk modal
   const [showTermsModal, setShowTermsModal] = useState(false); // State untuk terms modal
   const [showPaymentModal, setShowPaymentModal] = useState(false); // State untuk payment modal
-  const [showExitWarning, setShowExitWarning] = useState(false); // State untuk exit warning modal
+  const [showExitWarning, setShowExitWarning] = useState(false); // State untuk exit warning modal (back to booking)
+  const [showNavigationWarning, setShowNavigationWarning] = useState(false); // State untuk navigation warning modal (other exits)
   const [showPromoModal, setShowPromoModal] = useState(false); // State untuk promo modal
   const [promoModalMessage, setPromoModalMessage] = useState(""); // State untuk pesan promo modal
+  const [shouldBlock, setShouldBlock] = useState(true); // State untuk mengontrol navigation blocking
 
   const [taxInfo, setTaxInfo] = useState(null);
   const [serviceFees, setServiceFees] = useState([]);
+  const navigationAttemptRef = useRef(null);
 
   // Handle browser back button and page refresh
   useEffect(() => {
     const handleBeforeUnload = (e) => {
-      e.preventDefault();
-      e.returnValue = '';
+      if (shouldBlock) {
+        e.preventDefault();
+        e.returnValue = '';
+      }
     };
 
     const handlePopState = (e) => {
-      e.preventDefault();
-      setShowExitWarning(true);
+      if (shouldBlock) {
+        e.preventDefault();
+        setShowNavigationWarning(true);
+        // Push the current state back to prevent navigation
+        window.history.pushState(null, '', window.location.pathname);
+      }
     };
+
+    // Add a state to prevent back navigation
+    if (shouldBlock) {
+      window.history.pushState(null, '', window.location.pathname);
+    }
 
     window.addEventListener('beforeunload', handleBeforeUnload);
     window.addEventListener('popstate', handlePopState);
@@ -64,7 +78,34 @@ const BookingPaymentPage = () => {
       window.removeEventListener('beforeunload', handleBeforeUnload);
       window.removeEventListener('popstate', handlePopState);
     };
-  }, []);
+  }, [shouldBlock]);
+
+  // Custom navigation blocking for navbar/link clicks
+  useEffect(() => {
+    const handleLinkClick = (e) => {
+      if (shouldBlock) {
+        // Check if it's a navigation link
+        const target = e.target.closest('a');
+        if (target && target.getAttribute('href')) {
+          const href = target.getAttribute('href');
+          // Only block internal navigation, not external links
+          if (href.startsWith('/') && !href.includes('/booking-success')) {
+            e.preventDefault();
+            e.stopPropagation();
+            navigationAttemptRef.current = href;
+            setShowNavigationWarning(true);
+          }
+        }
+      }
+    };
+
+    // Add event listener to document to catch all link clicks
+    document.addEventListener('click', handleLinkClick, true);
+
+    return () => {
+      document.removeEventListener('click', handleLinkClick, true);
+    };
+  }, [shouldBlock]);
 
   useEffect(() => {
     if (!initialBookingDetails) {
@@ -91,6 +132,8 @@ const BookingPaymentPage = () => {
           console.log("Payment successful, setting session marker");
           // Set session marker for successful payment
           sessionStorage.setItem("recentBookingComplete", "true");
+          // Disable blocking for successful payment navigation
+          setShouldBlock(false);
 
           const qs = invoiceNumber ? `?invoice_number=${encodeURIComponent(invoiceNumber)}` : "";
           navigate(`/booking-success${qs}`, {
@@ -130,6 +173,8 @@ const BookingPaymentPage = () => {
     if (redirectUrl) {
       // Buka modal payment dengan iframe Midtrans
       setShowPaymentModal(true);
+      // Disable blocking during payment process
+      setShouldBlock(false);
     }
   }, [redirectUrl]);
 
@@ -153,11 +198,11 @@ const BookingPaymentPage = () => {
         setBookingDetails((prev) => ({
           ...prev,
           voucherDiscount: discount,
-          voucherCode: promo.name,
+          voucherCode: `PROMO ${promo.promo_code}`,
           promoId: promo.id,
           promoPercentage: promo.percentage,
         }));
-        toast.success(`Voucher "${promo.name}" applied! ${promo.percentage}% discount`);
+        toast.success(`Voucher "${promo.promo_code}" applied! ${promo.percentage}% discount`);
       } else {
         // Show modal for inactive promo code
         setPromoModalMessage("This promo code is not active");
@@ -285,6 +330,8 @@ const BookingPaymentPage = () => {
     setShowPaymentModal(false);
     // Set session marker for fallback access
     sessionStorage.setItem("recentBookingComplete", "true");
+    // Disable blocking for payment completion navigation
+    setShouldBlock(false);
     // Redirect to success page as a fallback when payment flow ends
     const qs = invoiceNumber ? `?invoice_number=${encodeURIComponent(invoiceNumber)}` : "";
     navigate(`/booking-success${qs}`, {
@@ -292,14 +339,48 @@ const BookingPaymentPage = () => {
     });
   };
 
-  // Handle exit warning modal
+  // Handle exit warning modal (back to booking button)
   const handleContinueBooking = () => {
     setShowExitWarning(false);
+    navigationAttemptRef.current = null;
   };
 
   const handleExitPage = () => {
     setShowExitWarning(false);
-    navigate("/rent");
+    setShouldBlock(false); // Disable blocking for this navigation
+
+    // Navigate back to RentPage step 4 (FnB selection) with preserved booking data
+    navigate("/rent", {
+      state: {
+        bookingDetails,
+        currentStep: 4,
+        preserveData: true
+      }
+    });
+  };
+
+  // Handle navigation warning modal (other navigation attempts)
+  const handleContinuePayment = () => {
+    setShowNavigationWarning(false);
+    navigationAttemptRef.current = null;
+  };
+
+  const handleConfirmExit = () => {
+    setShowNavigationWarning(false);
+    setShouldBlock(false); // Disable blocking for this navigation
+
+    // If there was a navigation attempt, proceed with it
+    if (navigationAttemptRef.current) {
+      const targetPath = navigationAttemptRef.current;
+      navigationAttemptRef.current = null;
+      // Small delay to ensure shouldBlock state is updated
+      setTimeout(() => {
+        navigate(targetPath);
+      }, 10);
+    } else {
+      // Fallback to home page
+      navigate("/");
+    }
   };
 
   if (!bookingDetails) return null;
@@ -400,7 +481,7 @@ const BookingPaymentPage = () => {
       >
       </ConfirmationModal>
 
-      {/* Exit Warning Modal - Menggunakan struktur ConfirmationModal */}
+      {/* Exit Warning Modal - Back to Booking Button */}
       {showExitWarning && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           {/* Modal Content */}
@@ -415,10 +496,9 @@ const BookingPaymentPage = () => {
             </div>
 
             {/* Judul & Children (Isi Pesan) */}
-            <h3 className="text-lg font-bold mb-2">Exit Warning</h3>
-            <div className="text-sm text-gray-500 mb-6">
-              <p className="mb-2">Are you sure you want to exit this page?</p>
-              <p className="font-semibold">Your booking process won't be saved.</p>
+            <h3 className="text-lg font-bold mb-2 text-gray-800">Change of plans?</h3>
+            <div className="text-sm text-gray-600 mb-6">
+              <p className="leading-relaxed">You'll be redirected to the booking page to adjust your reservation</p>
             </div>
 
             {/* Tombol Aksi */}
@@ -427,13 +507,52 @@ const BookingPaymentPage = () => {
                 onClick={handleContinueBooking}
                 className="btn bg-brand-gold text-white w-full"
               >
-                Continue Booking
+                Continue Payment
               </button>
               <button
                 onClick={handleExitPage}
                 className="btn btn-ghost w-full"
               >
-                Exit
+                Adjust Booking
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Navigation Warning Modal - Other Navigation Attempts */}
+      {showNavigationWarning && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          {/* Modal Content */}
+          <div className="bg-base-100 rounded-lg shadow-xl w-full max-w-sm text-center p-6">
+            {/* Gambar Kustom di Atas */}
+            <div className="flex justify-center mb-4">
+              <img
+                src="/images/cancel.png"
+                alt="warning icon"
+                className="h-16 w-auto"
+              />
+            </div>
+
+            {/* Judul & Children (Isi Pesan) */}
+            <h3 className="text-lg font-bold mb-2 text-gray-800">Are you sure you want to exit?</h3>
+            <div className="text-sm text-gray-600 mb-6">
+              <p className="leading-relaxed">Your booking data will not be saved and you'll need to start over</p>
+            </div>
+
+            {/* Tombol Aksi */}
+            <div className="space-y-2">
+              <button
+                onClick={handleContinuePayment}
+                className="btn bg-brand-gold text-white w-full"
+              >
+                Continue Payment
+              </button>
+              <button
+                onClick={handleConfirmExit}
+                className="btn btn-error text-white w-full"
+              >
+                Yes, Exit
               </button>
             </div>
           </div>

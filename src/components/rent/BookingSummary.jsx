@@ -172,7 +172,7 @@ const BookingSummary = ({
               ))}
               {voucherDiscount > 0 && (
                 <div className="flex justify-between text-green-600">
-                  <span>Voucher "{details.voucherCode}" ({details.promoPercentage}%)</span>
+                  <span>{details.voucherCode} ({details.promoPercentage}%)</span>
                   <span className="font-semibold">
                     -{formatPrice(voucherDiscount)}
                   </span>

@@ -8,15 +8,15 @@ import "swiper/css";
 import "swiper/css/navigation";
 import "swiper/css/pagination";
 
-// Import ikon untuk rating bintang
-import { FaStar } from "react-icons/fa";
+// Import ikon untuk rating bintang dan kutipan
+import { FaStar, FaQuoteLeft } from "react-icons/fa";
 
 // Data ulasan pelanggan
 const reviews = [
   {
     id: 1,
     name: 'Andi "Pro Player" Wijaya',
-    avatarUrl: "/images/avatars/avatar-1.jpg",
+    avatarUrl: "/images/button-icon.png",
     rating: 5,
     reviewText:
       "Tempatnya nyaman banget, koleksi gamenya update terus. PS5-nya kenceng, gak ada lag sama sekali. Pasti balik lagi!",
@@ -24,7 +24,7 @@ const reviews = [
   {
     id: 2,
     name: 'Siti "Gamer Santai" Lestari',
-    avatarUrl: "/images/avatars/avatar-2.jpg",
+    avatarUrl: "/images/button-icon.png",
     rating: 4,
     reviewText:
       "Suka sama VIP Room-nya, bisa sambil nonton Netflix. Snack dan minumannya juga enak-enak. Harganya worth it.",
@@ -32,7 +32,7 @@ const reviews = [
   {
     id: 3,
     name: 'Budi "Mabar" Santoso',
-    avatarUrl: "/images/avatars/avatar-3.jpg",
+    avatarUrl: "/images/button-icon.png",
     rating: 5,
     reviewText:
       "Pilihan terbaik buat mabar bareng teman-teman. Ruangannya luas, sofanya empuk. Staff-nya juga ramah dan sangat membantu.",
@@ -40,7 +40,7 @@ const reviews = [
   {
     id: 4,
     name: 'Rina "Family Time" Hartono',
-    avatarUrl: "/images/avatars/avatar-4.jpg",
+    avatarUrl: "/images/button-icon.png",
     rating: 5,
     reviewText:
       "Bawa anak-anak ke sini pas weekend, mereka senang banget ada Nintendo Switch. Tempatnya bersih dan aman. Recommended!",
@@ -100,17 +100,49 @@ const CustomerReviewSection = () => {
           >
             {reviews.map((review) => (
               <SwiperSlide key={review.id}>
-                <div className="card bg-base-200 h-full p-8 text-center items-center rounded-lg shadow">
-                  <div className="avatar mb-4">
-                    <div className="w-24 rounded-full ring ring-primary ring-offset-base-100 ring-offset-2">
-                      <img src={review.avatarUrl} alt={review.name} />
+                {/* Gradient border wrapper */}
+                <div className="p-[1px] rounded-2xl bg-gradient-to-br from-yellow-400/70 via-yellow-500/40 to-gray-300/0">
+                  {/* Glass card */}
+                  <div className="h-full rounded-2xl bg-white/80 backdrop-blur-md shadow-sm hover:shadow-xl transition-transform duration-300 ease-out hover:-translate-y-1">
+                    <div className="p-8 text-center flex flex-col items-center">
+                      {/* Quote icon */}
+                      <div className="mb-4 text-yellow-500/80">
+                        <FaQuoteLeft className="w-6 h-6" />
+                      </div>
+
+                      {/* Avatar with fancy ring */}
+                      <div className="mb-5">
+                        <div className="relative w-24 h-24 mx-auto">
+                          <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-[#F5C542] to-[#D4AF37] blur-[2px] opacity-80"></div>
+                          <div className="relative w-full h-full rounded-full ring-4 ring-[#D4AF37] bg-gradient-to-br from-yellow-100 to-yellow-200 overflow-hidden">
+                            <img
+                              src={review.avatarUrl}
+                              alt={review.name}
+                              className="w-full h-full object-cover"
+                              onError={(e) => {
+                                console.error(`Failed to load image: ${review.avatarUrl}`);
+                                e.target.style.display = 'none';
+                              }}
+                              onLoad={() => console.log(`Image loaded successfully: ${review.avatarUrl}`)}
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Name */}
+                      <h3 className="text-lg font-extrabold tracking-tight text-gray-900">{review.name}</h3>
+
+                      {/* Star Rating */}
+                      <div className="my-3">
+                        <StarRating rating={review.rating} />
+                      </div>
+
+                      {/* Review Text */}
+                      <blockquote className="text-gray-700 text-sm leading-relaxed max-w-md">
+                        “{review.reviewText}”
+                      </blockquote>
                     </div>
                   </div>
-                  <h3 className="text-lg font-bold">{review.name}</h3>
-                  <div className="my-2">
-                    <StarRating rating={review.rating} />
-                  </div>
-                  <p className="text-gray-600 text-sm">"{review.reviewText}"</p>
                 </div>
               </SwiperSlide>
             ))}

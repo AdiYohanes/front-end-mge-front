@@ -202,7 +202,7 @@ const FoodPage = () => {
         dispatch(resetBookingStatus());
       }
     };
-  }, []);
+  }, [bookingStatus, dispatch]);
 
   return (
     <div className="container mx-auto px-4 py-16 lg:py-24">
@@ -245,7 +245,7 @@ const FoodPage = () => {
               {/* Food & Drinks */}
               <div className="flex justify-between items-start">
                 <span className="font-bold text-black">Food & Drinks:</span>
-                <span className="text-black">
+                <span className="text-black text-right break-words max-w-xs">
                   {selections.length > 0
                     ? selections.map(item => `${item.name} (${item.quantity})`).join(', ')
                     : '-'
@@ -302,21 +302,21 @@ const FoodPage = () => {
                   <div className="grid grid-cols-4 gap-4 pb-3 border-b border-gray-200 font-bold text-sm text-black">
                     <div>Type</div>
                     <div>Description</div>
-                    <div>Quantity</div>
-                    <div>Total</div>
+                    <div className="text-center">Quantity</div>
+                    <div className="text-right">Total</div>
                   </div>
 
                   {/* F&B Items */}
                   {selections.length > 0 ? (
                     <>
                       {selections.map((item, index) => (
-                        <div key={item.id} className="grid grid-cols-4 gap-4 py-3 text-sm text-black">
+                        <div key={item.id} className="grid grid-cols-4 gap-4 py-3 text-sm text-black border-b border-gray-100 last:border-b-0">
                           <div className="font-semibold">
                             {index === 0 ? "Food & Drinks" : ""}
                           </div>
-                          <div>{item.name}</div>
-                          <div>{item.quantity}</div>
-                          <div>{formatPrice(item.price * item.quantity)}</div>
+                          <div className="truncate" title={item.name}>{item.name}</div>
+                          <div className="text-center">{item.quantity}</div>
+                          <div className="text-right font-medium">{formatPrice(item.price * item.quantity)}</div>
                         </div>
                       ))}
                     </>
@@ -324,8 +324,8 @@ const FoodPage = () => {
                     <div className="grid grid-cols-4 gap-4 py-3 text-sm text-black">
                       <div className="font-semibold">Food & Drinks</div>
                       <div>-</div>
-                      <div>-</div>
-                      <div>-</div>
+                      <div className="text-center">-</div>
+                      <div className="text-right">-</div>
                     </div>
                   )}
 
@@ -337,7 +337,7 @@ const FoodPage = () => {
                     {/* PPN */}
                     <div className="flex justify-between items-center text-sm text-black">
                       <span>PPN 10%</span>
-                      <span>{formatPrice(selections.reduce((sum, item) => sum + (item.price * item.quantity), 0) * 0.1)}</span>
+                      <span className="font-medium">{formatPrice(selections.reduce((sum, item) => sum + (item.price * item.quantity), 0) * 0.1)}</span>
                     </div>
 
                     {/* Subtotal */}

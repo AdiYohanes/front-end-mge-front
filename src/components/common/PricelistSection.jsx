@@ -1,43 +1,10 @@
 // src/components/common/PricelistSection.jsx
 
-import React, { forwardRef } from "react";
-import { FaPlaystation, FaTicketAlt } from "react-icons/fa";
-import { RiNetflixFill, RiVipCrownFill } from "react-icons/ri";
-import { BsNintendoSwitch } from "react-icons/bs";
+import React, { forwardRef, useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchPricelistsThunk } from "../../features/pricelists/pricelistsSlice";
+import { FaPlaystation, FaCrown } from "react-icons/fa";
 import { IoMdPeople } from "react-icons/io";
-
-const pricelistData = [
-  {
-    name: "Reguler",
-    icon: <FaTicketAlt className="mr-3" />,
-    occupancy: "1-2 Orang",
-    items: [
-      { name: "Room 1", features: ["PS4"], price: 10000 },
-      { name: "Room 2", features: ["PS4"], price: 10000 },
-      { name: "Room 3", features: ["PS4"], price: 10000 },
-      { name: "Room 4", features: ["PS4"], price: 10000 },
-      { name: "Room 5", features: ["PS4"], price: 10000 },
-      { name: "Room 6", features: ["PS5"], price: 15000 },
-    ],
-  },
-  {
-    name: "VIP Room",
-    icon: <RiVipCrownFill className="mr-3" />,
-    occupancy: "4-6 Orang",
-    items: [
-      { name: "VIP 1", features: ["PS4", "Netflix"], price: 20000 },
-      { name: "VIP 2", features: ["PS4", "Netflix", "Nintendo"], price: 25000 },
-      { name: "VIP 3", features: ["PS5", "Netflix"], price: 25000 },
-      { name: "VIP 4", features: ["PS5", "Netflix"], price: 25000 },
-    ],
-  },
-  {
-    name: "VVIP Room",
-    icon: <RiVipCrownFill className="mr-3 text-primary" />,
-    occupancy: "6-10 Orang",
-    items: [{ name: "VVIP 1", features: ["PS5", "Netflix"], price: 35000 }],
-  },
-];
 
 const formatPrice = (price) =>
   new Intl.NumberFormat("id-ID", {
@@ -48,99 +15,126 @@ const formatPrice = (price) =>
     .format(price)
     .replace(/\s/g, "");
 
-const FeatureIcon = ({ feature }) => {
-  const iconMap = {
-    PS4: { icon: <FaPlaystation />, tip: "PlayStation 4" },
-    PS5: {
-      icon: <FaPlaystation className="text-blue-500" />,
-      tip: "PlayStation 5",
-    },
-    Netflix: {
-      icon: <RiNetflixFill className="text-red-600" />,
-      tip: "Netflix Ready",
-    },
-    Nintendo: {
-      icon: <BsNintendoSwitch className="text-red-500" />,
-      tip: "Nintendo Switch",
-    },
-  };
-  const selected = iconMap[feature] || { icon: null, tip: feature };
-  return (
-    <div className="tooltip" data-tip={selected.tip}>
-      {selected.icon}
-    </div>
-  );
-};
-
 const PricelistSection = forwardRef((props, ref) => {
+  const dispatch = useDispatch();
+  const { pricelists, status, error } = useSelector((state) => state.pricelists);
+
+  useEffect(() => {
+    if (status === "idle") {
+      dispatch(fetchPricelistsThunk());
+    }
+  }, [dispatch, status]);
+
+  if (status === "loading") {
+    return (
+      <section ref={ref} className="bg-white py-16 lg:py-20">
+        <div className="container mx-auto px-4">
+          <div className="text-center">
+            <div className="loading loading-spinner loading-lg text-brand-gold mb-4"></div>
+            <p className="text-gray-600">Loading pricelist...</p>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  if (status === "failed") {
+    return (
+      <section ref={ref} className="bg-white py-16 lg:py-20">
+        <div className="container mx-auto px-4">
+          <div className="text-center text-red-500">
+            <p>Failed to load pricelist: {error}</p>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  const getRoomIcon = (roomName) => {
+    const name = roomName.toLowerCase();
+    if (name.includes('vvip')) return <FaCrown className="text-yellow-600" />;
+    if (name.includes('vip')) return <FaCrown className="text-yellow-500" />;
+    return <FaPlaystation className="text-yellow-600" />;
+  };
+
   return (
-    // 1. Pasang ref yang diterima ke elemen <section>
-    <section ref={ref} className="bg-base-200 py-20 lg:py-24">
-      <div className="container mx-auto px-4">
-        <div className="text-center mb-16">
-          <h2 className="text-4xl lg:text-5xl font-minecraft mb-4">
+    <section ref={ref} className="bg-gray-50 py-16 lg:py-20">
+      <div className="container mx-auto px-4 max-w-4xl">
+        {/* Header */}
+        <div className="text-center mb-12">
+          <h1 className="text-4xl lg:text-5xl font-minecraft mb-4 text-gray-900">
             Pricelist
-          </h2>
-          <p className="max-w-2xl mx-auto text-gray-500">
-            Pilih ruangan dan konsol sesuai seleramu. Transparan dan tanpa biaya
-            tersembunyi.
+          </h1>
+          <div className="flex justify-center mb-4">
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 bg-yellow-600 rounded-full"></div>
+              <div className="w-2 h-2 bg-yellow-600 rounded-full"></div>
+              <div className="w-2 h-2 bg-yellow-600 rounded-full"></div>
+            </div>
+          </div>
+          <p className="text-gray-600 max-w-xl mx-auto leading-relaxed">
+            Pilih ruangan dan konsol sesuai seleramu.<br />
+            Transparan dan tanpa biaya tersembunyi.
           </p>
         </div>
 
-        {/* --- Layout Grid 3 Kolom Utama --- */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-12">
-          {pricelistData.map((category) => (
-            // --- Satu Kolom untuk setiap Kategori ---
-            <div key={category.name}>
-              {/* Header Kategori */}
-              <div className="border-b-2 border-primary pb-3 mb-6">
-                <h3 className="text-3xl font-minecraft text-base-content flex items-center">
-                  {category.icon}
-                  <span>{category.name}</span>
-                </h3>
-                <p className="text-sm text-gray-500 mt-1 flex items-center">
-                  <IoMdPeople className="mr-2" />
-                  <span>Kapasitas: {category.occupancy}</span>
-                </p>
+        {/* Room Cards */}
+        <div className="space-y-8">
+          {pricelists.map((room) => (
+            <div
+              key={room.room_name}
+              className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden"
+            >
+              {/* Room Header */}
+              <div className="px-6 py-4 border-b border-gray-100">
+                <div className="flex items-center gap-3">
+                  {getRoomIcon(room.room_name)}
+                  <h3 className="text-xl font-bold text-gray-900">
+                    {room.room_name}
+                  </h3>
+                </div>
+                <div className="flex items-center gap-2 mt-2 text-gray-600">
+                  <IoMdPeople className="w-4 h-4" />
+                  <span className="text-sm">Kapasitas: 1-{room.max_visitors} Orang</span>
+                </div>
               </div>
 
-              {/* Daftar Item di dalam Kolom */}
-              <div className="space-y-2">
-                {category.items.map((item) => (
-                  // --- Baris Item yang Compact (Nama & Ikon Sejajar) ---
-                  <div
-                    key={item.name}
-                    className="flex justify-between items-center p-3 rounded-lg hover:bg-base-100 hover:shadow-sm transition-all duration-200"
-                  >
-                    <div className="flex items-center gap-3">
-                      <p className="font-semibold text-base-content w-24">
-                        {item.name}
-                      </p>
-                      <div className="flex items-center gap-2 text-xl text-gray-500">
-                        {item.features.map((feature) => (
-                          <FeatureIcon key={feature} feature={feature} />
-                        ))}
+              {/* Units List */}
+              <div className="px-6 py-4">
+                <div className="space-y-3">
+                  {room.units.map((unit, index) => (
+                    <div
+                      key={index}
+                      className="flex items-center justify-between py-2"
+                    >
+                      <div className="flex items-center gap-3">
+                        <span className="text-gray-700 font-medium">
+                          {unit.unit_name}
+                        </span>
+                        <FaPlaystation className="w-4 h-4 text-gray-400" />
+                      </div>
+                      <div className="text-right">
+                        <span className="text-lg font-bold text-gray-900">
+                          {formatPrice(unit.price_per_hour)}
+                        </span>
+                        <span className="text-sm text-gray-500 ml-1">
+                          /jam
+                        </span>
                       </div>
                     </div>
-                    <div className="font-bold text-base text-base-content whitespace-nowrap">
-                      {formatPrice(item.price)}
-                      <span className="text-xs font-normal text-gray-500">
-                        /jam
-                      </span>
-                    </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
             </div>
           ))}
         </div>
 
-        {/* Dekorasi Bawah Tengah */}
-        <div className="flex justify-center mt-20">
-          <div className="flex items-center gap-5">
-            <div className="h-3 w-3 bg-black"></div>
-            <div className="h-3 w-3 bg-brand-gold"></div>
-            <div className="h-3 w-3 bg-black"></div>
+        {/* Bottom decoration */}
+        <div className="flex justify-center mt-16">
+          <div className="flex items-center gap-3">
+            <div className="h-2 w-2 bg-yellow-600 rounded-full"></div>
+            <div className="h-3 w-3 bg-gray-800 rounded-full"></div>
+            <div className="h-2 w-2 bg-yellow-600 rounded-full"></div>
           </div>
         </div>
       </div>

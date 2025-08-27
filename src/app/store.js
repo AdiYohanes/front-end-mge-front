@@ -10,6 +10,7 @@ import availabilityReducer from "../features/availability/availabilitySlice";
 import fnbsReducer from "../features/fnbs/fnbsSlice";
 import bookingReducer from "../features/booking/bookingSlice";
 import historyReducer from "../features/history/historySlice";
+import pricelistsReducer from "../features/pricelists/pricelistsSlice";
 export const store = configureStore({
   reducer: {
     auth: authReducer,
@@ -22,5 +23,6 @@ export const store = configureStore({
     fnbs: fnbsReducer,
     booking: bookingReducer,
     history: historyReducer,
+    pricelists: pricelistsReducer,
   },
 });

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useNavigate } from "react-router";
+import { useNavigate, useLocation } from "react-router";
 import { gsap } from "gsap";
 
 // Import semua komponen anak
@@ -22,13 +22,17 @@ import {
   fetchFnbsThunk,
   fetchFnbsCategoriesThunk,
 } from "../features/fnbs/fnbsSlice";
+import { fetchDurations } from "../features/availability/durationApi";
 
 // Import Ikon
 import { IoMdPeople } from "react-icons/io";
 import { FaClock } from "react-icons/fa";
 
 const RentPage = () => {
-  const [bookingDetails, setBookingDetails] = useState({
+  const location = useLocation();
+
+  // Initialize with preserved data if coming back from payment page
+  const initialBookingDetails = location.state?.bookingDetails || {
     console: null,
     roomType: null,
     psUnit: null,
@@ -41,9 +45,15 @@ const RentPage = () => {
     notes: "",
     subtotal: 0,
     numberOfPeople: null,
-  });
-  const [currentStep, setCurrentStep] = useState(1);
+  };
+
+  const initialStep = location.state?.currentStep || 1;
+
+  const [bookingDetails, setBookingDetails] = useState(initialBookingDetails);
+  const [currentStep, setCurrentStep] = useState(initialStep);
   const [showBookingSummary, setShowBookingSummary] = useState(true);
+  const [availableDurations, setAvailableDurations] = useState([]);
+  const [durationsLoading, setDurationsLoading] = useState(false);
   const pageRef = useRef(null);
 
   const dispatch = useDispatch();
@@ -57,6 +67,17 @@ const RentPage = () => {
   const { units, status: unitsStatus } = useSelector((state) => state.units);
   const { status: fnbsStatus } = useSelector((state) => state.fnbs);
   const { user } = useSelector((state) => state.auth);
+
+  // Handle preserved data when coming back from payment page
+  useEffect(() => {
+    if (location.state?.preserveData && location.state?.bookingDetails) {
+      setBookingDetails(location.state.bookingDetails);
+      setCurrentStep(location.state.currentStep || 4);
+
+      // Clear the navigation state to prevent issues with browser back/forward
+      navigate(location.pathname, { replace: true });
+    }
+  }, [location.state, navigate, location.pathname]);
 
   // Animasi masuk
   useEffect(() => {
@@ -110,6 +131,34 @@ const RentPage = () => {
       );
     }
   }, [bookingDetails.date, bookingDetails.psUnit, dispatch]);
+
+  // Mengambil available durations dari API ketika date dan start time dipilih
+  useEffect(() => {
+    if (bookingDetails.date && bookingDetails.startTime) {
+      const fetchAvailableDurations = async () => {
+        setDurationsLoading(true);
+        try {
+          const dateStr = bookingDetails.date.toISOString().split('T')[0]; // Format: YYYY-MM-DD
+          const durations = await fetchDurations(dateStr, bookingDetails.startTime);
+          setAvailableDurations(durations || []);
+
+          // Reset duration if current duration is not available
+          if (bookingDetails.duration && !durations.includes(bookingDetails.duration)) {
+            setBookingDetails(prev => ({ ...prev, duration: null }));
+          }
+        } catch (error) {
+          console.error('Failed to fetch durations:', error);
+          setAvailableDurations([]);
+        } finally {
+          setDurationsLoading(false);
+        }
+      };
+
+      fetchAvailableDurations();
+    } else {
+      setAvailableDurations([]);
+    }
+  }, [bookingDetails.date, bookingDetails.startTime, bookingDetails.duration]);
 
   // Menghitung subtotal secara otomatis
   useEffect(() => {
@@ -214,33 +263,10 @@ const RentPage = () => {
     }));
   };
 
-  // Helper function to calculate maximum duration based on start time
+  // Helper function to calculate maximum duration for display purposes
   const getMaxDuration = (startTime) => {
-    if (!startTime) return 2; // Default max duration
-
-    // Extract hour from time string (format: "HH:mm")
-    const startHour = parseInt(startTime.split(':')[0], 10);
-
-    // Operating hours: 10:00 - 24:00 (10 AM to 12 AM)
-    const closingHour = 24;
-
-    // Calculate maximum hours until closing
-    const maxPossibleDuration = closingHour - startHour;
-
-    // Limit to maximum 2 hours and ensure it doesn't exceed closing time
-    return Math.min(2, maxPossibleDuration);
-  };
-
-  // Helper function to get available duration options
-  const getAvailableDurations = (startTime) => {
-    const maxDuration = getMaxDuration(startTime);
-    const durations = [];
-
-    for (let i = 1; i <= maxDuration; i++) {
-      durations.push(i);
-    }
-
-    return durations;
+    if (!startTime || availableDurations.length === 0) return 2;
+    return Math.max(...availableDurations);
   };
 
   const handleNextToStep4 = () => {
@@ -524,9 +550,12 @@ const RentPage = () => {
                         className="select select-bordered select-lg min-w-[200px] bg-white border-gray-300 text-black focus:border-brand-gold cursor-pointer"
                         value={bookingDetails.duration || ""}
                         onChange={handleDurationChange}
+                        disabled={durationsLoading || availableDurations.length === 0}
                       >
-                        <option value="">Select Duration</option>
-                        {getAvailableDurations(bookingDetails.startTime).map((duration) => (
+                        <option value="">
+                          {durationsLoading ? "Loading durations..." : "Select Duration"}
+                        </option>
+                        {availableDurations.map((duration) => (
                           <option key={duration} value={duration} className="bg-white text-black">
                             {duration} {duration > 1 ? "Hours" : "Hour"}
                           </option>
@@ -538,30 +567,38 @@ const RentPage = () => {
                     <div className="text-center text-sm text-gray-600 mt-2">
                       <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
                         <p className="font-medium text-blue-800 mb-1">
-                          ⏰ Jam Operasional: 10:00 AM - 12:00 AM
+                          ⏰ Operating Hours
                         </p>
-                        <p className="text-blue-700">
-                          {bookingDetails.startTime && (
-                            <>
-                              Waktu yang dipilih: <span className="font-semibold">{bookingDetails.startTime}</span>
-                              {(() => {
-                                const maxDuration = getMaxDuration(bookingDetails.startTime);
-                                const startHour = parseInt(bookingDetails.startTime.split(':')[0], 10);
-                                const endHour = startHour + (bookingDetails.duration || maxDuration);
-                                return (
-                                  <span>
-                                    {bookingDetails.duration && (
-                                      <> • Berakhir pada: <span className="font-semibold">{endHour}:00</span></>
-                                    )}
-                                    {maxDuration < 2 && (
-                                      <> • Maksimum {maxDuration} jam{maxDuration > 1 ? 's' : ''} tersedia</>
-                                    )}
-                                  </span>
-                                );
-                              })()}
-                            </>
-                          )}
+                        <p className="text-blue-700 text-xs mb-2">
+                          Mon-Thu: 10:00-00:00 | Fri: 14:00-01:00 | Sat: 10:00-01:00 | Sun: 10:00-00:00
                         </p>
+                        {bookingDetails.startTime && (
+                          <p className="text-blue-700">
+                            Waktu yang dipilih: <span className="font-semibold">{bookingDetails.startTime}</span>
+                            {bookingDetails.duration && (
+                              <>
+                                {" • "}Durasi: <span className="font-semibold">{bookingDetails.duration} jam</span>
+                                {(() => {
+                                  const startHour = parseInt(bookingDetails.startTime.split(':')[0], 10);
+                                  const startMinute = parseInt(bookingDetails.startTime.split(':')[1], 10);
+                                  const endHour = startHour + bookingDetails.duration;
+                                  const endTime = endHour >= 24
+                                    ? `${String(endHour - 24).padStart(2, '0')}:${String(startMinute).padStart(2, '0')} (+1 day)`
+                                    : `${String(endHour).padStart(2, '0')}:${String(startMinute).padStart(2, '0')}`;
+                                  return (
+                                    <> • Berakhir pada: <span className="font-semibold">{endTime}</span></>
+                                  );
+                                })()}
+                              </>
+                            )}
+                            {durationsLoading && (
+                              <> • <span className="text-blue-600">Loading available durations...</span></>
+                            )}
+                            {!durationsLoading && availableDurations.length === 0 && bookingDetails.startTime && (
+                              <> • <span className="text-red-600">No durations available for this time</span></>
+                            )}
+                          </p>
+                        )}
                       </div>
                     </div>
                   </div>

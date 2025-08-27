@@ -119,6 +119,7 @@ const CustomerReviewSection = () => {
                               src={review.avatarUrl}
                               alt={review.name}
                               className="w-full h-full object-cover"
+                              style={{ minHeight: '96px', minWidth: '96px' }}
                               onError={(e) => {
                                 console.error(`Failed to load image: ${review.avatarUrl}`);
                                 e.target.style.display = 'none';

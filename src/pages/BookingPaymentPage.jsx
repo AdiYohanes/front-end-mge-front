@@ -550,7 +550,7 @@ const BookingPaymentPage = () => {
               </button>
               <button
                 onClick={handleConfirmExit}
-                className="btn btn-error text-white w-full"
+                className="btn btn-outline border-red-500 text-red-600 hover:bg-red-50 w-full"
               >
                 Yes, Exit
               </button>

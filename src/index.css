@@ -2,7 +2,15 @@
 
 @font-face {
   font-family: "Minecraft";
-  src: url("/font/MinecraftRegular-Bmg3.otf");
+  src: url("/font/MinecraftRegular-Bmg3.otf") format("opentype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Fallback utility so class `font-minecraft` works even if Tailwind doesn't generate it */
+.font-minecraft {
+  font-family: "Minecraft", sans-serif;
 }
 
 @import "tailwindcss";
@@ -48,11 +56,6 @@ body {
   color: var(--text-primary);
   font-family: "Funnel Display", sans-serif;
   transition: background-color 0.3s ease, color 0.3s ease;
-}
-
-/* Global font family for all elements */
-* {
-  font-family: "Funnel Display", sans-serif;
 }
 
 /* Dark mode responsive classes */

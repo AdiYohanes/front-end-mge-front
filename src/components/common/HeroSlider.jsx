@@ -45,12 +45,16 @@ const HeroSlider = ({ onPricelistClick }) => {
 
       {/* Konten teks dan tombol di tengah */}
       <div className="relative z-10 h-full flex flex-col items-center justify-center text-center text-white p-4">
-        <h1 className="text-5xl md:text-9xl font-minecraft text-shadow-lg mb-4">
-          Medan Gaming Ecosystem
+        <h1 className="font-minecraft text-shadow-lg mb-4 leading-[0.9] text-[64px] sm:text-[80px] md:text-[120px] lg:text-[140px] xl:text-[160px]">
+          <span className="block">Gabut?</span>
+          <span className="block">Mending <span className="text-brand-gold">Ngegame!</span></span>
         </h1>
-        <p className="text-lg md:text-2xl font-minecraft mb-8">
-          Make Good Enough
+        <p className="text-lg sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl text-gray-200 mb-6 font-medium">
+          Yang seru dan nyaman? Yaa cuma di MGE #NEVERSTOPPLAYING
         </p>
+        <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl text-white mb-8 font-minecraft">
+          Medan Gaming Ecosystem
+        </h2>
         <div className="flex flex-col gap-4">
           {/* 2. Diubah dari <Link> menjadi <button> */}
           {/* 'to' dihapus, 'onClick' ditambahkan */}

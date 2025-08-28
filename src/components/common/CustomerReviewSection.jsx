@@ -8,9 +8,6 @@ import "swiper/css";
 import "swiper/css/navigation";
 import "swiper/css/pagination";
 
-// Import ikon untuk rating bintang dan kutipan
-import { FaStar, FaQuoteLeft } from "react-icons/fa";
-
 // Data ulasan pelanggan
 const reviews = [
   {
@@ -47,17 +44,25 @@ const reviews = [
   },
 ];
 
-// Komponen kecil untuk menampilkan rating bintang
-const StarRating = ({ rating }) => (
-  <div className="flex gap-1 text-yellow-400">
-    {[...Array(5)].map((_, i) => (
-      <FaStar
-        key={i}
-        className={i < rating ? "text-yellow-400" : "text-gray-300"}
-      />
-    ))}
-  </div>
-);
+// Komponen kecil untuk menampilkan rating bintang (pakai gambar custom)
+const StarRating = ({ rating }) => {
+  const totalStars = 5;
+  const starSrc = "/images/start-reveiw.png";
+  if (!rating || rating < 0) return null;
+  return (
+    <div className="flex items-center justify-center gap-1" aria-label={`Rating ${rating} dari 5`} role="img">
+      {Array.from({ length: totalStars }).map((_, index) => (
+        <img
+          key={index}
+          src={starSrc}
+          alt={index < rating ? "Filled star" : "Empty star"}
+          className={index < rating ? "h-6 w-6" : "h-6 w-6 opacity-25"}
+          draggable={false}
+        />
+      ))}
+    </div>
+  );
+};
 
 const CustomerReviewSection = () => {
   return (
@@ -100,49 +105,32 @@ const CustomerReviewSection = () => {
           >
             {reviews.map((review) => (
               <SwiperSlide key={review.id}>
-                {/* Gradient border wrapper */}
-                <div className="p-[1px] rounded-2xl bg-gradient-to-br from-yellow-400/70 via-yellow-500/40 to-gray-300/0">
-                  {/* Glass card */}
-                  <div className="h-full rounded-2xl bg-white/80 backdrop-blur-md shadow-sm hover:shadow-xl transition-transform duration-300 ease-out hover:-translate-y-1">
-                    <div className="p-8 text-center flex flex-col items-center">
-                      {/* Quote icon */}
-                      <div className="mb-4 text-yellow-500/80">
-                        <FaQuoteLeft className="w-6 h-6" />
-                      </div>
+                {/* Card sesuai desain: border emas, sudut membulat, konten terpusat */}
+                <div className="h-full rounded-xl border border-[#D4AF37] bg-white shadow-sm hover:shadow-md transition-shadow">
+                  <div className="p-8 text-center flex flex-col items-center">
+                    {/* Quote mark di atas */}
+                    <div className="text-[#D4AF37] text-3xl leading-none mb-4" aria-hidden="true">“</div>
 
-                      {/* Avatar with fancy ring */}
-                      <div className="mb-5">
-                        <div className="relative w-24 h-24 mx-auto">
-                          <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-[#F5C542] to-[#D4AF37] blur-[2px] opacity-80"></div>
-                          <div className="relative w-full h-full rounded-full ring-4 ring-[#D4AF37] bg-gradient-to-br from-yellow-100 to-yellow-200 overflow-hidden">
-                            <img
-                              src={review.avatarUrl}
-                              alt={review.name}
-                              className="w-full h-full object-cover"
-                              style={{ minHeight: '96px', minWidth: '96px' }}
-                              onError={(e) => {
-                                console.error(`Failed to load image: ${review.avatarUrl}`);
-                                e.target.style.display = 'none';
-                              }}
-                              onLoad={() => console.log(`Image loaded successfully: ${review.avatarUrl}`)}
-                            />
-                          </div>
-                        </div>
-                      </div>
+                    {/* Icon review */}
+                    <img
+                      src="/images/icon-review.png"
+                      alt="Reviewer icon"
+                      className="w-16 h-16 mb-5 select-none"
+                      draggable={false}
+                    />
 
-                      {/* Name */}
-                      <h3 className="text-lg font-extrabold tracking-tight text-gray-900">{review.name}</h3>
-
-                      {/* Star Rating */}
-                      <div className="my-3">
-                        <StarRating rating={review.rating} />
-                      </div>
-
-                      {/* Review Text */}
-                      <blockquote className="text-gray-700 text-sm leading-relaxed max-w-md">
-                        “{review.reviewText}”
-                      </blockquote>
+                    {/* Star Rating */}
+                    <div className="mb-4">
+                      <StarRating rating={review.rating} />
                     </div>
+
+                    {/* Name */}
+                    <h3 className="text-2xl font-extrabold text-gray-900 mb-3">{review.name}</h3>
+
+                    {/* Review Text */}
+                    <p className="text-gray-700 text-sm leading-relaxed max-w-xs">
+                      {review.reviewText}
+                    </p>
                   </div>
                 </div>
               </SwiperSlide>

@@ -160,7 +160,7 @@ const BookingSummary = ({
               </div>
               {taxPercentage > 0 && (
                 <div className="flex justify-between">
-                  <span className="text-black">{taxInfo?.name} {taxPercentage}%</span>
+                  <span className="text-black">PB1 {taxPercentage}%</span>
                   <span className="font-semibold text-black">{formatPrice(taxAmount)}</span>
                 </div>
               )}

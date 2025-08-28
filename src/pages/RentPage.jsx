@@ -132,14 +132,16 @@ const RentPage = () => {
     }
   }, [bookingDetails.date, bookingDetails.psUnit, dispatch]);
 
-  // Mengambil available durations dari API ketika date dan start time dipilih
+  // Mengambil available durations dari API ketika unit, date dan start time dipilih
   useEffect(() => {
-    if (bookingDetails.date && bookingDetails.startTime) {
+    if (bookingDetails.psUnit?.id && bookingDetails.date && bookingDetails.startTime) {
       const fetchAvailableDurations = async () => {
         setDurationsLoading(true);
         try {
-          const dateStr = bookingDetails.date.toISOString().split('T')[0]; // Format: YYYY-MM-DD
-          const durations = await fetchDurations(dateStr, bookingDetails.startTime);
+          const unitId = bookingDetails.psUnit?.id;
+          const d = bookingDetails.date;
+          const dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; // Local YYYY-MM-DD
+          const durations = await fetchDurations(unitId, dateStr, bookingDetails.startTime);
           setAvailableDurations(durations || []);
 
           // Reset duration if current duration is not available
@@ -158,7 +160,7 @@ const RentPage = () => {
     } else {
       setAvailableDurations([]);
     }
-  }, [bookingDetails.date, bookingDetails.startTime, bookingDetails.duration]);
+  }, [bookingDetails.psUnit, bookingDetails.date, bookingDetails.startTime, bookingDetails.duration]);
 
   // Menghitung subtotal secara otomatis
   useEffect(() => {

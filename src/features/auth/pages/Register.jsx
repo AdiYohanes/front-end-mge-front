@@ -104,7 +104,7 @@ const Register = () => {
     const formData = {
       fullName,
       username,
-      email,
+      email: email.trim() === "" ? undefined : email.trim(),
       phoneNumber,
       password,
       confirmPassword,

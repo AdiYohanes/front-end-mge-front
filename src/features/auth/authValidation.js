@@ -21,7 +21,10 @@ export const registerSchema = z
       .min(3, { message: "Username must be at least 3 characters" })
       .max(50, { message: "Username must not exceed 50 characters" })
       .regex(/^[a-zA-Z0-9_]+$/, { message: "Username can only contain letters, numbers, and underscores" }),
-    email: z.string().email({ message: "Invalid email address" }).optional(),
+    email: z.union([
+      z.string().email({ message: "Invalid email address" }),
+      z.string().length(0)
+    ]).optional(),
     phoneNumber: z
       .string()
       .min(10, { message: "Phone number must be at least 10 digits" })

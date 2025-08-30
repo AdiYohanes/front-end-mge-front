@@ -59,7 +59,7 @@ const PricelistSection = forwardRef((props, ref) => {
 
   return (
     <section ref={ref} className="bg-gray-50 py-16 lg:py-20">
-      <div className="container mx-auto px-4 max-w-4xl">
+      <div className="container mx-auto px-4 max-w-7xl">
         {/* Header */}
         <div className="text-center mb-12">
           <h1 className="text-4xl lg:text-5xl font-minecraft mb-4 text-gray-900">
@@ -78,12 +78,12 @@ const PricelistSection = forwardRef((props, ref) => {
           </p>
         </div>
 
-        {/* Room Cards */}
-        <div className="space-y-8">
+        {/* Room Cards - Horizontal Flex Layout */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
           {pricelists.map((room) => (
             <div
               key={room.room_name}
-              className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden"
+              className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden hover:shadow-md transition-shadow duration-300"
             >
               {/* Room Header */}
               <div className="px-6 py-4 border-b border-gray-100">

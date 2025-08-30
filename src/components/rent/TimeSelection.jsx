@@ -150,7 +150,6 @@ const TimeSelection = ({ selectedTime, onTimeSelect, selectedDate }) => {
 
         <div className="mt-6 text-center">
           <div className="flex flex-col items-center gap-2 text-xs text-black">
-            <p>*Default booking duration is <span className="font-bold">1 hour</span>.</p>
           </div>
         </div>
       </div>

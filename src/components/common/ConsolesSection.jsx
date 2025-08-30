@@ -176,15 +176,6 @@ const ConsolesSection = () => {
                 </div>
               )}
             </div>
-
-            {/* Console Name Overlay */}
-            {availableConsoles[currentImageIndex] && (
-              <div className="mt-4 text-center">
-                <h3 className="text-xl lg:text-2xl font-minecraft text-brand-gold">
-                  {availableConsoles[currentImageIndex].name}
-                </h3>
-              </div>
-            )}
           </div>
 
           {/* 4. Kolom Kanan: Semua Console yang Tersedia */}

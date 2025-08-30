@@ -27,6 +27,7 @@ import { fetchDurations } from "../features/availability/durationApi";
 // Import Ikon
 import { IoMdPeople } from "react-icons/io";
 import { FaClock } from "react-icons/fa";
+import { IoIosArrowUp, IoIosArrowDown } from "react-icons/io";
 
 const RentPage = () => {
   const location = useLocation();
@@ -347,18 +348,161 @@ const RentPage = () => {
           <div className="h-3 w-3 bg-black"></div>
         </div>
         {showBookingSummary ? (
-          <BookingSummary
-            details={bookingDetails}
-            onClose={handleToggleBookingSummary}
-          />
+          <div className="w-full max-w-3xl mb-6">
+            {/* Single Header with Toggle */}
+            <div className="bg-white rounded-lg shadow-lg border border-gray-200">
+              <div className="flex justify-between items-center p-4 border-b border-gray-200">
+                <h2 className="font-minecraft text-2xl text-brand-gold">
+                  Booking Summary
+                </h2>
+                <button
+                  className="btn btn-ghost btn-sm btn-circle hover:bg-gray-100 transition-colors"
+                  onClick={handleToggleBookingSummary}
+                  aria-label="Hide booking summary"
+                >
+                  <IoIosArrowUp size={24} className="text-brand-gold" />
+                </button>
+              </div>
+
+              {/* Full Booking Summary Content */}
+              <div className="p-6 pt-0">
+                <div className="grid grid-cols-4 gap-4 text-sm font-semibold text-black mb-2">
+                  <span>Type</span>
+                  <span>Description</span>
+                  <span className="text-center">Quantity</span>
+                  <span className="text-right">Total</span>
+                </div>
+                <div className="border-t border-gray-200"></div>
+                <div className="mt-4 space-y-4">
+                  {(() => {
+                    const formattedDate = bookingDetails.date
+                      ? new Date(bookingDetails.date).toLocaleDateString("id-ID", {
+                        weekday: "long",
+                        year: "numeric",
+                        month: "long",
+                        day: "numeric",
+                      })
+                      : null;
+
+                    const fnbValue =
+                      bookingDetails.foodAndDrinks?.length > 0
+                        ? bookingDetails.foodAndDrinks
+                          .map((item) => `${item.name} (x${item.quantity})`)
+                          .join(", ")
+                        : null;
+
+                    const fnbTotal = bookingDetails.foodAndDrinks?.reduce((total, item) => {
+                      return total + parseInt(item.price, 10) * item.quantity;
+                    }, 0);
+
+                    const summaryItems = [
+                      {
+                        label: "Console",
+                        value: bookingDetails.console,
+                        quantity: bookingDetails.console ? 1 : "-",
+                      },
+                      {
+                        label: "Room Type",
+                        value: bookingDetails.roomType?.name,
+                        quantity: bookingDetails.roomType ? 1 : "-",
+                      },
+                      {
+                        label: "PS Unit",
+                        value: bookingDetails.psUnit?.name,
+                        quantity: bookingDetails.psUnit ? 1 : "-",
+                        total: bookingDetails.psUnit ? new Intl.NumberFormat("id-ID", {
+                          style: "currency",
+                          currency: "IDR",
+                          minimumFractionDigits: 0,
+                        }).format(bookingDetails.unitPrice).replace(/\s/g, "") : "-",
+                      },
+                      {
+                        label: "Game",
+                        value: bookingDetails.selectedGames[0]?.title,
+                        quantity: bookingDetails.selectedGames.length > 0 ? bookingDetails.selectedGames.length : "-",
+                      },
+                      { label: "Date", value: formattedDate, quantity: "-" },
+                      {
+                        label: "Start Time",
+                        value: bookingDetails.startTime,
+                        quantity: bookingDetails.startTime ? 1 : "-",
+                      },
+                      {
+                        label: "Duration",
+                        value: bookingDetails.duration ? `${bookingDetails.duration} Hour(s)` : null,
+                        quantity: "-",
+                      },
+                      {
+                        label: "Food & Drinks",
+                        value: fnbValue,
+                        quantity: bookingDetails.foodAndDrinks?.length > 0
+                          ? bookingDetails.foodAndDrinks.reduce((acc, item) => acc + item.quantity, 0)
+                          : "-",
+                        total: fnbTotal > 0 ? new Intl.NumberFormat("id-ID", {
+                          style: "currency",
+                          currency: "IDR",
+                          minimumFractionDigits: 0,
+                        }).format(fnbTotal).replace(/\s/g, "") : "-",
+                      },
+                    ];
+
+                    return summaryItems.map((item) => (
+                      <div
+                        key={item.label}
+                        className="grid grid-cols-4 gap-4 items-center text-sm"
+                      >
+                        <span className="font-bold text-black">{item.label}</span>
+                        <span className="text-black truncate">
+                          {item.value || "-"}
+                        </span>
+                        <span className="text-center text-black">{item.quantity}</span>
+                        <span className="text-right font-semibold text-black">
+                          {item.total || "-"}
+                        </span>
+                      </div>
+                    ));
+                  })()}
+                </div>
+
+                {bookingDetails.notes && (
+                  <div className="mt-4 pt-4 border-t border-gray-200 text-sm">
+                    <span className="font-bold text-black">Notes:</span>
+                    <p className="text-black whitespace-pre-wrap mt-1">
+                      {bookingDetails.notes}
+                    </p>
+                  </div>
+                )}
+
+                <div className="flex justify-between items-center mt-6 pt-4 border-t border-gray-200">
+                  <span className="font-bold text-lg text-black">Subtotal</span>
+                  <span className="font-bold text-lg text-brand-gold">
+                    {new Intl.NumberFormat("id-ID", {
+                      style: "currency",
+                      currency: "IDR",
+                      minimumFractionDigits: 0,
+                    }).format(bookingDetails.subtotal || 0).replace(/\s/g, "")}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
         ) : (
           <div className="w-full max-w-3xl mb-6">
-            <button
-              onClick={handleToggleBookingSummary}
-              className="btn w-full bg-brand-gold hover:bg-brand-gold/80 text-white font-minecraft tracking-wider"
-            >
-              Show Booking Summary
-            </button>
+            {/* Collapsed Header Only */}
+            <div className="bg-white rounded-lg shadow-lg border border-gray-200">
+              <div className="flex justify-between items-center p-4">
+                <h2 className="font-minecraft text-2xl text-brand-gold">
+                  Booking Summary
+                </h2>
+                <button
+                  className="btn btn-ghost btn-sm btn-circle hover:bg-gray-100 transition-colors"
+                  onClick={handleToggleBookingSummary}
+                  aria-label="Show booking summary"
+                >
+                  <IoIosArrowDown size={24} className="text-brand-gold" />
+                </button>
+              </div>
+            </div>
           </div>
         )}
         <BookingNavigator

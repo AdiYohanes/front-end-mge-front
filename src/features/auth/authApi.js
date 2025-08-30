@@ -19,11 +19,15 @@ export const registerUser = async (registerData) => {
     username: registerData.username,
     // role: "CUST", // BARIS INI DIHAPUS
     name: registerData.fullName,
-    email: registerData.email,
     phone: registerData.phoneNumber,
     password: registerData.password,
     password_confirmation: registerData.confirmPassword,
   };
+
+  // Only add email if it has a value
+  if (registerData.email && registerData.email.trim() !== "") {
+    apiPayload.email = registerData.email.trim();
+  }
 
   try {
     const response = await apiClient.post("/api/auth/register", apiPayload);

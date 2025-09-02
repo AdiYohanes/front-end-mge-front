@@ -31,7 +31,6 @@ const FoodPage = () => {
   const [useLoginInfo, setUseLoginInfo] = useState(false);
   const [personalInfoData, setPersonalInfoData] = useState({
     fullName: "",
-    email: "",
     phoneNumber: "",
     agreed: false,
   });
@@ -125,7 +124,7 @@ const FoodPage = () => {
   // Handler untuk submit order
   const handleSubmitOrder = () => {
     // Validate form
-    if (!personalInfoData.fullName || !personalInfoData.email || !personalInfoData.phoneNumber || !personalInfoData.agreed) {
+    if (!personalInfoData.fullName || !personalInfoData.phoneNumber || !personalInfoData.agreed) {
       toast.error("Please fill in all required fields and agree to terms & conditions");
       return;
     }
@@ -144,16 +143,14 @@ const FoodPage = () => {
       })),
       // Add personal information for guest booking
       name: personalInfoData.fullName.trim(),
-      phone: personalInfoData.phoneNumber.trim(),
-      email: personalInfoData.email.trim()
+      phone: personalInfoData.phoneNumber.trim()
     };
 
     console.log("Submitting F&B order:", fnbData); // Debug log
     console.log("Expected API format:", {
       fnbs: "array of {id: number, quantity: number}",
       name: "string (required)",
-      phone: "string (required)",
-      email: "string (optional)"
+      phone: "string (required)"
     });
 
     // Dispatch booking action

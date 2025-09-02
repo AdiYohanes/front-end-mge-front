@@ -55,16 +55,6 @@ const ConsolesSection = () => {
     );
   };
 
-  // Debug logging
-  console.log("All consoles from API:", consoles);
-  console.log("Available consoles after filter:", availableConsoles);
-  console.log("Console details:", consoles.map(c => ({
-    id: c.id,
-    name: c.name,
-    is_active: c.is_active,
-    amount: c.amount,
-    image: c.image,
-  })));
 
   if (status === "loading") {
     return (
@@ -72,7 +62,7 @@ const ConsolesSection = () => {
         <div className="container mx-auto px-4">
           <div className="flex items-center gap-4 mb-12">
             <div className="w-4 h-4 bg-brand-gold"></div>
-            <h2 className="text-4xl lg:text-9xl font-minecraft text-theme-primary">Consoles</h2>
+            <h2 className="text-4xl lg:text-[96px] font-minecraft text-theme-primary">Consoles</h2>
             <div className="w-4 h-4 bg-brand-gold"></div>
           </div>
           <div className="flex justify-center items-center h-64">
@@ -89,7 +79,7 @@ const ConsolesSection = () => {
         <div className="container mx-auto px-4">
           <div className="flex items-center gap-4 mb-12">
             <div className="w-4 h-4 bg-brand-gold"></div>
-            <h2 className="text-4xl lg:text-9xl font-minecraft text-theme-primary">Consoles</h2>
+            <h2 className="text-4xl lg:text-[96px] font-minecraft text-theme-primary">Consoles</h2>
             <div className="w-4 h-4 bg-brand-gold"></div>
           </div>
           <div className="text-center text-red-500">
@@ -106,7 +96,7 @@ const ConsolesSection = () => {
         {/* 1. Judul Section di Kiri Atas */}
         <div className="flex items-center gap-4 mb-12">
           <div className="w-4 h-4 bg-brand-gold"></div>
-          <h2 className="text-4xl lg:text-9xl font-minecraft text-theme-primary">Consoles</h2>
+          <h2 className="text-4xl lg:text-[96px] font-minecraft text-theme-primary">Consoles</h2>
           <div className="w-4 h-4 bg-brand-gold"></div>
         </div>
 

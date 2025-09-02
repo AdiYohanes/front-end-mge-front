@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchFnbsThunk, fetchFnbsCategoriesThunk, setSelectedCategory, bookFnbsThunk, resetBookingStatus } from "../features/fnbs/fnbsSlice";
 import { FaPlus, FaMinus, FaShoppingCart, FaSearch } from "react-icons/fa";
+import { IoIosArrowUp, IoIosArrowDown } from "react-icons/io";
 import PersonalInfoForm from "../components/rent/PersonalInfoForm";
 import { toast } from "react-hot-toast";
 import { useNavigate } from "react-router";
@@ -26,6 +27,7 @@ const FoodPage = () => {
   const [selections, setSelections] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [showPersonalInfo, setShowPersonalInfo] = useState(false);
+  const [showBookingSummary, setShowBookingSummary] = useState(true);
   const [useLoginInfo, setUseLoginInfo] = useState(false);
   const [personalInfoData, setPersonalInfoData] = useState({
     fullName: "",
@@ -113,6 +115,11 @@ const FoodPage = () => {
     if (bookingStatus !== "idle") {
       dispatch(resetBookingStatus());
     }
+  };
+
+  // Handler untuk toggle booking summary
+  const handleToggleBookingSummary = () => {
+    setShowBookingSummary(prev => !prev);
   };
 
   // Handler untuk submit order
@@ -222,39 +229,100 @@ const FoodPage = () => {
         </p>
 
         {/* Booking Summary */}
-        <div className="bg-white rounded-lg shadow-lg border border-brand-gold/20 max-w-2xl mx-auto mb-8">
-          <div className="flex justify-between items-center p-4 border-b border-gray-200">
-            <h2 className="font-minecraft text-2xl text-brand-gold">
-              Booking Summary
-            </h2>
-            <button className="btn btn-sm btn-ghost btn-circle">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-          </div>
-
-          <div className="p-6">
-            <div className="space-y-4">
-              {/* Date & Time */}
-              <div className="flex justify-between items-start">
-                <span className="font-bold text-black">Date & Time:</span>
-                <span className="text-black">{getCurrentDateTime()}</span>
+        {showBookingSummary ? (
+          <div className="w-full max-w-3xl mx-auto mb-8">
+            {/* Single Header with Toggle */}
+            <div className="bg-white rounded-lg shadow-lg border border-gray-200">
+              <div className="flex justify-between items-center p-4 border-b border-gray-200">
+                <h2 className="font-minecraft text-2xl text-brand-gold">
+                  Booking Summary
+                </h2>
+                <button
+                  className="btn btn-ghost btn-sm btn-circle hover:bg-gray-100 transition-colors"
+                  onClick={handleToggleBookingSummary}
+                  aria-label="Hide booking summary"
+                >
+                  <IoIosArrowUp size={24} className="text-brand-gold" />
+                </button>
               </div>
 
-              {/* Food & Drinks */}
-              <div className="flex justify-between items-start">
-                <span className="font-bold text-black">Food & Drinks:</span>
-                <span className="text-black text-right break-words max-w-xs">
-                  {selections.length > 0
-                    ? selections.map(item => `${item.name} (${item.quantity})`).join(', ')
-                    : '-'
-                  }
-                </span>
+              {/* Full Booking Summary Content */}
+              <div className="p-6 pt-0">
+                <div className="grid grid-cols-4 gap-4 text-sm font-semibold text-black mb-2">
+                  <span>Type</span>
+                  <span>Description</span>
+                  <span className="text-center">Quantity</span>
+                  <span className="text-right">Total</span>
+                </div>
+                <div className="border-t border-gray-200 pb-2"></div>
+                <div className="mt-4 space-y-4">
+                  {(() => {
+                    const summaryItems = [
+                      {
+                        label: "Date & Time",
+                        value: getCurrentDateTime(),
+                        quantity: "-",
+                      },
+                      {
+                        label: "Food & Drinks",
+                        value: selections.length > 0
+                          ? selections.map(item => `${item.name} (x${item.quantity})`).join(', ')
+                          : null,
+                        quantity: selections.length > 0
+                          ? selections.reduce((acc, item) => acc + item.quantity, 0)
+                          : "-",
+                        total: selections.length > 0
+                          ? formatPrice(selections.reduce((sum, item) => sum + (item.price * item.quantity), 0))
+                          : "-",
+                      },
+                    ];
+
+                    return summaryItems.map((item) => (
+                      <div
+                        key={item.label}
+                        className="grid grid-cols-4 gap-4 items-center text-sm"
+                      >
+                        <span className="font-bold text-black">{item.label}</span>
+                        <span className="text-black truncate">
+                          {item.value || "-"}
+                        </span>
+                        <span className="text-center text-black">{item.quantity}</span>
+                        <span className="text-right font-semibold text-black">
+                          {item.total || "-"}
+                        </span>
+                      </div>
+                    ));
+                  })()}
+                </div>
+
+                <div className="flex justify-between items-center mt-6 pt-4 border-t border-gray-200">
+                  <span className="font-bold text-lg text-black">Subtotal</span>
+                  <span className="font-bold text-lg text-brand-gold">
+                    {formatPrice(selections.reduce((sum, item) => sum + (item.price * item.quantity), 0))}
+                  </span>
+                </div>
               </div>
             </div>
           </div>
-        </div>
+        ) : (
+          <div className="w-full max-w-3xl mx-auto mb-8">
+            {/* Collapsed Header Only */}
+            <div className="bg-white rounded-lg shadow-lg border border-gray-200">
+              <div className="flex justify-between items-center p-4">
+                <h2 className="font-minecraft text-2xl text-brand-gold">
+                  Booking Summary
+                </h2>
+                <button
+                  className="btn btn-ghost btn-sm btn-circle hover:bg-gray-100 transition-colors"
+                  onClick={handleToggleBookingSummary}
+                  aria-label="Show booking summary"
+                >
+                  <IoIosArrowDown size={24} className="text-brand-gold" />
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Show Personal Info Form or F&B Selection */}
         {showPersonalInfo ? (

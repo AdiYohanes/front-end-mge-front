@@ -69,9 +69,13 @@ const CustomerReviewSection = () => {
     <section className="bg-base-100 py-20 lg:py-24">
       <div className="container mx-auto px-4">
         <div className="text-center mb-16">
-          <h2 className="text-4xl lg:text-5xl font-minecraft mb-4">
-            Customer Review
-          </h2>
+          <div className="flex items-center justify-center gap-4 mb-4">
+            <div className="w-4 h-4 bg-brand-gold"></div>
+            <h2 className="text-4xl lg:text-[96px] font-minecraft">
+              Customer Review
+            </h2>
+            <div className="w-4 h-4 bg-brand-gold"></div>
+          </div>
           <p className="max-w-2xl mx-auto text-gray-500">
             Apa kata mereka yang sudah merasakan keseruan di MGE.
           </p>

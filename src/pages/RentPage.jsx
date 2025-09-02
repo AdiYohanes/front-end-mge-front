@@ -372,7 +372,7 @@ const RentPage = () => {
                   <span className="text-center">Quantity</span>
                   <span className="text-right">Total</span>
                 </div>
-                <div className="border-t border-gray-200"></div>
+                <div className="border-t border-gray-200 pb-2"></div>
                 <div className="mt-4 space-y-4">
                   {(() => {
                     const formattedDate = bookingDetails.date

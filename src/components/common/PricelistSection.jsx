@@ -62,14 +62,18 @@ const PricelistSection = forwardRef((props, ref) => {
       <div className="container mx-auto px-4 max-w-7xl">
         {/* Header */}
         <div className="text-center mb-12">
-          <h1 className="text-4xl lg:text-5xl font-minecraft mb-4 text-gray-900">
-            Pricelist
-          </h1>
+          <div className="flex items-center justify-center gap-4 mb-4">
+            <div className="w-4 h-4 bg-brand-gold"></div>
+            <h1 className="text-4xl lg:text-[96px] font-minecraft text-gray-900">
+              Pricelist
+            </h1>
+            <div className="w-4 h-4 bg-brand-gold"></div>
+          </div>
           <div className="flex justify-center mb-4">
             <div className="flex items-center gap-2">
-              <div className="w-2 h-2 bg-yellow-600 rounded-full"></div>
-              <div className="w-2 h-2 bg-yellow-600 rounded-full"></div>
-              <div className="w-2 h-2 bg-yellow-600 rounded-full"></div>
+              <div className="w-2 h-2 bg-brand-gold "></div>
+              <div className="w-2 h-2 bg-black "></div>
+              <div className="w-2 h-2 bg-brand-gold "></div>
             </div>
           </div>
           <p className="text-gray-600 max-w-xl mx-auto leading-relaxed">

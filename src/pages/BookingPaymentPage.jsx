@@ -182,7 +182,26 @@ const BookingPaymentPage = () => {
     if (bookingStatus === "failed" && bookingError) {
       console.error("Booking failed with error:", bookingError);
       console.error("Booking status:", bookingStatus);
-      toast.error(bookingError);
+      console.error("Error type:", typeof bookingError); // Debug log
+      console.error("Error stringified:", JSON.stringify(bookingError)); // Debug log
+
+      // Check for specific phone number already exists error
+      // The error message might be in different formats, so check multiple possibilities
+      const errorMessage = String(bookingError).toLowerCase();
+      console.log("Error message for debugging:", errorMessage); // Debug log
+
+      // Check for phone number already exists error in various formats
+      if (errorMessage.includes("a user with this phone number already exists") ||
+        errorMessage.includes("phone number already exists") ||
+        errorMessage.includes("user with this phone number") ||
+        errorMessage.includes("already exists") ||
+        (errorMessage.includes("404") && errorMessage.includes("server error"))) {
+        console.log("Phone number error detected, showing custom message"); // Debug log
+        toast.error("Nomor yang kamu gunakan telah terdaftar ! silakan login untuk booking");
+      } else {
+        console.log("Showing original error message:", bookingError); // Debug log
+        toast.error(bookingError);
+      }
     }
   }, [bookingStatus, bookingError]);
 

@@ -23,7 +23,11 @@ const RoomsSection = () => {
       <section className="bg-base-100 py-20 lg:py-24">
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
-            <h2 className="text-4xl lg:text-8xl font-minecraft">Rooms</h2>
+            <div className="flex items-center justify-center gap-4 mb-4">
+              <div className="w-4 h-4 bg-brand-gold"></div>
+              <h2 className="text-4xl lg:text-[96px] font-minecraft">Rooms</h2>
+              <div className="w-4 h-4 bg-brand-gold"></div>
+            </div>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {[...Array(3)].map((_, i) => (
@@ -48,7 +52,11 @@ const RoomsSection = () => {
       <section className="bg-theme-primary py-20 lg:py-24">
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
-            <h2 className="text-4xl lg:text-8xl font-minecraft text-theme-primary">Rooms</h2>
+            <div className="flex items-center justify-center gap-4 mb-4">
+              <div className="w-4 h-4 bg-brand-gold"></div>
+              <h2 className="text-4xl lg:text-[96px] font-minecraft text-theme-primary">Rooms</h2>
+              <div className="w-4 h-4 bg-brand-gold"></div>
+            </div>
           </div>
           <div className="text-center text-red-500">
             <p>Failed to load rooms: {error}</p>
@@ -62,7 +70,11 @@ const RoomsSection = () => {
     <section className="bg-theme-primary py-20 lg:py-24">
       <div className="container mx-auto px-4">
         <div className="text-center mb-12">
-          <h2 className="text-4xl lg:text-8xl font-minecraft text-theme-primary">Rooms</h2>
+          <div className="flex items-center justify-center gap-4 mb-4">
+            <div className="w-4 h-4 bg-brand-gold"></div>
+            <h2 className="text-4xl lg:text-[96px] font-minecraft text-theme-primary">Rooms</h2>
+            <div className="w-4 h-4 bg-brand-gold"></div>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">

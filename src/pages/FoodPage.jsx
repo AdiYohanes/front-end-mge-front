@@ -225,107 +225,109 @@ const FoodPage = () => {
           Pilih makanan dan minuman favoritmu untuk menemani sesi gaming yang seru!
         </p>
 
-        {/* Booking Summary */}
-        {showBookingSummary ? (
-          <div className="w-full max-w-3xl mx-auto mb-8">
-            {/* Single Header with Toggle */}
-            <div className="bg-white rounded-lg shadow-lg border border-gray-200">
-              <div className="flex justify-between items-center p-4 border-b border-gray-200">
-                <h2 className="font-minecraft text-2xl text-brand-gold">
-                  Booking Summary
-                </h2>
-                <button
-                  className="btn btn-ghost btn-sm btn-circle hover:bg-gray-100 transition-colors"
-                  onClick={handleToggleBookingSummary}
-                  aria-label="Hide booking summary"
-                >
-                  <IoIosArrowUp size={24} className="text-brand-gold" />
-                </button>
+        {/* Booking Summary - Only show when not in personal info form */}
+        {!showPersonalInfo && (
+          showBookingSummary ? (
+            <div className="w-full max-w-3xl mx-auto mb-8">
+              {/* Single Header with Toggle */}
+              <div className="bg-white rounded-lg shadow-lg border border-gray-200">
+                <div className="flex justify-between items-center p-4 border-b border-gray-200">
+                  <h2 className="font-minecraft text-2xl text-brand-gold">
+                    Booking Summary
+                  </h2>
+                  <button
+                    className="btn btn-ghost btn-sm btn-circle hover:bg-gray-100 transition-colors"
+                    onClick={handleToggleBookingSummary}
+                    aria-label="Hide booking summary"
+                  >
+                    <IoIosArrowUp size={24} className="text-brand-gold" />
+                  </button>
+                </div>
+
+                {/* Full Booking Summary Content */}
+                <div className="p-6 pt-0">
+                  <div className="grid grid-cols-4 gap-4 text-sm font-semibold text-black mb-2">
+                    <span>Type</span>
+                    <span>Description</span>
+                    <span className="text-center">Quantity</span>
+                    <span className="text-right">Total</span>
+                  </div>
+                  <div className="border-t border-gray-200 pb-2"></div>
+                  <div className="mt-4 space-y-4">
+                    {(() => {
+                      const summaryItems = [
+                        {
+                          label: "Date & Time",
+                          value: getCurrentDateTime(),
+                          quantity: "-",
+                        },
+                        {
+                          label: "Food & Drinks",
+                          value: selections.length > 0
+                            ? selections.map(item => `${item.name} (x${item.quantity})`).join(', ')
+                            : null,
+                          quantity: selections.length > 0
+                            ? selections.reduce((acc, item) => acc + item.quantity, 0)
+                            : "-",
+                          total: selections.length > 0
+                            ? formatPrice(selections.reduce((sum, item) => sum + (item.price * item.quantity), 0))
+                            : "-",
+                        },
+                      ];
+
+                      return summaryItems.map((item) => (
+                        <div
+                          key={item.label}
+                          className="grid grid-cols-4 gap-4 items-center text-sm"
+                        >
+                          <span className="font-bold text-black">{item.label}</span>
+                          <span className="text-black break-words">
+                            {item.value || "-"}
+                          </span>
+                          <span className="text-center text-black">{item.quantity}</span>
+                          <span className="text-right font-semibold text-black">
+                            {item.total || "-"}
+                          </span>
+                        </div>
+                      ));
+                    })()}
+                  </div>
+
+                  <div className="flex justify-between items-center mt-6 pt-4 border-t border-gray-200">
+                    <span className="font-bold text-lg text-black">Subtotal</span>
+                    <span className="font-bold text-lg text-brand-gold">
+                      {formatPrice(selections.reduce((sum, item) => sum + (item.price * item.quantity), 0))}
+                    </span>
+                  </div>
+                </div>
               </div>
-
-              {/* Full Booking Summary Content */}
-              <div className="p-6 pt-0">
-                <div className="grid grid-cols-4 gap-4 text-sm font-semibold text-black mb-2">
-                  <span>Type</span>
-                  <span>Description</span>
-                  <span className="text-center">Quantity</span>
-                  <span className="text-right">Total</span>
-                </div>
-                <div className="border-t border-gray-200 pb-2"></div>
-                <div className="mt-4 space-y-4">
-                  {(() => {
-                    const summaryItems = [
-                      {
-                        label: "Date & Time",
-                        value: getCurrentDateTime(),
-                        quantity: "-",
-                      },
-                      {
-                        label: "Food & Drinks",
-                        value: selections.length > 0
-                          ? selections.map(item => `${item.name} (x${item.quantity})`).join(', ')
-                          : null,
-                        quantity: selections.length > 0
-                          ? selections.reduce((acc, item) => acc + item.quantity, 0)
-                          : "-",
-                        total: selections.length > 0
-                          ? formatPrice(selections.reduce((sum, item) => sum + (item.price * item.quantity), 0))
-                          : "-",
-                      },
-                    ];
-
-                    return summaryItems.map((item) => (
-                      <div
-                        key={item.label}
-                        className="grid grid-cols-4 gap-4 items-center text-sm"
-                      >
-                        <span className="font-bold text-black">{item.label}</span>
-                        <span className="text-black break-words">
-                          {item.value || "-"}
-                        </span>
-                        <span className="text-center text-black">{item.quantity}</span>
-                        <span className="text-right font-semibold text-black">
-                          {item.total || "-"}
-                        </span>
-                      </div>
-                    ));
-                  })()}
-                </div>
-
-                <div className="flex justify-between items-center mt-6 pt-4 border-t border-gray-200">
-                  <span className="font-bold text-lg text-black">Subtotal</span>
-                  <span className="font-bold text-lg text-brand-gold">
-                    {formatPrice(selections.reduce((sum, item) => sum + (item.price * item.quantity), 0))}
-                  </span>
+            </div>
+          ) : (
+            <div className="w-full max-w-3xl mx-auto mb-8">
+              {/* Collapsed Header Only */}
+              <div className="bg-white rounded-lg shadow-lg border border-gray-200">
+                <div className="flex justify-between items-center p-4">
+                  <h2 className="font-minecraft text-2xl text-brand-gold">
+                    Booking Summary
+                  </h2>
+                  <button
+                    className="btn btn-ghost btn-sm btn-circle hover:bg-gray-100 transition-colors"
+                    onClick={handleToggleBookingSummary}
+                    aria-label="Show booking summary"
+                  >
+                    <IoIosArrowDown size={24} className="text-brand-gold" />
+                  </button>
                 </div>
               </div>
             </div>
-          </div>
-        ) : (
-          <div className="w-full max-w-3xl mx-auto mb-8">
-            {/* Collapsed Header Only */}
-            <div className="bg-white rounded-lg shadow-lg border border-gray-200">
-              <div className="flex justify-between items-center p-4">
-                <h2 className="font-minecraft text-2xl text-brand-gold">
-                  Booking Summary
-                </h2>
-                <button
-                  className="btn btn-ghost btn-sm btn-circle hover:bg-gray-100 transition-colors"
-                  onClick={handleToggleBookingSummary}
-                  aria-label="Show booking summary"
-                >
-                  <IoIosArrowDown size={24} className="text-brand-gold" />
-                </button>
-              </div>
-            </div>
-          </div>
+          )
         )}
 
         {/* Show Personal Info Form or F&B Selection */}
         {showPersonalInfo ? (
           <div className="max-w-7xl mx-auto">
             {/* Back Button */}
-            <div className="mb-6">
+            <div className="mb-6 text-left">
               <button
                 onClick={handleBackToSelection}
                 className="btn btn-ghost btn-sm gap-2"
@@ -364,8 +366,7 @@ const FoodPage = () => {
                 {/* Summary Table */}
                 <div className="p-6">
                   {/* Table Headers */}
-                  <div className="grid grid-cols-4 gap-4 pb-3 border-b border-gray-200 font-bold text-sm text-black">
-                    <div>Type</div>
+                  <div className="grid grid-cols-3 gap-4 pb-3 border-b border-gray-200 font-bold text-sm text-black">
                     <div>Description</div>
                     <div className="text-center">Quantity</div>
                     <div className="text-right">Total</div>
@@ -375,10 +376,7 @@ const FoodPage = () => {
                   {selections.length > 0 ? (
                     <>
                       {selections.map((item, index) => (
-                        <div key={item.id} className="grid grid-cols-4 gap-4 py-3 text-sm text-black border-b border-gray-100 last:border-b-0">
-                          <div className="font-semibold">
-                            {index === 0 ? "Food & Drinks" : ""}
-                          </div>
+                        <div key={item.id} className="grid grid-cols-3 gap-4 py-3 text-sm text-black border-b border-gray-100 last:border-b-0">
                           <div className="truncate" title={item.name}>{item.name}</div>
                           <div className="text-center">{item.quantity}</div>
                           <div className="text-right font-medium">{formatPrice(item.price * item.quantity)}</div>
@@ -386,8 +384,7 @@ const FoodPage = () => {
                       ))}
                     </>
                   ) : (
-                    <div className="grid grid-cols-4 gap-4 py-3 text-sm text-black">
-                      <div className="font-semibold">Food & Drinks</div>
+                    <div className="grid grid-cols-3 gap-4 py-3 text-sm text-black">
                       <div>-</div>
                       <div className="text-center">-</div>
                       <div className="text-right">-</div>
@@ -416,7 +413,7 @@ const FoodPage = () => {
 
                   {/* Promo Code Section */}
                   <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-                    <div className="text-sm font-medium text-black mb-3">Got any promo code?</div>
+                    <div className="text-sm font-medium text-black mb-3 text-left">Got any promo code?</div>
                     <div className="flex gap-2">
                       <input
                         type="text"

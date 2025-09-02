@@ -101,10 +101,10 @@ const RoomsSection = () => {
                 </figure>
                 <div className="card-body">
                   <h2 className="card-title font-bold">{room.name}</h2>
-                  <p className="text-sm text-gray-600">{room.description}</p>
+                  <p className="text-sm text-theme-secondary">{room.description}</p>
                   {/* Room info */}
                   <div className="mt-2 space-y-1">
-                    <p className="text-xs text-gray-500">
+                    <p className="text-xs text-theme-muted">
                       Max Visitors: {room.max_visitors}
                     </p>
                     {/* Console badges - show all available consoles */}

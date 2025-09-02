@@ -27,7 +27,7 @@ const GamesSection = () => {
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
             <div className="flex items-center justify-center gap-4 mb-4">n              <div className="w-4 h-4 bg-brand-gold"></div>n              <h2 className="text-4xl lg:text-[96px] font-minecraft">Games</h2>n              <div className="w-4 h-4 bg-brand-gold"></div>n            </div>
-            <p className="max-w-3xl mx-auto text-gray-600 leading-relaxed">
+            <p className="max-w-3xl mx-auto text-theme-secondary leading-relaxed">
               Make Good Enough is a place for you to grab a PlayStation, dive into
               epic games, and play without limits—no commitments, just pure gaming
               joy!
@@ -50,7 +50,7 @@ const GamesSection = () => {
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
             <div className="flex items-center justify-center gap-4 mb-4">n              <div className="w-4 h-4 bg-brand-gold"></div>n              <h2 className="text-4xl lg:text-[96px] font-minecraft">Games</h2>n              <div className="w-4 h-4 bg-brand-gold"></div>n            </div>
-            <p className="max-w-3xl mx-auto text-gray-600 leading-relaxed">
+            <p className="max-w-3xl mx-auto text-theme-secondary leading-relaxed">
               Make Good Enough is a place for you to grab a PlayStation, dive into
               epic games, and play without limits—no commitments, just pure gaming
               joy!

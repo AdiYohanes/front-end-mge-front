@@ -27,11 +27,11 @@ const PricelistSection = forwardRef((props, ref) => {
 
   if (status === "loading") {
     return (
-      <section ref={ref} className="bg-white py-16 lg:py-20">
+      <section ref={ref} className="bg-theme-primary py-16 lg:py-20">
         <div className="container mx-auto px-4">
           <div className="text-center">
             <div className="loading loading-spinner loading-lg text-brand-gold mb-4"></div>
-            <p className="text-gray-600">Loading pricelist...</p>
+            <p className="text-theme-secondary">Loading pricelist...</p>
           </div>
         </div>
       </section>
@@ -40,7 +40,7 @@ const PricelistSection = forwardRef((props, ref) => {
 
   if (status === "failed") {
     return (
-      <section ref={ref} className="bg-white py-16 lg:py-20">
+      <section ref={ref} className="bg-theme-primary py-16 lg:py-20">
         <div className="container mx-auto px-4">
           <div className="text-center text-red-500">
             <p>Failed to load pricelist: {error}</p>
@@ -58,13 +58,13 @@ const PricelistSection = forwardRef((props, ref) => {
   };
 
   return (
-    <section ref={ref} className="bg-gray-50 py-16 lg:py-20">
+    <section ref={ref} className="bg-theme-primary py-16 lg:py-20">
       <div className="container mx-auto px-4 max-w-7xl">
         {/* Header */}
         <div className="text-center mb-12">
           <div className="flex items-center justify-center gap-4 mb-4">
             <div className="w-4 h-4 bg-brand-gold"></div>
-            <h1 className="text-4xl lg:text-[96px] font-minecraft text-gray-900">
+            <h1 className="text-4xl lg:text-[96px] font-minecraft text-theme-primary">
               Pricelist
             </h1>
             <div className="w-4 h-4 bg-brand-gold"></div>
@@ -76,7 +76,7 @@ const PricelistSection = forwardRef((props, ref) => {
               <div className="w-2 h-2 bg-brand-gold "></div>
             </div>
           </div>
-          <p className="text-gray-600 max-w-xl mx-auto leading-relaxed">
+          <p className="text-theme-secondary max-w-xl mx-auto leading-relaxed">
             Pilih ruangan dan konsol sesuai seleramu.<br />
             Transparan dan tanpa biaya tersembunyi.
           </p>
@@ -87,17 +87,17 @@ const PricelistSection = forwardRef((props, ref) => {
           {pricelists.map((room) => (
             <div
               key={room.room_name}
-              className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden hover:shadow-md transition-shadow duration-300"
+              className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden hover:shadow-md transition-shadow duration-300"
             >
               {/* Room Header */}
-              <div className="px-6 py-4 border-b border-gray-100">
+              <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
                 <div className="flex items-center gap-3">
                   {getRoomIcon(room.room_name)}
-                  <h3 className="text-xl font-bold text-gray-900">
+                  <h3 className="text-xl font-bold text-gray-900 dark:text-white">
                     {room.room_name}
                   </h3>
                 </div>
-                <div className="flex items-center gap-2 mt-2 text-gray-600">
+                <div className="flex items-center gap-2 mt-2 text-gray-600 dark:text-gray-300">
                   <IoMdPeople className="w-4 h-4" />
                   <span className="text-sm">Kapasitas: 1-{room.max_visitors} Orang</span>
                 </div>
@@ -112,16 +112,16 @@ const PricelistSection = forwardRef((props, ref) => {
                       className="flex items-center justify-between py-2"
                     >
                       <div className="flex items-center gap-3">
-                        <span className="text-gray-700 font-medium">
+                        <span className="text-gray-700 dark:text-gray-300 font-medium">
                           {unit.unit_name}
                         </span>
-                        <FaPlaystation className="w-4 h-4 text-gray-400" />
+                        <FaPlaystation className="w-4 h-4 text-gray-400 dark:text-gray-500" />
                       </div>
                       <div className="text-right">
-                        <span className="text-lg font-bold text-gray-900">
+                        <span className="text-lg font-bold text-gray-900 dark:text-white">
                           {formatPrice(unit.price_per_hour)}
                         </span>
-                        <span className="text-sm text-gray-500 ml-1">
+                        <span className="text-sm text-gray-500 dark:text-gray-400 ml-1">
                           /jam
                         </span>
                       </div>

@@ -66,7 +66,7 @@ const StarRating = ({ rating }) => {
 
 const CustomerReviewSection = () => {
   return (
-    <section className="bg-base-100 py-20 lg:py-24">
+    <section className="bg-theme-primary py-20 lg:py-24">
       <div className="container mx-auto px-4">
         <div className="text-center mb-16">
           <div className="flex items-center justify-center gap-4 mb-4">
@@ -76,7 +76,7 @@ const CustomerReviewSection = () => {
             </h2>
             <div className="w-4 h-4 bg-brand-gold"></div>
           </div>
-          <p className="max-w-2xl mx-auto text-gray-500">
+          <p className="max-w-2xl mx-auto text-theme-muted">
             Apa kata mereka yang sudah merasakan keseruan di MGE.
           </p>
         </div>
@@ -142,14 +142,14 @@ const CustomerReviewSection = () => {
           </Swiper>
 
           {/* 4. Tombol Navigasi Kustom dengan Image Anda */}
-          <div className="swiper-button-prev-custom absolute top-1/2 -translate-y-1/2 -left-20 z-10 cursor-pointer p-2 bg-white/50 rounded-full hover:bg-white transition-colors">
+          <div className="swiper-button-prev-custom absolute top-1/2 -translate-y-1/2 -left-20 z-10 cursor-pointer p-2 bg-white/50 dark:bg-gray-800/50 rounded-full hover:bg-white dark:hover:bg-gray-800 transition-colors">
             <img
               src="/images/row-right.png"
               alt="Previous"
               className="h-20 w-20"
             />
           </div>
-          <div className="swiper-button-next-custom absolute top-1/2 -translate-y-1/2 -right-20 z-10 cursor-pointer p-2 bg-white/50 rounded-full hover:bg-white transition-colors">
+          <div className="swiper-button-next-custom absolute top-1/2 -translate-y-1/2 -right-20 z-10 cursor-pointer p-2 bg-white/50 dark:bg-gray-800/50 rounded-full hover:bg-white dark:hover:bg-gray-800 transition-colors">
             <img src="/images/row-left.png" alt="Next" className="h-20 w-20" />
           </div>
         </div>

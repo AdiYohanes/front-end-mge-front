@@ -256,6 +256,23 @@ const BookingPaymentPage = () => {
     dispatch(validatePromoThunk(promoCode.trim().toUpperCase()));
   };
 
+  const handleRemovePromo = () => {
+    // Reset promo code and clear validation
+    setPromoCode("");
+    dispatch(clearPromoValidation());
+
+    // Remove promo from booking details
+    setBookingDetails((prev) => ({
+      ...prev,
+      voucherDiscount: 0,
+      voucherCode: "",
+      promoId: null,
+      promoPercentage: 0,
+    }));
+
+    toast.success("Promo code removed successfully");
+  };
+
   // Fungsi ini sekarang hanya untuk validasi dan membuka modal
   const handleProceed = (e) => {
     e.preventDefault();
@@ -367,6 +384,18 @@ const BookingPaymentPage = () => {
     setShowExitWarning(false);
     setShouldBlock(false); // Disable blocking for this navigation
 
+    // Reset personal information and promo code
+    setPersonalInfo({
+      fullName: "",
+      phoneNumber: "",
+      agreed: false,
+    });
+    setPromoCode("");
+    setUseLoginInfo(false);
+
+    // Clear any promo validation
+    dispatch(clearPromoValidation());
+
     // Navigate back to RentPage step 4 (FnB selection) with preserved booking data
     navigate("/rent", {
       state: {
@@ -386,6 +415,18 @@ const BookingPaymentPage = () => {
   const handleConfirmExit = () => {
     setShowNavigationWarning(false);
     setShouldBlock(false); // Disable blocking for this navigation
+
+    // Reset personal information and promo code
+    setPersonalInfo({
+      fullName: "",
+      phoneNumber: "",
+      agreed: false,
+    });
+    setPromoCode("");
+    setUseLoginInfo(false);
+
+    // Clear any promo validation
+    dispatch(clearPromoValidation());
 
     // If there was a navigation attempt, proceed with it
     if (navigationAttemptRef.current) {
@@ -435,10 +476,10 @@ const BookingPaymentPage = () => {
           <div className="lg:order-1 space-y-6">
             {isGuestBooking && (
               <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                <h3 className="text-lg font-semibold text-blue-800 mb-2">
+                <h3 className="text-lg font-semibold text-green-500 mb-2">
                   Guest Booking Information
                 </h3>
-                <p className="text-sm text-blue-700">
+                <p className="text-sm text-green-500">
                   Since you're booking as a guest, please provide your contact information below.
                 </p>
               </div>
@@ -469,6 +510,7 @@ const BookingPaymentPage = () => {
               promoCode={promoCode}
               onPromoChange={(e) => setPromoCode(e.target.value)}
               onApplyPromo={handleApplyPromo}
+              onRemovePromo={handleRemovePromo}
               isPromoLoading={promoValidation.status === "loading"}
               taxInfo={taxInfo}
               serviceFees={serviceFees}

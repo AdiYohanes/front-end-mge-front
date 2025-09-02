@@ -38,16 +38,16 @@
 }
 
 [data-theme="dark"] {
-  --bg-primary: #0f172a;
-  --bg-secondary: #000000;
-  --bg-tertiary: #334155;
-  --text-primary: #f1f5f9;
-  --text-secondary: #cbd5e1;
-  --text-muted: #64748b;
-  --border-color: #334155;
+  --bg-primary: #1b1010;
+  --bg-secondary: #1b1010;
+  --bg-tertiary: #1b1010;
+  --text-primary: #ffffff;
+  --text-secondary: #ffffff;
+  --text-muted: #ffffff;
+  --border-color: #1b1010;
   --shadow-color: rgba(0, 0, 0, 0.3);
-  --footer-bg: #020617;
-  --footer-text: #64748b;
+  --footer-bg: #1b1010;
+  --footer-text: #ffffff;
 }
 
 /* Apply theme colors and global font */

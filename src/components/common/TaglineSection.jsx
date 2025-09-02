@@ -16,15 +16,12 @@ const TaglineSection = () => {
 
       {/* Konten Utama */}
       <div className="container mx-auto px-4 relative z-10 flex flex-col items-center text-center">
-        <h1 className="text-5xl lg:text-7xl font-minecraft mb-6">
-          <span>Make </span>
-          <span className="text-brand-gold">Good</span>
-          <span> Enough</span>
+        <h1 className="text-6xl sm:text-7xl md:text-8xl lg:text-9xl xl:text-[120px] 2xl:text-[140px] font-minecraft mb-6">
+          <span className="block">Gabut?</span>
+          <span className="block">Mending <span className="text-brand-gold">Ngegame!</span></span>
         </h1>
-        <p className="max-w-5xl text-lg lg:text-2xl leading-relaxed">
-          Make Good Enough is a place for you to grab a PlayStation, dive into
-          epic games, and play without limits—no commitments, just pure gaming
-          joy!
+        <p className="max-w-3xl text-base sm:text-lg md:text-xl lg:text-2xl 2xl:text-2xl leading-relaxed text-theme-secondary flex items-center justify-center">
+          Yang seru dan nyaman? Yaa cuma di MGE #NEVERSTOPPLAYING
         </p>
 
         <div className="flex items-center gap-5 mt-12">

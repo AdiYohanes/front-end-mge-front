@@ -16,6 +16,7 @@ const BookingSummary = ({
   promoCode,
   onPromoChange,
   onApplyPromo,
+  onRemovePromo,
   isPromoLoading = false,
   taxInfo = null,
   serviceFees = [],
@@ -90,7 +91,14 @@ const BookingSummary = ({
   // Only apply tax if there are food and drinks orders
   const hasFoodOrDrinks = details.foodAndDrinks?.length > 0;
   const taxPercentage = isPaymentPage && taxInfo?.is_active && hasFoodOrDrinks ? Number(taxInfo.percentage) || 0 : 0;
-  const taxAmount = baseSubtotal * (taxPercentage / 100);
+
+  // Calculate F&B subtotal for tax calculation
+  const fnbSubtotal = details.foodAndDrinks?.reduce((total, item) => {
+    return total + parseInt(item.price, 10) * item.quantity;
+  }, 0) || 0;
+
+  // Tax is calculated only from F&B subtotal, not from total booking
+  const taxAmount = fnbSubtotal * (taxPercentage / 100);
   const activeServiceFees = Array.isArray(serviceFees)
     ? serviceFees.filter((f) => !!f?.is_active)
     : [];
@@ -171,8 +179,19 @@ const BookingSummary = ({
                 </div>
               ))}
               {voucherDiscount > 0 && (
-                <div className="flex justify-between text-green-600">
-                  <span>{details.voucherCode} ({details.promoPercentage}%)</span>
+                <div className="flex justify-between items-center text-green-600">
+                  <div className="flex items-center gap-2">
+                    <span>{details.voucherCode} ({details.promoPercentage}%)</span>
+                    {onRemovePromo && (
+                      <button
+                        onClick={onRemovePromo}
+                        className="btn btn-xs btn-ghost text-red-600 hover:bg-red-100 hover:text-red-700 p-1"
+                        title="Remove promo code"
+                      >
+                        <IoClose className="w-3 h-3" />
+                      </button>
+                    )}
+                  </div>
                   <span className="font-semibold">
                     -{formatPrice(voucherDiscount)}
                   </span>
@@ -192,6 +211,7 @@ const BookingSummary = ({
               >
                 Got any promo code?
               </label>
+
               <div className="join w-full">
                 <input
                   id="promo-code"

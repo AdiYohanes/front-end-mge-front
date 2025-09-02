@@ -8,6 +8,7 @@ import { toast } from "react-hot-toast";
 import { useNavigate } from "react-router";
 import { format } from "date-fns";
 import { enUS } from "date-fns/locale";
+import publicApiClient from "../lib/publicApiClient";
 
 // Helper untuk format harga
 const formatPrice = (price) =>
@@ -34,6 +35,7 @@ const FoodPage = () => {
     phoneNumber: "",
     agreed: false,
   });
+  const [taxInfo, setTaxInfo] = useState(null);
   const imageBaseUrl = import.meta.env.VITE_IMAGE_BASE_URL;
   const navigate = useNavigate();
 
@@ -50,6 +52,22 @@ const FoodPage = () => {
       dispatch(fetchFnbsCategoriesThunk());
     }
   }, [dispatch, status]);
+
+  // Fetch tax information
+  useEffect(() => {
+    const fetchTaxInfo = async () => {
+      try {
+        const taxRes = await publicApiClient.get("/api/public/taxes");
+        const activeTax = Array.isArray(taxRes.data)
+          ? taxRes.data.find((t) => t.is_active)
+          : null;
+        setTaxInfo(activeTax || null);
+      } catch (err) {
+        console.error("Failed to load tax information", err);
+      }
+    };
+    fetchTaxInfo();
+  }, []);
 
   // Memfilter item F&B berdasarkan kategori yang dipilih dan search query
   const filteredItems = items.filter((item) => {
@@ -247,8 +265,8 @@ const FoodPage = () => {
                 {/* Full Booking Summary Content */}
                 <div className="p-6 pt-0">
                   <div className="grid grid-cols-4 gap-4 text-sm font-semibold text-black mb-2">
-                    <span>Type</span>
-                    <span>Description</span>
+                    <span className="text-left">Type</span>
+                    <span className="text-left">Description</span>
                     <span className="text-center">Quantity</span>
                     <span className="text-right">Total</span>
                   </div>
@@ -280,12 +298,12 @@ const FoodPage = () => {
                           key={item.label}
                           className="grid grid-cols-4 gap-4 items-center text-sm"
                         >
-                          <span className="font-bold text-black">{item.label}</span>
-                          <span className="text-black break-words">
+                          <span className="font-bold text-black text-left">{item.label}</span>
+                          <span className="text-black break-words text-left">
                             {item.value || "-"}
                           </span>
-                          <span className="text-center text-black">{item.quantity}</span>
-                          <span className="text-right font-semibold text-black">
+                          <span className="text-black text-center">{item.quantity}</span>
+                          <span className="font-semibold text-black text-right">
                             {item.total || "-"}
                           </span>
                         </div>
@@ -367,7 +385,7 @@ const FoodPage = () => {
                 <div className="p-6">
                   {/* Table Headers */}
                   <div className="grid grid-cols-3 gap-4 pb-3 border-b border-gray-200 font-bold text-sm text-black">
-                    <div>Description</div>
+                    <div className="text-left">Description</div>
                     <div className="text-center">Quantity</div>
                     <div className="text-right">Total</div>
                   </div>
@@ -375,9 +393,9 @@ const FoodPage = () => {
                   {/* F&B Items */}
                   {selections.length > 0 ? (
                     <>
-                      {selections.map((item, index) => (
+                      {selections.map((item) => (
                         <div key={item.id} className="grid grid-cols-3 gap-4 py-3 text-sm text-black border-b border-gray-100 last:border-b-0">
-                          <div className="truncate" title={item.name}>{item.name}</div>
+                          <div className="truncate text-left" title={item.name}>{item.name}</div>
                           <div className="text-center">{item.quantity}</div>
                           <div className="text-right font-medium">{formatPrice(item.price * item.quantity)}</div>
                         </div>
@@ -385,7 +403,7 @@ const FoodPage = () => {
                     </>
                   ) : (
                     <div className="grid grid-cols-3 gap-4 py-3 text-sm text-black">
-                      <div>-</div>
+                      <div className="text-left">-</div>
                       <div className="text-center">-</div>
                       <div className="text-right">-</div>
                     </div>
@@ -396,17 +414,19 @@ const FoodPage = () => {
 
                   {/* Totals */}
                   <div className="space-y-2">
-                    {/* PPN */}
-                    <div className="flex justify-between items-center text-sm text-black">
-                      <span>PPN 10%</span>
-                      <span className="font-medium">{formatPrice(selections.reduce((sum, item) => sum + (item.price * item.quantity), 0) * 0.1)}</span>
-                    </div>
+                    {/* Tax */}
+                    {taxInfo?.is_active && (
+                      <div className="flex justify-between items-center text-sm text-black">
+                        <span>PB1 {taxInfo.percentage}%</span>
+                        <span className="font-medium">{formatPrice(selections.reduce((sum, item) => sum + (item.price * item.quantity), 0) * (taxInfo.percentage / 100))}</span>
+                      </div>
+                    )}
 
                     {/* Subtotal */}
                     <div className="flex justify-between items-center font-bold text-lg pt-2 border-t border-gray-200 text-black">
                       <span>Subtotal</span>
                       <span className="text-brand-gold">
-                        {formatPrice(selections.reduce((sum, item) => sum + (item.price * item.quantity), 0) * 1.1)}
+                        {formatPrice(selections.reduce((sum, item) => sum + (item.price * item.quantity), 0) * (1 + (taxInfo?.is_active ? taxInfo.percentage / 100 : 0)))}
                       </span>
                     </div>
                   </div>

@@ -4,8 +4,26 @@ import publicApiClient from "../../lib/publicApiClient";
 import { format, add, isValid } from "date-fns";
 
 // Validate promo code using public API
-export const validatePromoCode = async (promoName) => {
-  const response = await publicApiClient.get(`/api/public/promos?name=${promoName}`);
+export const validatePromoCode = async (promoCode) => {
+  console.log("Validating promo code:", promoCode); // Debug log
+  const apiUrl = `/api/public/promos?promo_code=${encodeURIComponent(promoCode)}`;
+  console.log("API URL:", apiUrl); // Debug log
+
+  const response = await publicApiClient.get(apiUrl);
+  console.log("Full API response:", response); // Debug log
+  console.log("Response status:", response.status); // Debug log
+  console.log("Response headers:", response.headers); // Debug log
+  console.log("Promo validation API response data:", response.data); // Debug log
+
+  // Check if we have data array and log its contents
+  if (response.data && response.data.data) {
+    console.log("Promo data array:", response.data.data); // Debug log
+    console.log("Number of promos returned:", response.data.data.length); // Debug log
+    response.data.data.forEach((promo, index) => {
+      console.log(`Promo ${index}:`, promo); // Debug log
+    });
+  }
+
   return response.data;
 };
 

@@ -12,12 +12,14 @@ const TimeSelection = ({ selectedTime, onTimeSelect, selectedDate }) => {
 
     // If selected date is today, check against current time
     if (selectedDate) {
-      const selectedDateStr = selectedDate.toISOString().split('T')[0];
-      const today = now.toISOString().split('T')[0];
+      // Use local date formatting to avoid timezone issues
+      const selectedDateStr = selectedDate.toLocaleDateString('en-CA'); // YYYY-MM-DD format
+      const today = now.toLocaleDateString('en-CA'); // YYYY-MM-DD format
 
       if (selectedDateStr === today) {
-        // Create a Date object for the time slot today
-        const timeSlotDate = new Date(`${today}T${timeString}:00`);
+        // Create a Date object for the time slot today using local timezone
+        const [hours, minutes] = timeString.split(':').map(Number);
+        const timeSlotDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), hours, minutes);
         return timeSlotDate < now;
       }
     }
@@ -83,6 +85,11 @@ const TimeSelection = ({ selectedTime, onTimeSelect, selectedDate }) => {
     const apiSlots = timeSlots || [];
     const generatedSlots = generate30MinuteSlots();
 
+    // Debug logging
+    console.log('API Slots:', apiSlots);
+    console.log('Generated Slots:', generatedSlots);
+    console.log('Selected Date:', selectedDate);
+
     // Create a map of existing API slots
     const apiSlotsMap = new Map();
     apiSlots.forEach(slot => {
@@ -98,6 +105,7 @@ const TimeSelection = ({ selectedTime, onTimeSelect, selectedDate }) => {
       return generatedSlot; // Use generated slot if no API slot
     });
 
+    console.log('Combined Slots:', combinedSlots);
     return combinedSlots;
   };
 

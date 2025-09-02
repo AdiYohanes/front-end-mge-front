@@ -212,15 +212,20 @@ const BookingPaymentPage = () => {
 
     if (promoValidation.status === "succeeded" && promoValidation.promoData) {
       const promo = promoValidation.promoData;
+      console.log("Processing promo data:", promo); // Debug log
+
       if (promo.is_active) {
-        const discount = (bookingDetails.subtotal * promo.percentage) / 100;
-        setBookingDetails((prev) => ({
-          ...prev,
-          voucherDiscount: discount,
-          voucherCode: `PROMO ${promo.promo_code}`,
-          promoId: promo.id,
-          promoPercentage: promo.percentage,
-        }));
+        setBookingDetails((prev) => {
+          if (!prev) return prev; // Safety check
+          const discount = (prev.subtotal * promo.percentage) / 100;
+          return {
+            ...prev,
+            voucherDiscount: discount,
+            voucherCode: `PROMO ${promo.promo_code}`,
+            promoId: promo.id,
+            promoPercentage: promo.percentage,
+          };
+        });
         toast.success(`Voucher "${promo.promo_code}" applied! ${promo.percentage}% discount`);
       } else {
         // Show toast for inactive promo code
@@ -231,7 +236,7 @@ const BookingPaymentPage = () => {
       setPromoModalMessage(promoValidation.error || "Kode promo tidak lagi tersedia");
       setShowPromoModal(true);
     }
-  }, [promoValidation, bookingDetails.subtotal]);
+  }, [promoValidation]);
 
   const handleInfoChange = useCallback((e) => {
     const { name, value, type, checked } = e.target;
@@ -247,7 +252,13 @@ const BookingPaymentPage = () => {
       return;
     }
 
+    if (!bookingDetails) {
+      toast.error("Booking details not available. Please try again.");
+      return;
+    }
+
     console.log("Applying promo code:", promoCode.trim().toUpperCase()); // Debug log
+    console.log("Current booking details subtotal:", bookingDetails.subtotal); // Debug log
 
     // Clear previous validation
     dispatch(clearPromoValidation());

@@ -41,12 +41,17 @@ export const submitBookingThunk = createAsyncThunk(
 
 export const validatePromoThunk = createAsyncThunk(
   "booking/validatePromo",
-  async (promoName, { rejectWithValue }) => {
+  async (promoCode, { rejectWithValue }) => {
     try {
-      const response = await validatePromoCode(promoName);
+      console.log("ValidatePromoThunk - Validating promo:", promoCode); // Debug log
+      const response = await validatePromoCode(promoCode);
+      console.log("ValidatePromoThunk - API response:", response); // Debug log
       return response;
     } catch (error) {
-      return rejectWithValue(error.response?.data?.message || "Failed to validate promo code");
+      console.error("ValidatePromoThunk - Error:", error); // Debug log
+      const errorMessage = error.response?.data?.message || error.message || "Failed to validate promo code";
+      console.error("ValidatePromoThunk - Error message:", errorMessage); // Debug log
+      return rejectWithValue(errorMessage);
     }
   }
 );
@@ -120,19 +125,28 @@ const bookingSlice = createSlice({
         state.promoValidation.error = null;
       })
       .addCase(validatePromoThunk.fulfilled, (state, action) => {
+        console.log("ValidatePromoThunk fulfilled - Full payload:", action.payload); // Debug log
+        console.log("ValidatePromoThunk fulfilled - Data array:", action.payload.data); // Debug log
+
         // Check if data array exists and has items
         if (action.payload.data && action.payload.data.length > 0) {
           state.promoValidation.status = "succeeded";
-          state.promoValidation.promoData = action.payload.data[0];
+          // Prefer exact match on promo_code if multiple entries are returned
+          const list = action.payload.data;
+          const exact = Array.isArray(list) ? list.find(p => p && p.promo_code && typeof p.promo_code === 'string') : null;
+          state.promoValidation.promoData = exact || list[0];
           state.promoValidation.error = null;
+          console.log("Promo validation succeeded - Using promo data:", state.promoValidation.promoData); // Debug log
         } else {
           // No promo codes found - treat as failed
           state.promoValidation.status = "failed";
           state.promoValidation.promoData = null;
           state.promoValidation.error = "Kode promo tidak lagi tersedia";
+          console.log("Promo validation failed - No data found"); // Debug log
         }
       })
       .addCase(validatePromoThunk.rejected, (state, action) => {
+        console.error("ValidatePromoThunk rejected - Error:", action.payload); // Debug log
         state.promoValidation.status = "failed";
         state.promoValidation.error = action.payload;
         state.promoValidation.promoData = null;

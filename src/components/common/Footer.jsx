@@ -13,18 +13,18 @@ const Footer = () => {
   ];
 
   return (
-    <footer className="bg-theme-primary text-theme-secondary p-8 lg:p-16 border-t border-theme">
+    <footer className="text-theme-secondary p-8 lg:p-16 border-t border-theme" style={{ backgroundColor: '#1a100f' }}>
       <div className="container mx-auto">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-12 mb-8">
           {/* Kolom Kiri */}
           <div className="space-y-4">
             <Link to="/">
-              <img src="/images/logo.png" alt="Logo" className="h-12 w-auto" />
+              <img src="/images/logo.png" alt="Logo" className="h-20 w-auto" />
             </Link>
-            <h3 className="text-xl font-bold text-theme-primary">
+            <h3 className="text-xl font-bold text-white">
               Medan Gaming Ecosystem
             </h3>
-            <p className="text-sm leading-relaxed text-theme-secondary">
+            <p className="text-sm leading-relaxed text-white">
               Lorem ipsum dolor sit amet, consectetur adipiscing elit.
               Vestibulum vestibulum odio sit amet auctor suscipit. Aenean a
               viverra nisi. Nunc faucibus vulputate augue eu convallis.
@@ -56,14 +56,14 @@ const Footer = () => {
                   </div>
                   <div className="flex-1">
                     <h4 className="font-semibold text-white mb-1">Our Location</h4>
-                    <p className="text-theme-secondary font-medium">
+                    <p className="text-white font-medium">
                       Jl. Jendral Sudirman No. 67, Medan Sunggal, Sumatera Utara, Indonesia
                     </p>
                     <div className="mt-2 space-y-1">
-                      <p className="text-theme-secondary text-sm">
+                      <p className="text-white text-sm">
                         <span className="font-medium">Contact:</span> +62 812-3456-7890
                       </p>
-                      <p className="text-theme-secondary text-sm">
+                      <p className="text-white text-sm">
                         <span className="font-medium">Hours:</span> 09:00 - 21:00 Daily
                       </p>
                     </div>

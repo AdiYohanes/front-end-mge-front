@@ -221,7 +221,7 @@ const FoodPage = () => {
           <div className="h-3 w-3 bg-black"></div>
           <div className="h-3 w-3 bg-brand-gold"></div>
         </div>
-        <p className="text-theme-secondary text-lg max-w-2xl mx-auto mb-8">
+        <p className="text-white text-lg max-w-2xl mx-auto mb-8">
           Pilih makanan dan minuman favoritmu untuk menemani sesi gaming yang seru!
         </p>
 

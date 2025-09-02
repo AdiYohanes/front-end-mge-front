@@ -223,9 +223,8 @@ const BookingPaymentPage = () => {
         }));
         toast.success(`Voucher "${promo.promo_code}" applied! ${promo.percentage}% discount`);
       } else {
-        // Show modal for inactive promo code
-        setPromoModalMessage("This promo code is not active");
-        setShowPromoModal(true);
+        // Show toast for inactive promo code
+        toast.error("Oops! Promo ini sudah tidak berlaku! Nantikan promo menarik dari kami.");
       }
     } else if (promoValidation.status === "failed") {
       // Show modal for promo code not found or API error

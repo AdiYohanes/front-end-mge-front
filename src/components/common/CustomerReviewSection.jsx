@@ -142,14 +142,14 @@ const CustomerReviewSection = () => {
           </Swiper>
 
           {/* 4. Tombol Navigasi Kustom dengan Image Anda */}
-          <div className="swiper-button-prev-custom absolute top-1/2 -translate-y-1/2 -left-20 z-10 cursor-pointer p-2 bg-white/50 dark:bg-gray-800/50 rounded-full hover:bg-white dark:hover:bg-gray-800 transition-colors">
+          <div className="swiper-button-prev-custom absolute top-1/2 -translate-y-1/2 -left-20 z-10 cursor-pointer p-2 rounded-full hover:bg-white dark:hover:bg-gray-800 transition-colors">
             <img
               src="/images/row-right.png"
               alt="Previous"
               className="h-20 w-20"
             />
           </div>
-          <div className="swiper-button-next-custom absolute top-1/2 -translate-y-1/2 -right-20 z-10 cursor-pointer p-2 bg-white/50 dark:bg-gray-800/50 rounded-full hover:bg-white dark:hover:bg-gray-800 transition-colors">
+          <div className="swiper-button-next-custom absolute top-1/2 -translate-y-1/2 -right-20 z-10 cursor-pointer p-2 rounded-full hover:bg-white dark:hover:bg-gray-800 transition-colors">
             <img src="/images/row-left.png" alt="Next" className="h-20 w-20" />
           </div>
         </div>

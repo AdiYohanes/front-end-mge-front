@@ -452,7 +452,7 @@ const RentPage = () => {
                         className="grid grid-cols-4 gap-4 items-center text-sm"
                       >
                         <span className="font-bold text-black">{item.label}</span>
-                        <span className="text-black truncate">
+                        <span className="text-black break-words">
                           {item.value || "-"}
                         </span>
                         <span className="text-center text-black">{item.quantity}</span>

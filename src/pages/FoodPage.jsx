@@ -9,6 +9,7 @@ import { useNavigate } from "react-router";
 import { format } from "date-fns";
 import { enUS } from "date-fns/locale";
 import publicApiClient from "../lib/publicApiClient";
+import { validatePromoThunk, clearPromoValidation } from "../features/booking/bookingSlice";
 
 // Helper untuk format harga
 const formatPrice = (price) =>
@@ -36,8 +37,13 @@ const FoodPage = () => {
     agreed: false,
   });
   const [taxInfo, setTaxInfo] = useState(null);
+  const [promoCode, setPromoCode] = useState("");
+  const [voucherDiscount, setVoucherDiscount] = useState(0);
+  const [voucherCode, setVoucherCode] = useState("");
+  const [promoPercentage, setPromoPercentage] = useState(0);
   const imageBaseUrl = import.meta.env.VITE_IMAGE_BASE_URL;
   const navigate = useNavigate();
+  const { promoValidation } = useSelector((state) => state.booking);
 
   // Get current date for booking summary
   const getCurrentDateTime = () => {
@@ -68,6 +74,48 @@ const FoodPage = () => {
     };
     fetchTaxInfo();
   }, []);
+
+  // Handle promo validation response (match behavior from BookingPaymentPage)
+  useEffect(() => {
+    if (promoValidation.status === "succeeded" && promoValidation.promoData) {
+      const promo = promoValidation.promoData;
+      if (promo.is_active) {
+        const baseSubtotal = selections.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+        const discount = (baseSubtotal * Number(promo.percentage)) / 100;
+        setVoucherDiscount(discount);
+        setVoucherCode(`PROMO ${promo.promo_code}`);
+        // promo.id intentionally unused in FoodPage
+        setPromoPercentage(Number(promo.percentage));
+        toast.success(`Voucher "${promo.promo_code}" applied! ${promo.percentage}% discount`);
+      } else {
+        toast.error("Oops! Promo ini sudah tidak berlaku! Nantikan promo menarik dari kami.");
+      }
+    } else if (promoValidation.status === "failed") {
+      toast.error(promoValidation.error || "Kode promo tidak lagi tersedia");
+    }
+  }, [promoValidation, selections]);
+
+  const handleApplyPromo = () => {
+    if (!promoCode.trim()) {
+      toast.error("Please enter a promo code");
+      return;
+    }
+    if (selections.length === 0) {
+      toast.error("Please select at least one item before applying promo");
+      return;
+    }
+    dispatch(clearPromoValidation());
+    dispatch(validatePromoThunk(promoCode.trim().toUpperCase()));
+  };
+
+  const handleRemovePromo = () => {
+    setPromoCode("");
+    setVoucherDiscount(0);
+    setVoucherCode("");
+    setPromoPercentage(0);
+    dispatch(clearPromoValidation());
+    toast.success("Promo code removed successfully");
+  };
 
   // Memfilter item F&B berdasarkan kategori yang dipilih dan search query
   const filteredItems = items.filter((item) => {
@@ -422,11 +470,33 @@ const FoodPage = () => {
                       </div>
                     )}
 
+                    {/* Voucher Discount */}
+                    {voucherDiscount > 0 && (
+                      <div className="flex justify-between items-center text-green-600 text-sm">
+                        <div className="flex items-center gap-2">
+                          <span>{voucherCode} ({promoPercentage}%)</span>
+                          <button
+                            onClick={handleRemovePromo}
+                            className="btn btn-xs btn-ghost text-red-600 hover:bg-red-100 hover:text-red-700 p-1"
+                            title="Remove promo code"
+                          >
+                            Remove
+                          </button>
+                        </div>
+                        <span className="font-semibold">-{formatPrice(voucherDiscount)}</span>
+                      </div>
+                    )}
+
                     {/* Subtotal */}
                     <div className="flex justify-between items-center font-bold text-lg pt-2 border-t border-gray-200 text-black">
                       <span>Subtotal</span>
                       <span className="text-brand-gold">
-                        {formatPrice(selections.reduce((sum, item) => sum + (item.price * item.quantity), 0) * (1 + (taxInfo?.is_active ? taxInfo.percentage / 100 : 0)))}
+                        {(() => {
+                          const base = selections.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+                          const tax = taxInfo?.is_active ? base * (taxInfo.percentage / 100) : 0;
+                          const total = base + tax - voucherDiscount;
+                          return formatPrice(Math.max(total, 0));
+                        })()}
                       </span>
                     </div>
                   </div>
@@ -437,11 +507,21 @@ const FoodPage = () => {
                     <div className="flex gap-2">
                       <input
                         type="text"
-                        placeholder="ex: user@gmail.com"
+                        placeholder="ex: OPENINGYUK"
+                        value={promoCode}
+                        onChange={(e) => setPromoCode(e.target.value)}
                         className="flex-1 input input-bordered input-sm bg-white text-black placeholder:text-gray-500"
                       />
-                      <button className="btn btn-sm bg-brand-gold hover:bg-brand-gold/80 text-white">
-                        Apply
+                      <button
+                        onClick={handleApplyPromo}
+                        disabled={promoValidation.status === "loading" || !promoCode.trim()}
+                        className="btn btn-sm bg-brand-gold hover:bg-brand-gold/80 text-white disabled:opacity-50"
+                      >
+                        {promoValidation.status === "loading" ? (
+                          <span className="loading loading-spinner loading-sm"></span>
+                        ) : (
+                          "Apply"
+                        )}
                       </button>
                     </div>
                   </div>

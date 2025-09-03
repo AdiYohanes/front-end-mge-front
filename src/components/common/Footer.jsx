@@ -64,7 +64,7 @@ const Footer = () => {
                         <span className="font-medium">Contact:</span> +62 812-3456-7890
                       </p>
                       <p className="text-white text-sm">
-                        <span className="font-medium">Hours:</span> 09:00 - 21:00 Daily
+                        <span className="font-medium">Jam Buka:</span> Sen-Kam: 10:00-00:00 | Jum: 14:00-01:00 | Sab: 10:00-01:00 | Min: 10:00-00:00
                       </p>
                     </div>
                   </div>

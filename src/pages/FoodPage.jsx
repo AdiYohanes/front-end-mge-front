@@ -1,9 +1,10 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchFnbsThunk, fetchFnbsCategoriesThunk, setSelectedCategory, bookFnbsThunk, resetBookingStatus } from "../features/fnbs/fnbsSlice";
 import { FaPlus, FaMinus, FaShoppingCart, FaSearch } from "react-icons/fa";
 import { IoIosArrowUp, IoIosArrowDown } from "react-icons/io";
 import PersonalInfoForm from "../components/rent/PersonalInfoForm";
+import ConfirmationModal from "../components/common/ConfirmationModal";
 import { toast } from "react-hot-toast";
 import { useNavigate } from "react-router";
 import { format } from "date-fns";
@@ -41,6 +42,10 @@ const FoodPage = () => {
   const [voucherDiscount, setVoucherDiscount] = useState(0);
   const [voucherCode, setVoucherCode] = useState("");
   const [promoPercentage, setPromoPercentage] = useState(0);
+  const [showBackConfirmation, setShowBackConfirmation] = useState(false);
+  const [showNavigationWarning, setShowNavigationWarning] = useState(false);
+  const [shouldBlock, setShouldBlock] = useState(false);
+  const navigationAttemptRef = useRef(null);
   const imageBaseUrl = import.meta.env.VITE_IMAGE_BASE_URL;
   const navigate = useNavigate();
   const { promoValidation } = useSelector((state) => state.booking);
@@ -51,6 +56,74 @@ const FoodPage = () => {
     const currentDate = format(now, "EEEE, do MMMM yyyy", { locale: enUS });
     return currentDate;
   };
+
+  // Enable navigation blocking when in personal info form
+  useEffect(() => {
+    setShouldBlock(showPersonalInfo);
+  }, [showPersonalInfo]);
+
+  // Handle browser back button and page refresh
+  useEffect(() => {
+    const handleBeforeUnload = (e) => {
+      if (shouldBlock) {
+        e.preventDefault();
+        e.returnValue = '';
+      }
+    };
+
+    const handlePopState = (e) => {
+      if (shouldBlock) {
+        e.preventDefault();
+        setShowNavigationWarning(true);
+        // Push the current state back to prevent navigation
+        window.history.pushState(null, '', window.location.pathname);
+      }
+    };
+
+    // Add a state to prevent back navigation
+    if (shouldBlock) {
+      window.history.pushState(null, '', window.location.pathname);
+    }
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    window.addEventListener('popstate', handlePopState);
+
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      window.removeEventListener('popstate', handlePopState);
+    };
+  }, [shouldBlock]);
+
+  // Block all navigation attempts (including navbar links)
+  useEffect(() => {
+    if (!shouldBlock) return;
+
+    const handleClick = (e) => {
+      // Check if clicked element is a link or has a link ancestor
+      const link = e.target.closest('a[href]');
+      if (link) {
+        const href = link.getAttribute('href');
+        // Only block internal navigation (not external links)
+        if (href && !href.startsWith('http') && !href.startsWith('mailto:') && !href.startsWith('tel:')) {
+          e.preventDefault();
+          e.stopPropagation();
+
+          // Store the attempted navigation path
+          navigationAttemptRef.current = href;
+          setShowNavigationWarning(true);
+        }
+      }
+    };
+
+    // Add click listener to document to catch all link clicks
+    document.addEventListener('click', handleClick, true);
+
+    return () => {
+      document.removeEventListener('click', handleClick, true);
+    };
+  }, [shouldBlock]);
+
+
 
   useEffect(() => {
     if (status === "idle") {
@@ -175,10 +248,74 @@ const FoodPage = () => {
 
   // Handler untuk back to F&B selection
   const handleBackToSelection = () => {
+    setShowBackConfirmation(true);
+  };
+
+  // Handler untuk konfirmasi back
+  const handleConfirmBack = () => {
+    setShowBackConfirmation(false);
     setShowPersonalInfo(false);
+
+    // Reset personal info
+    setPersonalInfoData({
+      fullName: "",
+      phoneNumber: "",
+      agreed: false,
+    });
+    setUseLoginInfo(false);
+
+    // Reset promo code and validation
+    setPromoCode("");
+    setVoucherDiscount(0);
+    setVoucherCode("");
+    setPromoPercentage(0);
+    dispatch(clearPromoValidation());
+
     // Reset booking status when going back
     if (bookingStatus !== "idle") {
       dispatch(resetBookingStatus());
+    }
+  };
+
+  // Handler untuk cancel back
+  const handleCancelBack = () => {
+    setShowBackConfirmation(false);
+  };
+
+  // Handler untuk navigation warning modal (other navigation attempts)
+  const handleContinuePayment = () => {
+    setShowNavigationWarning(false);
+    navigationAttemptRef.current = null;
+  };
+
+  const handleConfirmExit = () => {
+    setShowNavigationWarning(false);
+    setShouldBlock(false); // Disable blocking for this navigation
+
+    // Reset personal information and promo code
+    setPersonalInfoData({
+      fullName: "",
+      phoneNumber: "",
+      agreed: false,
+    });
+    setUseLoginInfo(false);
+    setPromoCode("");
+    setVoucherDiscount(0);
+    setVoucherCode("");
+    setPromoPercentage(0);
+    dispatch(clearPromoValidation());
+
+    // If there was a navigation attempt, proceed with it
+    if (navigationAttemptRef.current) {
+      const targetPath = navigationAttemptRef.current;
+      navigationAttemptRef.current = null;
+      // Small delay to ensure shouldBlock state is updated
+      setTimeout(() => {
+        navigate(targetPath);
+      }, 10);
+    } else {
+      // Fallback to home page
+      navigate("/");
     }
   };
 
@@ -534,7 +671,7 @@ const FoodPage = () => {
               <button
                 onClick={handleSubmitOrder}
                 disabled={bookingStatus === "loading"}
-                className="btn bg-brand-gold hover:bg-brand-gold/80 text-white font-minecraft text-lg w-full max-w-md"
+                className="btn bg-brand-gold hover:bg-brand-gold/80 text-white font-minecraft text-lg w-full"
               >
                 {bookingStatus === "loading" ? (
                   <>
@@ -542,7 +679,7 @@ const FoodPage = () => {
                     Processing Order...
                   </>
                 ) : (
-                  "Submit Order"
+                  "Proceed to Payment"
                 )}
               </button>
 
@@ -561,60 +698,7 @@ const FoodPage = () => {
           </div>
         ) : (
           <>
-            {/* Search and Category Buttons */}
-            <div className="flex flex-col sm:flex-row justify-center gap-4 mb-8">
-              <div className="relative w-full max-w-md mx-auto">
-                <div className="relative">
-                  <input
-                    type="text"
-                    placeholder="Search food & drinks..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="input input-bordered w-full pl-10 pr-4 bg-white border border-gray-300 rounded-lg focus:border-brand-gold focus:ring-1 focus:ring-brand-gold/20 transition-all duration-300"
-                  />
-                  <FaSearch className="absolute inset-y-3 left-3 flex items-center pointer-events-none text-gray-400 w-4 h-4" />
-                  {searchQuery && (
-                    <button
-                      onClick={() => setSearchQuery("")}
-                      className="absolute inset-y-0 right-3 flex items-center text-gray-400 hover:text-gray-600 transition-colors"
-                    >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                      </svg>
-                    </button>
-                  )}
-                </div>
-              </div>
-              <div className="flex flex-wrap gap-2 justify-center">
-                <button
-                  onClick={() => {
-                    dispatch(setSelectedCategory("all"));
-                    setSearchQuery("");
-                  }}
-                  className={`btn btn-sm capitalize transition-all duration-300 ${selectedCategory === "all"
-                    ? "bg-brand-gold text-white shadow-lg"
-                    : "btn-ghost hover:bg-brand-gold/10"
-                    }`}
-                >
-                  All
-                </button>
-                {categories.map((cat) => (
-                  <button
-                    key={cat.id}
-                    onClick={() => {
-                      dispatch(setSelectedCategory(cat.category));
-                      setSearchQuery("");
-                    }}
-                    className={`btn btn-sm capitalize transition-all duration-300 ${selectedCategory === cat.category
-                      ? "bg-brand-gold text-white shadow-lg"
-                      : "btn-ghost hover:bg-brand-gold/10"
-                      }`}
-                  >
-                    {cat.category}
-                  </button>
-                ))}
-              </div>
-            </div>
+            {/* Controls moved below to align with card grid */}
           </>
         )}
       </div>
@@ -624,6 +708,66 @@ const FoodPage = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Main Content - F&B Selection */}
           <div className="lg:col-span-2">
+            {/* Search + Category Controls (aligned with cards) */}
+            <div className="w-full mb-8">
+              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                {/* Search (left) */}
+                <div className="relative w-full md:max-w-md">
+                  <input
+                    type="text"
+                    placeholder="Search food & drinks..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    aria-label="Search food and drinks"
+                    className="input input-bordered w-full pl-10 pr-4 bg-white border border-gray-300 rounded-lg focus:border-brand-gold focus:ring-1 focus:ring-brand-gold/20 transition-all duration-300"
+                  />
+                  <FaSearch className="absolute inset-y-3 left-3 flex items-center pointer-events-none text-gray-400 w-4 h-4" />
+                  {searchQuery && (
+                    <button
+                      onClick={() => setSearchQuery("")}
+                      aria-label="Clear search"
+                      className="absolute inset-y-0 right-3 flex items-center text-gray-400 hover:text-gray-600 transition-colors"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  )}
+                </div>
+
+                {/* Categories (right) */}
+                <div className="flex flex-wrap gap-2 justify-start md:justify-end">
+                  <button
+                    onClick={() => {
+                      dispatch(setSelectedCategory("all"));
+                      setSearchQuery("");
+                    }}
+                    className={`btn btn-sm capitalize transition-all duration-300 ${selectedCategory === "all"
+                      ? "bg-brand-gold text-white shadow-lg"
+                      : "btn-ghost hover:bg-brand-gold/10"
+                      }`}
+                  >
+                    All
+                  </button>
+                  {categories.map((cat) => (
+                    <button
+                      key={cat.id}
+                      onClick={() => {
+                        dispatch(setSelectedCategory(cat.category));
+                        setSearchQuery("");
+                      }}
+                      className={`btn btn-sm capitalize transition-all duration-300 ${selectedCategory === cat.category
+                        ? "bg-brand-gold text-white shadow-lg"
+                        : "btn-ghost hover:bg-brand-gold/10"
+                        }`}
+                    >
+                      {cat.category}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
             {/* Loading State */}
             {status === "loading" && (
               <div className="text-center p-10">
@@ -744,7 +888,65 @@ const FoodPage = () => {
                 className="btn w-full bg-brand-gold hover:bg-brand-gold/80 text-white font-minecraft text-lg"
                 disabled={selections.length === 0}
               >
-                Order
+                Continue to Payment
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Back Confirmation Modal */}
+      <ConfirmationModal
+        isOpen={showBackConfirmation}
+        onClose={handleCancelBack}
+        onConfirm={handleConfirmBack}
+        title="Kembali ke Pilihan Makanan & Minuman?"
+        imageSrc="/images/tanya.png"
+        confirmText="Ya, Kembali"
+        isLoading={false}
+      >
+        <p>
+          Semua informasi personal dan kode promo akan direset.
+          Apakah Anda yakin ingin kembali ke halaman pilihan makanan & minuman?
+        </p>
+      </ConfirmationModal>
+
+      {/* Navigation Warning Modal - Other Navigation Attempts */}
+      {showNavigationWarning && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          {/* Modal Content */}
+          <div className="bg-base-100 rounded-lg shadow-xl w-full max-w-sm text-center p-6">
+            {/* Gambar Kustom di Atas - Sama dengan ConfirmationModal */}
+            <div className="flex justify-center mb-4">
+              <img
+                src="/images/tanya.png"
+                alt="warning icon"
+                className="h-16 w-auto"
+              />
+            </div>
+
+            {/* Judul & Children (Isi Pesan) */}
+            <h3 className="text-lg font-bold mb-2">Keluar dari Halaman Pembayaran?</h3>
+            <div className="text-sm text-gray-500 mb-6">
+              <p>
+                Semua informasi personal dan kode promo akan direset.
+                Apakah Anda yakin ingin keluar dari halaman ini?
+              </p>
+            </div>
+
+            {/* Tombol Aksi */}
+            <div className="space-y-2">
+              <button
+                onClick={handleConfirmExit}
+                className="btn bg-red-600 text-white w-full hover:bg-red-700"
+              >
+                Ya, Keluar
+              </button>
+              <button
+                onClick={handleContinuePayment}
+                className="btn btn-ghost w-full"
+              >
+                Lanjutkan Pembayaran
               </button>
             </div>
           </div>

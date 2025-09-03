@@ -39,7 +39,7 @@ const RentPage = () => {
     psUnit: null,
     unitPrice: 0,
     selectedGames: [],
-    date: new Date(),
+    date: null,
     startTime: null,
     duration: null,
     foodAndDrinks: [],
@@ -340,7 +340,7 @@ const RentPage = () => {
     <div className="container mx-auto px-4 py-16 lg:py-24 flex flex-col items-center">
       <div ref={pageRef} className="flex flex-col items-center w-full">
         <h1 className="text-4xl lg:text-5xl font-minecraft mb-6 text-theme-primary">
-          Book an Appointment
+          Book a Room
         </h1>
         <div className="flex items-center gap-2 mb-12">
           <div className="h-3 w-3 bg-black"></div>

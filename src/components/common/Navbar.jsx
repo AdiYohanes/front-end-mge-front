@@ -21,7 +21,7 @@ const Navbar = () => {
     <>
       <li>
         <NavLink to="/" className="text-base font-minecraft text-theme-primary hover:text-brand-gold">
-          MGE Rental
+          Medan Gaming Ecosystem
         </NavLink>
       </li>
       <li>

@@ -4,7 +4,6 @@ import { fetchFnbsThunk, fetchFnbsCategoriesThunk, setSelectedCategory, bookFnbs
 import { FaPlus, FaMinus, FaShoppingCart, FaSearch } from "react-icons/fa";
 import { IoIosArrowUp, IoIosArrowDown } from "react-icons/io";
 import PersonalInfoForm from "../components/rent/PersonalInfoForm";
-import ConfirmationModal from "../components/common/ConfirmationModal";
 import { toast } from "react-hot-toast";
 import { useNavigate } from "react-router";
 import { format } from "date-fns";
@@ -895,24 +894,8 @@ const FoodPage = () => {
         </div>
       )}
 
-      {/* Back Confirmation Modal */}
-      <ConfirmationModal
-        isOpen={showBackConfirmation}
-        onClose={handleCancelBack}
-        onConfirm={handleConfirmBack}
-        title="Kembali ke Pilihan Makanan & Minuman?"
-        imageSrc="/images/tanya.png"
-        confirmText="Ya, Kembali"
-        isLoading={false}
-      >
-        <p>
-          Semua informasi personal dan kode promo akan direset.
-          Apakah Anda yakin ingin kembali ke halaman pilihan makanan & minuman?
-        </p>
-      </ConfirmationModal>
-
-      {/* Navigation Warning Modal - Other Navigation Attempts */}
-      {showNavigationWarning && (
+      {/* Exit Warning Modal - Back to Selection Button (match BookingPaymentPage) */}
+      {showBackConfirmation && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           {/* Modal Content */}
           <div className="bg-base-100 rounded-lg shadow-xl w-full max-w-sm text-center p-6">
@@ -926,27 +909,63 @@ const FoodPage = () => {
             </div>
 
             {/* Judul & Children (Isi Pesan) */}
-            <h3 className="text-lg font-bold mb-2">Keluar dari Halaman Pembayaran?</h3>
-            <div className="text-sm text-gray-500 mb-6">
-              <p>
-                Semua informasi personal dan kode promo akan direset.
-                Apakah Anda yakin ingin keluar dari halaman ini?
-              </p>
+            <h3 className="text-lg font-bold mb-2 text-gray-800">Change of plans?</h3>
+            <div className="text-sm text-gray-600 mb-6">
+              <p className="leading-relaxed">You'll be redirected to the food & drinks page to adjust your order</p>
             </div>
 
             {/* Tombol Aksi */}
             <div className="space-y-2">
               <button
-                onClick={handleConfirmExit}
-                className="btn bg-red-600 text-white w-full hover:bg-red-700"
+                onClick={handleCancelBack}
+                className="btn bg-brand-gold text-white w-full"
               >
-                Ya, Keluar
+                Continue Payment
               </button>
               <button
-                onClick={handleContinuePayment}
+                onClick={handleConfirmBack}
                 className="btn btn-ghost w-full"
               >
-                Lanjutkan Pembayaran
+                Adjust Order
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Navigation Warning Modal - Other Navigation Attempts (match BookingPaymentPage) */}
+      {showNavigationWarning && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          {/* Modal Content */}
+          <div className="bg-base-100 rounded-lg shadow-xl w-full max-w-sm text-center p-6">
+            {/* Gambar Kustom di Atas */}
+            <div className="flex justify-center mb-4">
+              <img
+                src="/images/cancel.png"
+                alt="warning icon"
+                className="h-16 w-auto"
+              />
+            </div>
+
+            {/* Judul & Children (Isi Pesan) */}
+            <h3 className="text-lg font-bold mb-2 text-gray-800">Are you sure you want to exit?</h3>
+            <div className="text-sm text-gray-600 mb-6">
+              <p className="leading-relaxed">Your order data will not be saved and you'll need to start over</p>
+            </div>
+
+            {/* Tombol Aksi */}
+            <div className="space-y-2">
+              <button
+                onClick={handleContinuePayment}
+                className="btn bg-brand-gold text-white w-full"
+              >
+                Continue Payment
+              </button>
+              <button
+                onClick={handleConfirmExit}
+                className="btn btn-outline border-red-500 text-red-600 hover:bg-red-50 w-full"
+              >
+                Yes, Exit
               </button>
             </div>
           </div>

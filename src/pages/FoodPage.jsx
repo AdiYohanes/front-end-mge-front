@@ -5,7 +5,7 @@ import { FaPlus, FaMinus, FaShoppingCart, FaSearch } from "react-icons/fa";
 import { IoIosArrowUp, IoIosArrowDown } from "react-icons/io";
 import PersonalInfoForm from "../components/rent/PersonalInfoForm";
 import { toast } from "react-hot-toast";
-import { useNavigate } from "react-router";
+import { useNavigate, useLocation } from "react-router";
 import { format } from "date-fns";
 import { enUS } from "date-fns/locale";
 import publicApiClient from "../lib/publicApiClient";
@@ -23,6 +23,7 @@ const formatPrice = (price) =>
     .replace(/\s/g, "");
 
 const FoodPage = () => {
+  const location = useLocation();
   const dispatch = useDispatch();
   const { items, categories, selectedCategory, status, bookingStatus, bookingData, bookingError } = useSelector(
     (state) => state.fnbs
@@ -49,6 +50,7 @@ const FoodPage = () => {
   const imageBaseUrl = import.meta.env.VITE_IMAGE_BASE_URL;
   const navigate = useNavigate();
   const { promoValidation } = useSelector((state) => state.booking);
+  const rewardToastShownRef = useRef(false);
 
   // Seating section states
   const [seatingType, setSeatingType] = useState("table"); // "table", "unit", "takeaway"
@@ -141,6 +143,78 @@ const FoodPage = () => {
       dispatch(fetchFnbsCategoriesThunk());
     }
   }, [dispatch, status]);
+
+  // Handle reward data from redirect
+  useEffect(() => {
+    console.log("FoodPage - useEffect triggered", {
+      hasFromReward: !!location.state?.fromReward,
+      hasRewardData: !!location.state?.rewardData,
+      toastShown: rewardToastShownRef.current
+    });
+
+    if (location.state?.fromReward && location.state?.rewardData && !rewardToastShownRef.current) {
+      const rewardData = location.state.rewardData;
+      console.log("FoodPage - Processing reward data:", rewardData);
+
+      // Check if reward has free_fnb effects
+      const effects = rewardData?.reward?.effects;
+      if (effects?.type === "free_fnb" && effects?.fnbs) {
+        console.log("FoodPage - Processing free_fnb reward:", effects.fnbs);
+
+        // Set F&B items based on reward data
+        const fnbItems = effects.fnbs.map(fnb => ({
+          fnb_id: fnb.fnb_id,
+          quantity: fnb.quantity
+        }));
+
+        console.log("FoodPage - F&B items to add:", fnbItems);
+
+        // We'll process these after F&B items are loaded
+        // Store the reward F&B data for later processing
+        setSelections([]);
+
+        // Store reward F&B data in a ref or state for processing after items load
+        window.rewardFnbs = fnbItems;
+
+        // Show success message only once
+        toast.success(`Free F&B reward applied! You have ${fnbItems.length} free item(s).`);
+        rewardToastShownRef.current = true;
+      }
+
+      // Clear the location state to prevent re-processing
+      navigate(location.pathname, { replace: true });
+    }
+  }, [location.state, navigate, location.pathname]);
+
+  // Process reward F&B items after F&B data is loaded
+  useEffect(() => {
+    if (window.rewardFnbs && items.length > 0 && selections.length === 0) {
+      console.log("FoodPage - Processing reward F&B items after data load");
+
+      const rewardSelections = [];
+
+      window.rewardFnbs.forEach(rewardFnb => {
+        const fnbItem = items.find(item => item.id === parseInt(rewardFnb.fnb_id));
+        if (fnbItem) {
+          rewardSelections.push({
+            ...fnbItem,
+            quantity: rewardFnb.quantity
+          });
+          console.log(`FoodPage - Added free item: ${fnbItem.name} x${rewardFnb.quantity}`);
+        } else {
+          console.warn(`FoodPage - F&B item with ID ${rewardFnb.fnb_id} not found`);
+        }
+      });
+
+      if (rewardSelections.length > 0) {
+        setSelections(rewardSelections);
+        console.log("FoodPage - Reward selections set:", rewardSelections);
+      }
+
+      // Clear the reward data
+      delete window.rewardFnbs;
+    }
+  }, [items, selections.length]);
 
   // Fetch tax information
   useEffect(() => {

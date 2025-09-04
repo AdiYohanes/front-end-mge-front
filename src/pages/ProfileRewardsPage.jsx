@@ -1,6 +1,6 @@
 // src/pages/ProfileRewardsPage.jsx
 import React from "react";
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router";
 import { useSelector } from "react-redux";
 import publicApiClient from "../lib/publicApiClient";
 import { redeemReward, applyReward, getUserRewards } from "../features/rewards/rewardsApi";
@@ -10,6 +10,7 @@ import { redeemReward, applyReward, getUserRewards } from "../features/rewards/r
 const categoryList = ["All", "Food & Drinks", "Room"];
 
 const ProfileRewardsPage = () => {
+    const navigate = useNavigate();
     const { user } = useSelector((state) => state.auth);
     const userPoints = user?.total_points || 0;
 
@@ -77,7 +78,11 @@ const ProfileRewardsPage = () => {
         setShowRedeemModal(false);
 
         try {
-            await redeemReward(rewardId);
+            const apiResponse = await redeemReward(rewardId);
+            console.log("Redeem Reward API Response:", apiResponse);
+
+            // Store API response for Use Now button
+            setSelectedReward(prev => ({ ...prev, apiResponse }));
 
             // Remove redeemed reward from available list
             setAvailableRewards(prev => prev.filter(reward => reward.id !== rewardId));
@@ -112,8 +117,38 @@ const ProfileRewardsPage = () => {
         setApplySuccess("");
 
         try {
-            await applyReward(rewardId);
-            setApplySuccess("Reward applied successfully!");
+            const applyResponse = await applyReward(rewardId);
+            console.log("Your Rewards - Apply Reward API Response:", applyResponse);
+
+            // Check reward type and redirect accordingly
+            const rewardType = applyResponse?.reward?.effects?.type;
+            console.log("Your Rewards - Reward type detected:", rewardType);
+
+            if (rewardType === "free_fnb") {
+                console.log("Your Rewards - Redirecting to /food-drinks with reward data");
+                // Redirect to FoodPage with reward data
+                navigate("/food-drinks", {
+                    state: {
+                        rewardData: applyResponse,
+                        fromReward: true
+                    }
+                });
+                return; // Exit early, don't show success message
+            } else if (rewardType === "free_play") {
+                console.log("Your Rewards - Redirecting to /rent with reward data");
+                // Redirect to RentPage with reward data
+                navigate("/rent", {
+                    state: {
+                        rewardData: applyResponse,
+                        fromReward: true
+                    }
+                });
+                return; // Exit early, don't show success message
+            } else {
+                // Unknown reward type, show success message
+                console.warn("Your Rewards - Unknown reward type:", rewardType);
+                setApplySuccess("Reward applied successfully!");
+            }
 
             // Update the reward as used in the state
             setUserRewards(prev => prev.map(reward =>
@@ -220,7 +255,62 @@ const ProfileRewardsPage = () => {
                     {/* Action Buttons */}
                     <div className="flex flex-col gap-4">
                         <button
-                            onClick={() => setShowSuccessModal(false)}
+                            onClick={async () => {
+                                if (!selectedReward?.id) {
+                                    console.error("No selectedReward.id found:", selectedReward);
+                                    return;
+                                }
+
+                                // Use the user reward ID from the redeem response, not the original reward ID
+                                const userRewardId = selectedReward.apiResponse?.id;
+                                if (!userRewardId) {
+                                    console.error("No user reward ID found in apiResponse:", selectedReward.apiResponse);
+                                    return;
+                                }
+
+                                console.log("Attempting to apply user reward with ID:", userRewardId);
+                                console.log("Selected reward data:", selectedReward);
+
+                                try {
+                                    const applyResponse = await applyReward(userRewardId);
+                                    console.log("Use Now clicked - Apply Reward API Response:", applyResponse);
+
+                                    // Check reward type and redirect accordingly
+                                    const rewardType = applyResponse?.reward?.effects?.type;
+                                    console.log("Reward type detected:", rewardType);
+                                    console.log("Full effects object:", applyResponse?.reward?.effects);
+
+                                    if (rewardType === "free_fnb") {
+                                        console.log("Redirecting to /food-drinks with reward data");
+                                        // Redirect to FoodPage with reward data
+                                        navigate("/food-drinks", {
+                                            state: {
+                                                rewardData: applyResponse,
+                                                fromReward: true
+                                            }
+                                        });
+                                    } else if (rewardType === "free_play") {
+                                        console.log("Redirecting to /rent with reward data");
+                                        // Redirect to RentPage with reward data
+                                        navigate("/rent", {
+                                            state: {
+                                                rewardData: applyResponse,
+                                                fromReward: true
+                                            }
+                                        });
+                                    } else {
+                                        // Unknown reward type, just close modal
+                                        console.warn("Unknown reward type:", rewardType);
+                                        console.log("Available reward types in response:", Object.keys(applyResponse?.reward?.effects || {}));
+                                        setShowSuccessModal(false);
+                                    }
+                                } catch (error) {
+                                    console.error("Failed to apply reward:", error);
+                                    const message = error.response?.data?.message || error.message || "Failed to apply reward";
+                                    console.log("Apply Reward Error:", message);
+                                    setShowSuccessModal(false);
+                                }
+                            }}
                             className="btn bg-brand-gold hover:bg-yellow-600 text-white w-full py-3 text-lg font-medium"
                         >
                             Use Now
@@ -266,33 +356,32 @@ const ProfileRewardsPage = () => {
 
         return (
             <div className="card bg-theme-primary border border-theme shadow-md">
-                <figure className="h-40 overflow-hidden">
+                <figure className="h-40 overflow-hidden relative">
                     <img
                         src={item.image}
                         alt={item.title}
                         className="h-full w-full object-cover"
                         onError={handleImageError}
                     />
-                </figure>
-                <div className="card-body p-4 gap-2">
-                    <div className="flex items-center justify-between">
-                        <h3 className="card-title text-base text-theme-primary">{item.title}</h3>
-                        {item.daysLeft ? (
-                            <span className="badge badge-outline text-xs">{item.daysLeft} days</span>
-                        ) : null}
-                    </div>
-                    <p className="text-xs text-theme-secondary leading-snug">{item.desc}</p>
-                    {item.voucher_code && (
-                        <div className="text-xs text-theme-secondary">
-                            <span className="font-mono bg-base-200 px-2 py-1 rounded">
-                                {item.voucher_code}
-                            </span>
+                    {item.daysLeft && item.daysLeft > 0 && (
+                        <div className="absolute top-2 right-2">
+                            <div className="bg-brand-gold text-white px-3 py-1 rounded-lg flex items-center gap-1">
+                                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
+                                </svg>
+                                <span className="font-minecraft text-sm font-bold">{item.daysLeft} days</span>
+                            </div>
                         </div>
                     )}
+                </figure>
+                <div className="card-body p-4 gap-2">
+                    <h3 className="card-title text-2xl text-theme-primary">{item.title}</h3>
+                    <p className="text-lg text-theme-secondary leading-snug">{item.desc}</p>
+                    <div className="border-t border-gray-300 my-2"></div>
                     <div className="card-actions mt-2">
                         <button
                             onClick={() => !item.used && handleApplyReward(item.id)}
-                            className="btn btn-sm bg-brand-gold hover:bg-yellow-600 text-white w-full disabled:opacity-60 disabled:cursor-not-allowed"
+                            className="btn btn-lg bg-brand-gold hover:bg-yellow-600 text-white w-full disabled:opacity-60 disabled:cursor-not-allowed text-lg font-medium"
                             disabled={item.used || isApplying}
                             aria-disabled={item.used || isApplying}
                         >
@@ -313,8 +402,8 @@ const ProfileRewardsPage = () => {
         };
 
         return (
-            <div className="card bg-theme-primary border border-theme shadow-md">
-                <figure className="h-40 overflow-hidden">
+            <div className="card bg-theme-primary border border-theme shadow-md overflow-hidden">
+                <figure className="h-48">
                     <img
                         src={item.image}
                         alt={item.title}
@@ -322,18 +411,26 @@ const ProfileRewardsPage = () => {
                         onError={handleImageError}
                     />
                 </figure>
-                <div className="card-body p-4 gap-3">
-                    <h3 className="card-title text-base text-theme-primary">{item.title}</h3>
-                    <p className="text-xs text-theme-secondary leading-snug">{item.desc}</p>
+                <div className="card-body p-4">
+                    <h3 className="text-2xl font-bold text-theme-primary mb-2">{item.title}</h3>
+                    <p className="text-lg text-theme-secondary leading-relaxed mb-4">{item.desc}</p>
+
+                    {/* Divider Line */}
+                    <div className="border-t border-gray-300 mb-4"></div>
+
                     <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-1 text-xs">
-                            <img src="/images/coin.png" alt="point" className="h-4 w-4" />
-                            <span className={canRedeem ? "text-theme-primary" : "text-error"}>{item.points} Point</span>
+                        <div className="flex items-center gap-2">
+                            <div className="flex items-baseline gap-1">
+                                <span className={`text-5xl font-bold ${canRedeem ? "text-brand-gold" : "text-error"}`}>
+                                    {item.points}
+                                </span>
+                                <span className="text-sm text-gray-500">Point</span>
+                            </div>
                         </div>
                         <button
                             onClick={() => handleRedeemClick(item)}
                             disabled={isRedeeming || !canRedeem}
-                            className="btn btn-sm bg-brand-gold hover:bg-yellow-600 text-white disabled:opacity-60 disabled:cursor-not-allowed"
+                            className="btn bg-gradient-to-r from-brand-gold to-yellow-500 hover:from-yellow-600 hover:to-yellow-700 text-white px-6 py-2 rounded-none font-medium disabled:opacity-60 disabled:cursor-not-allowed"
                             aria-disabled={isRedeeming || !canRedeem}
                         >
                             {isRedeeming ? "Redeeming..." : canRedeem ? "Redeem" : "Not enough points"}
@@ -515,21 +612,29 @@ const ProfileRewardsPage = () => {
                     </div>
 
                     <div className="tabs tabs-boxed bg-transparent p-0">
-                        <div className="flex gap-2">
+                        <div className="flex gap-2 w-full">
                             {categoryList.map((cat) => (
-                                <button
-                                    key={cat}
-                                    onClick={() => handleSelectCategory(cat)}
-                                    className={
-                                        "btn btn-sm " +
-                                        (activeCategory === cat
-                                            ? "bg-brand-gold text-white"
-                                            : "bg-theme-primary border border-theme text-theme-primary")
-                                    }
-                                    aria-pressed={activeCategory === cat}
-                                >
-                                    {cat}
-                                </button>
+                                <div key={cat} className="flex-1">
+                                    <button
+                                        onClick={() => handleSelectCategory(cat)}
+                                        className={
+                                            "btn btn-lg w-full " +
+                                            (activeCategory === cat
+                                                ? "bg-brand-gold text-white"
+                                                : "bg-theme-primary border border-theme text-theme-primary")
+                                        }
+                                        aria-pressed={activeCategory === cat}
+                                        tabIndex={0}
+                                        aria-label={`Select ${cat} category`}
+                                        onKeyDown={(e) => {
+                                            if (e.key === "Enter" || e.key === " ") {
+                                                handleSelectCategory(cat);
+                                            }
+                                        }}
+                                    >
+                                        {cat}
+                                    </button>
+                                </div>
                             ))}
                         </div>
                     </div>

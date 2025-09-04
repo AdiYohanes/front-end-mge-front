@@ -45,29 +45,45 @@ const ProfileRewardsPage = () => {
     const [applyingId, setApplyingId] = React.useState(null);
     const [applyError, setApplyError] = React.useState("");
     const [applySuccess, setApplySuccess] = React.useState("");
+    const [showRedeemModal, setShowRedeemModal] = React.useState(false);
+    const [selectedReward, setSelectedReward] = React.useState(null);
+    const [showSuccessModal, setShowSuccessModal] = React.useState(false);
 
     const handleSearchChange = (e) => setSearchQuery(e.target.value);
     const handleSelectCategory = (cat) => setActiveCategory(cat);
 
-    const handleRedeemReward = async (rewardId) => {
+    const handleRedeemClick = (reward) => {
         if (!user?.id) {
             setRedeemError("Please login to redeem rewards");
             return;
         }
 
+        if (userPoints < reward.points) {
+            setRedeemError("Not enough points to redeem this reward");
+            return;
+        }
+
+        setSelectedReward(reward);
+        setShowRedeemModal(true);
+    };
+
+    const handleRedeemConfirm = async () => {
+        if (!selectedReward) return;
+
+        const rewardId = selectedReward.id;
         setRedeemingId(rewardId);
         setRedeemError("");
         setRedeemSuccess("");
+        setShowRedeemModal(false);
 
         try {
             await redeemReward(rewardId);
-            setRedeemSuccess("Reward redeemed successfully!");
 
             // Remove redeemed reward from available list
             setAvailableRewards(prev => prev.filter(reward => reward.id !== rewardId));
 
-            // Clear success message after 3 seconds
-            setTimeout(() => setRedeemSuccess(""), 3000);
+            // Show success modal
+            setShowSuccessModal(true);
         } catch (error) {
             const message = error.response?.data?.message || error.message || "Failed to redeem reward";
             setRedeemError(message);
@@ -76,7 +92,13 @@ const ProfileRewardsPage = () => {
             setTimeout(() => setRedeemError(""), 5000);
         } finally {
             setRedeemingId(null);
+            setSelectedReward(null);
         }
+    };
+
+    const handleRedeemCancel = () => {
+        setShowRedeemModal(false);
+        setSelectedReward(null);
     };
 
     const handleApplyReward = async (rewardId) => {
@@ -109,6 +131,110 @@ const ProfileRewardsPage = () => {
         } finally {
             setApplyingId(null);
         }
+    };
+
+    const RedeemConfirmModal = () => {
+        if (!showRedeemModal || !selectedReward) return null;
+
+        return (
+            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+                <div className="bg-theme-primary rounded-lg p-6 max-w-md w-full mx-4 shadow-xl">
+                    {/* Header Icon */}
+                    <div className="flex justify-center mb-4">
+                        <img
+                            src="/images/tanya.png"
+                            alt="Question mark icon"
+                            className="w-16 h-16 object-contain"
+                        />
+                    </div>
+
+                    {/* Main Text */}
+                    <div className="text-center mb-6">
+                        <p className="text-lg text-theme-primary mb-2">
+                            Are you sure you want to <strong>exchange</strong> your point?
+                        </p>
+                        <p className="text-sm text-theme-secondary">
+                            Your point will be deducted after the confirmation.
+                        </p>
+                    </div>
+
+                    {/* Point Exchange Details */}
+                    <div className="flex items-center justify-center gap-4 mb-6">
+                        <div className="flex items-center gap-2">
+                            <img src="/images/coin.png" alt="points" className="h-6 w-6" />
+                            <span className="text-brand-gold font-semibold">{userPoints} points</span>
+                        </div>
+                        <div className="text-theme-secondary text-xl">{">"}</div>
+                        <div className="flex items-center gap-2">
+                            <img src="/images/coin.png" alt="points" className="h-6 w-6" />
+                            <span className="text-brand-gold font-semibold">{selectedReward.points} points</span>
+                        </div>
+                    </div>
+
+                    {/* Action Buttons */}
+                    <div className="flex flex-col gap-3">
+                        <button
+                            onClick={handleRedeemConfirm}
+                            disabled={redeemingId === selectedReward.id}
+                            className="btn bg-brand-gold hover:bg-yellow-600 text-white w-full disabled:opacity-60 disabled:cursor-not-allowed"
+                        >
+                            {redeemingId === selectedReward.id ? "Redeeming..." : "Redeem Point"}
+                        </button>
+                        <button
+                            onClick={handleRedeemCancel}
+                            className="btn btn-ghost text-theme-primary w-full"
+                        >
+                            Cancel
+                        </button>
+                    </div>
+                </div>
+            </div>
+        );
+    };
+
+    const SuccessModal = () => {
+        if (!showSuccessModal) return null;
+
+        return (
+            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+                <div className="bg-theme-primary rounded-lg p-8 max-w-md w-full mx-4 shadow-xl">
+                    {/* Header Icon */}
+                    <div className="flex justify-center mb-6">
+                        <img
+                            src="/images/success.png"
+                            alt="Success icon"
+                            className="w-24 h-24 object-contain"
+                        />
+                    </div>
+
+                    {/* Main Text */}
+                    <div className="text-center mb-8">
+                        <p className="text-xl text-theme-primary mb-3 font-medium">
+                            Point has been exchanged.
+                        </p>
+                        <p className="text-base text-theme-secondary">
+                            Thank you for using our service!
+                        </p>
+                    </div>
+
+                    {/* Action Buttons */}
+                    <div className="flex flex-col gap-4">
+                        <button
+                            onClick={() => setShowSuccessModal(false)}
+                            className="btn bg-brand-gold hover:bg-yellow-600 text-white w-full py-3 text-lg font-medium"
+                        >
+                            Use Now
+                        </button>
+                        <button
+                            onClick={() => setShowSuccessModal(false)}
+                            className="btn btn-ghost text-theme-primary w-full py-3 text-lg font-medium"
+                        >
+                            Use Later
+                        </button>
+                    </div>
+                </div>
+            </div>
+        );
     };
 
     const renderHeader = () => {
@@ -156,6 +282,13 @@ const ProfileRewardsPage = () => {
                         ) : null}
                     </div>
                     <p className="text-xs text-theme-secondary leading-snug">{item.desc}</p>
+                    {item.voucher_code && (
+                        <div className="text-xs text-theme-secondary">
+                            <span className="font-mono bg-base-200 px-2 py-1 rounded">
+                                {item.voucher_code}
+                            </span>
+                        </div>
+                    )}
                     <div className="card-actions mt-2">
                         <button
                             onClick={() => !item.used && handleApplyReward(item.id)}
@@ -198,7 +331,7 @@ const ProfileRewardsPage = () => {
                             <span className={canRedeem ? "text-theme-primary" : "text-error"}>{item.points} Point</span>
                         </div>
                         <button
-                            onClick={() => handleRedeemReward(item.id)}
+                            onClick={() => handleRedeemClick(item)}
                             disabled={isRedeeming || !canRedeem}
                             className="btn btn-sm bg-brand-gold hover:bg-yellow-600 text-white disabled:opacity-60 disabled:cursor-not-allowed"
                             aria-disabled={isRedeeming || !canRedeem}
@@ -260,9 +393,7 @@ const ProfileRewardsPage = () => {
             try {
                 const res = await getUserRewards();
 
-
                 const list = Array.isArray(res.data) ? res.data : Array.isArray(res) ? res : [];
-
 
                 if (list.length === 0) {
                     setUserRewards([]);
@@ -270,15 +401,23 @@ const ProfileRewardsPage = () => {
                 }
 
                 const normalized = list.map((r) => {
+                    // Calculate days left until expiration
+                    const expiresAt = new Date(r.expires_at);
+                    const now = new Date();
+                    const timeDiff = expiresAt.getTime() - now.getTime();
+                    const daysLeft = Math.ceil(timeDiff / (1000 * 3600 * 24));
 
                     return {
                         id: r.id,
-                        title: r.name || r.title,
-                        desc: r.description || r.desc,
-                        daysLeft: r.days_left || r.daysLeft,
-                        used: r.is_used || r.used || false,
-                        image: getImageUrl(r.image),
+                        title: r.reward?.name || r.name || r.title,
+                        desc: r.reward?.description || r.description || r.desc,
+                        daysLeft: daysLeft > 0 ? daysLeft : 0,
+                        used: r.status === 'used' || r.used_at !== null,
+                        image: getImageUrl(r.reward?.image || r.image),
                         expires_at: r.expires_at,
+                        voucher_code: r.voucher_code,
+                        status: r.status,
+                        status_label: r.status_label,
                     };
                 });
 
@@ -299,6 +438,12 @@ const ProfileRewardsPage = () => {
 
     return (
         <div className="container mx-auto px-4 py-6">
+            {/* Redeem Confirmation Modal */}
+            <RedeemConfirmModal />
+
+            {/* Success Modal */}
+            <SuccessModal />
+
             {/* Success/Error Messages */}
             {(redeemSuccess || applySuccess) && (
                 <div className="alert alert-success mb-4">

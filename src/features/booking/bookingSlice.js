@@ -6,13 +6,10 @@ export const submitBookingThunk = createAsyncThunk(
   "booking/submit",
   async (bookingData, { rejectWithValue }) => {
     try {
-      console.log("SubmitBookingThunk - Starting booking process...");
       const response = await submitBooking(bookingData);
-      console.log("SubmitBookingThunk - Booking successful:", response);
 
       // Ensure we return only serializable data
       const serializedResponse = JSON.parse(JSON.stringify(response));
-      console.log("SubmitBookingThunk - Serialized response:", serializedResponse);
 
       return serializedResponse;
     } catch (error) {
@@ -43,9 +40,7 @@ export const validatePromoThunk = createAsyncThunk(
   "booking/validatePromo",
   async (promoCode, { rejectWithValue }) => {
     try {
-      console.log("ValidatePromoThunk - Validating promo:", promoCode); // Debug log
       const response = await validatePromoCode(promoCode);
-      console.log("ValidatePromoThunk - API response:", response); // Debug log
       return response;
     } catch (error) {
       console.error("ValidatePromoThunk - Error:", error); // Debug log
@@ -98,7 +93,7 @@ const bookingSlice = createSlice({
 
         // Ensure payload is serializable - extract only the data we need
         const payload = action.payload || {};
-        console.log("Booking fulfilled payload:", payload);
+        ("Booking fulfilled payload:", payload);
 
         // Extract snapUrl safely
         state.redirectUrl = payload.snapUrl || payload.snap_url || null;
@@ -113,8 +108,6 @@ const bookingSlice = createSlice({
             (payload.data.invoice_number || payload.data.order_id) : null) ||
           null;
 
-        console.log("Extracted redirectUrl:", state.redirectUrl);
-        console.log("Extracted invoiceNumber:", state.invoiceNumber);
       })
       .addCase(submitBookingThunk.rejected, (state, action) => {
         state.status = "failed";
@@ -125,8 +118,6 @@ const bookingSlice = createSlice({
         state.promoValidation.error = null;
       })
       .addCase(validatePromoThunk.fulfilled, (state, action) => {
-        console.log("ValidatePromoThunk fulfilled - Full payload:", action.payload); // Debug log
-        console.log("ValidatePromoThunk fulfilled - Data array:", action.payload.data); // Debug log
 
         // Check if data array exists and has items
         if (action.payload.data && action.payload.data.length > 0) {
@@ -136,13 +127,11 @@ const bookingSlice = createSlice({
           const exact = Array.isArray(list) ? list.find(p => p && p.promo_code && typeof p.promo_code === 'string') : null;
           state.promoValidation.promoData = exact || list[0];
           state.promoValidation.error = null;
-          console.log("Promo validation succeeded - Using promo data:", state.promoValidation.promoData); // Debug log
         } else {
           // No promo codes found - treat as failed
           state.promoValidation.status = "failed";
           state.promoValidation.promoData = null;
           state.promoValidation.error = "Kode promo tidak lagi tersedia";
-          console.log("Promo validation failed - No data found"); // Debug log
         }
       })
       .addCase(validatePromoThunk.rejected, (state, action) => {

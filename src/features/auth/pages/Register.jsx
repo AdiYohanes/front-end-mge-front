@@ -111,9 +111,6 @@ const Register = () => {
       agreed,
     };
 
-    // Debug: Log form data
-    console.log("Form data:", formData);
-
     // Validasi input menggunakan skema Zod
     const validationResult = registerSchema.safeParse(formData);
 
@@ -127,12 +124,8 @@ const Register = () => {
       return;
     }
 
-    // Debug: Log validated data
-    console.log("Validated data:", validationResult.data);
-
     // Simpan nomor telepon ke Redux state untuk digunakan di halaman verification
     dispatch(setRegistrationPhone(validationResult.data.phoneNumber));
-    console.log("Phone number saved to Redux:", validationResult.data.phoneNumber);
 
     // Jika validasi berhasil, dispatch action 'register'
     dispatch(register(validationResult.data));
@@ -160,7 +153,6 @@ const Register = () => {
 
     // Jika status dari Redux adalah 'succeeded' (artinya registrasi berhasil)
     if (status === "succeeded" && apiError === null) {
-      console.log("Registration successful, redirecting to verification page...");
       toast.success("Registration successful! Please check your WhatsApp for OTP verification.");
       setTimeout(() => {
         navigate("/verification"); // Arahkan user ke halaman verification

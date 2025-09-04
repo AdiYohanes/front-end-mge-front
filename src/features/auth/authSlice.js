@@ -161,10 +161,8 @@ const authSlice = createSlice({
       })
       .addCase(resendTokenThunk.pending, (state) => {
         // Bisa tambahkan state loading khusus resend jika perlu
-        console.log("Resending token...");
       })
       .addCase(resendTokenThunk.fulfilled, (state, action) => {
-        console.log("Token resent successfully:", action.payload);
       })
       .addCase(resendTokenThunk.rejected, (state, action) => {
         console.error("Failed to resend token:", action.payload);

@@ -116,7 +116,6 @@ const BookingPaymentPage = () => {
       return;
     }
 
-    console.log("BookingPaymentPage loaded with details:", initialBookingDetails);
   }, [initialBookingDetails, navigate, location.state]);
 
   // Fallback listener: if the iframe posts a success-like message, redirect to success page
@@ -129,7 +128,6 @@ const BookingPaymentPage = () => {
         const normalized = String(status || "").toLowerCase();
         const shouldRedirect = ["settlement", "capture", "success", "pending"].includes(normalized);
         if (shouldRedirect) {
-          console.log("Payment successful, setting session marker");
           // Set session marker for successful payment
           sessionStorage.setItem("recentBookingComplete", "true");
           // Disable blocking for successful payment navigation
@@ -188,7 +186,6 @@ const BookingPaymentPage = () => {
       // Check for specific phone number already exists error
       // The error message might be in different formats, so check multiple possibilities
       const errorMessage = String(bookingError).toLowerCase();
-      console.log("Error message for debugging:", errorMessage); // Debug log
 
       // Check for phone number already exists error in various formats
       if (errorMessage.includes("a user with this phone number already exists") ||
@@ -196,10 +193,8 @@ const BookingPaymentPage = () => {
         errorMessage.includes("user with this phone number") ||
         errorMessage.includes("already exists") ||
         (errorMessage.includes("404") && errorMessage.includes("server error"))) {
-        console.log("Phone number error detected, showing custom message"); // Debug log
         toast.error("Nomor yang kamu gunakan telah terdaftar ! silakan login untuk booking");
       } else {
-        console.log("Showing original error message:", bookingError); // Debug log
         toast.error(bookingError);
       }
     }
@@ -207,12 +202,9 @@ const BookingPaymentPage = () => {
 
   // Handle promo validation response
   useEffect(() => {
-    console.log("Promo validation status:", promoValidation.status); // Debug log
-    console.log("Promo validation data:", promoValidation.promoData); // Debug log
 
     if (promoValidation.status === "succeeded" && promoValidation.promoData) {
       const promo = promoValidation.promoData;
-      console.log("Processing promo data:", promo); // Debug log
 
       if (promo.is_active) {
         setBookingDetails((prev) => {
@@ -257,8 +249,6 @@ const BookingPaymentPage = () => {
       return;
     }
 
-    console.log("Applying promo code:", promoCode.trim().toUpperCase()); // Debug log
-    console.log("Current booking details subtotal:", bookingDetails.subtotal); // Debug log
 
     // Clear previous validation
     dispatch(clearPromoValidation());
@@ -303,7 +293,6 @@ const BookingPaymentPage = () => {
 
   // Fungsi ini dipanggil dari dalam modal untuk submit
   const handleSubmitBooking = () => {
-    console.log("HandleSubmitBooking called");
 
     // Validate customer data before submitting
     if (!personalInfo.fullName || !personalInfo.phoneNumber) {
@@ -329,9 +318,6 @@ const BookingPaymentPage = () => {
       },
     };
 
-    console.log("Final Booking Data:", finalData); // Debug log
-    console.log("Is Guest Booking:", isGuestBooking); // Debug log
-    console.log("Personal Info:", personalInfo); // Debug log
 
     // Validate all required fields with detailed logging
     const requiredFields = [
@@ -367,7 +353,6 @@ const BookingPaymentPage = () => {
       return;
     }
 
-    console.log("All validations passed, submitting booking...");
     dispatch(submitBookingThunk(finalData));
   };
 

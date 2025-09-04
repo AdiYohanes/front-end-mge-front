@@ -12,6 +12,25 @@ const categoryList = ["All", "Food & Drinks", "Room"];
 const ProfileRewardsPage = () => {
     const { user } = useSelector((state) => state.auth);
     const userPoints = user?.total_points || 0;
+
+    // Helper function to handle image URLs
+    const getImageUrl = (imagePath, fallbackImage = "/images/coin.png") => {
+        if (!imagePath) return fallbackImage;
+        if (imagePath.startsWith('http')) {
+            return imagePath;
+        }
+        if (imagePath.startsWith('/')) {
+            return imagePath;
+        }
+        // For relative paths from API, use VITE_IMAGE_BASE_URL from environment
+        const imageBaseUrl = import.meta.env.VITE_IMAGE_BASE_URL;
+        if (imageBaseUrl) {
+            return `${imageBaseUrl}/${imagePath}`;
+        }
+        // Fallback to publicApiClient base URL if env var not available
+        const backendBaseUrl = publicApiClient.defaults.baseURL;
+        return `${backendBaseUrl}/${imagePath}`;
+    };
     const [searchQuery, setSearchQuery] = React.useState("");
     const [activeCategory, setActiveCategory] = React.useState("All");
     const [availableRewards, setAvailableRewards] = React.useState([]);
@@ -115,10 +134,19 @@ const ProfileRewardsPage = () => {
     const RewardCard = ({ item, actionLabel }) => {
         const isApplying = applyingId === item.id;
 
+        const handleImageError = (e) => {
+            e.target.src = "/images/coin.png"; // Fallback to default image
+        };
+
         return (
             <div className="card bg-theme-primary border border-theme shadow-md">
                 <figure className="h-40 overflow-hidden">
-                    <img src={item.image} alt={item.title} className="h-full w-full object-cover" />
+                    <img
+                        src={item.image}
+                        alt={item.title}
+                        className="h-full w-full object-cover"
+                        onError={handleImageError}
+                    />
                 </figure>
                 <div className="card-body p-4 gap-2">
                     <div className="flex items-center justify-between">
@@ -147,10 +175,19 @@ const ProfileRewardsPage = () => {
         const isRedeeming = redeemingId === item.id;
         const canRedeem = userPoints >= item.points;
 
+        const handleImageError = (e) => {
+            e.target.src = "/images/coin.png"; // Fallback to default image
+        };
+
         return (
             <div className="card bg-theme-primary border border-theme shadow-md">
                 <figure className="h-40 overflow-hidden">
-                    <img src={item.image} alt={item.title} className="h-full w-full object-cover" />
+                    <img
+                        src={item.image}
+                        alt={item.title}
+                        className="h-full w-full object-cover"
+                        onError={handleImageError}
+                    />
                 </figure>
                 <div className="card-body p-4 gap-3">
                     <h3 className="card-title text-base text-theme-primary">{item.title}</h3>
@@ -190,6 +227,9 @@ const ProfileRewardsPage = () => {
                 const normalized = list.map((r) => {
                     const type = r?.effects?.type;
                     const category = type === "free_fnb" ? "Food & Drinks" : type === "free_play" ? "Room" : "All";
+                    const fallbackImage = type === "free_play" ? "/images/roomsnya.jpg" : "/images/coin.png";
+                    const imageUrl = getImageUrl(r.image, fallbackImage);
+
                     return {
                         id: r.id,
                         title: r.name,
@@ -197,7 +237,7 @@ const ProfileRewardsPage = () => {
                         points: r.points_required,
                         category,
                         type,
-                        image: r.image || (type === "free_play" ? "/images/roomsnya.jpg" : "/images/coin.png"),
+                        image: imageUrl,
                     };
                 });
                 setAvailableRewards(normalized);
@@ -210,47 +250,38 @@ const ProfileRewardsPage = () => {
 
         const loadUserRewards = async () => {
             if (!user?.id) {
-                console.log("No user ID, skipping user rewards load");
                 return;
             }
 
-            console.log("Loading user rewards for user:", user.id);
             setUserRewardsLoading(true);
             setUserRewardsError("");
             setUserRewards([]); // Clear previous data
 
             try {
                 const res = await getUserRewards();
-                console.log("User rewards API response:", res);
-                console.log("Response data:", res.data);
-                console.log("Response type:", typeof res);
-                console.log("Is res.data array:", Array.isArray(res.data));
-                console.log("Is res array:", Array.isArray(res));
+
 
                 const list = Array.isArray(res.data) ? res.data : Array.isArray(res) ? res : [];
-                console.log("Extracted list:", list);
-                console.log("List length:", list.length);
+
 
                 if (list.length === 0) {
-                    console.log("API returned empty array - user has no rewards");
                     setUserRewards([]);
                     return;
                 }
 
                 const normalized = list.map((r) => {
-                    console.log("Processing reward:", r);
+
                     return {
                         id: r.id,
                         title: r.name || r.title,
                         desc: r.description || r.desc,
                         daysLeft: r.days_left || r.daysLeft,
                         used: r.is_used || r.used || false,
-                        image: r.image || "/images/coin.png",
+                        image: getImageUrl(r.image),
                         expires_at: r.expires_at,
                     };
                 });
 
-                console.log("Normalized user rewards:", normalized);
                 setUserRewards(normalized);
             } catch (error) {
                 console.error("Failed to load user rewards:", error);
@@ -291,15 +322,7 @@ const ProfileRewardsPage = () => {
                 </div>
 
                 {(() => {
-                    console.log("Render conditions debug:");
-                    console.log("userRewardsLoading:", userRewardsLoading);
-                    console.log("userRewardsError:", userRewardsError);
-                    console.log("userRewards:", userRewards);
-                    console.log("userRewards.length:", userRewards.length);
-                    console.log("userRewards.length === 0:", userRewards.length === 0);
-
                     if (userRewardsLoading) {
-                        console.log("Rendering loading state");
                         return (
                             <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                                 {[...Array(3)].map((_, i) => (
@@ -308,10 +331,8 @@ const ProfileRewardsPage = () => {
                             </div>
                         );
                     } else if (userRewardsError) {
-                        console.log("Rendering error state");
                         return <p className="mt-4 text-error">{userRewardsError}</p>;
                     } else if (userRewards.length === 0) {
-                        console.log("Rendering empty state");
                         return (
                             <div className="mt-4 text-center py-8">
                                 <p className="text-theme-secondary">You don't have any rewards yet.</p>
@@ -319,7 +340,6 @@ const ProfileRewardsPage = () => {
                             </div>
                         );
                     } else {
-                        console.log("Rendering rewards data");
                         return (
                             <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                                 {userRewards.map((item) => (

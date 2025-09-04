@@ -1,13 +1,12 @@
 // src/features/auth/pages/ResetPassword.jsx
 
 import React, { useState } from "react";
-import { Link, useParams } from "react-router";
+import { Link } from "react-router";
 import toast from "react-hot-toast";
 import { resetPasswordSchema } from "../authValidation";
 import { MdLock, MdArrowBack, MdCheckCircle } from "react-icons/md";
 
 const ResetPassword = () => {
-  const { token } = useParams();
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -34,9 +33,7 @@ const ResetPassword = () => {
     setIsLoading(true);
     try {
       await new Promise((resolve) => setTimeout(resolve, 2000));
-      console.log(
-        `Password reset for token: ${token} with new password: ${password}`
-      );
+
       setIsSuccess(true);
     } catch (error) {
       toast.error("Failed to reset password. The link may have expired.");

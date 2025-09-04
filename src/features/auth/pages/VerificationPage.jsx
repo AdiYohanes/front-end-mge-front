@@ -18,9 +18,6 @@ const VerificationPage = () => {
   // Loading state berdasarkan status Redux
   const isLoading = status === "loading";
 
-  // Log untuk debugging
-  console.log("Verification page - Phone number from Redux:", registrationPhone);
-
   // Redirect jika tidak ada nomor telepon
   useEffect(() => {
     if (!registrationPhone) {
@@ -33,13 +30,10 @@ const VerificationPage = () => {
 
   // Handle verification result
   useEffect(() => {
-    console.log("Verification status changed:", { status, error });
 
     if (status === "succeeded" && !error) {
-      console.log("Verification successful, redirecting to login...");
       toast.success("Verification successful! Please login to continue.");
       setTimeout(() => {
-        console.log("Navigating to /login");
         navigate("/login");
       }, 1500);
     } else if (status === "failed" && error) {
@@ -66,15 +60,11 @@ const VerificationPage = () => {
       toast.error("Please enter the complete OTP code.");
       return;
     }
-
-    console.log(`Verifying OTP: ${otp} for phone: ${registrationPhone}`);
-
     // Dispatch verify OTP thunk dengan payload yang benar
     const payload = {
       phone: registrationPhone,
       token: otp
     };
-    console.log("Sending verification request with payload:", payload);
 
     dispatch(verifyOTPThunk(payload))
       .unwrap()
@@ -92,8 +82,6 @@ const VerificationPage = () => {
       toast.error("Phone number not found. Please register again.");
       return;
     }
-
-    console.log("Resending OTP to:", registrationPhone);
 
     // Dispatch thunk dan tangani hasilnya untuk menampilkan toast
     dispatch(resendTokenThunk(registrationPhone))

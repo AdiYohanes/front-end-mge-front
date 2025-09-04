@@ -84,12 +84,6 @@ const TimeSelection = ({ selectedTime, onTimeSelect, selectedDate }) => {
   const getAllTimeSlots = () => {
     const apiSlots = timeSlots || [];
     const generatedSlots = generate30MinuteSlots();
-
-    // Debug logging
-    console.log('API Slots:', apiSlots);
-    console.log('Generated Slots:', generatedSlots);
-    console.log('Selected Date:', selectedDate);
-
     // Create a map of existing API slots
     const apiSlotsMap = new Map();
     apiSlots.forEach(slot => {
@@ -105,7 +99,6 @@ const TimeSelection = ({ selectedTime, onTimeSelect, selectedDate }) => {
       return generatedSlot; // Use generated slot if no API slot
     });
 
-    console.log('Combined Slots:', combinedSlots);
     return combinedSlots;
   };
 

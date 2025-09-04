@@ -12,17 +12,6 @@ const ConsoleSelection = ({ selectedConsole, onSelectConsole }) => {
 
   // Filter hanya console yang aktif
   const activeConsoles = consoles.filter(console => console.is_active);
-
-  // Debug logging
-  console.log("All consoles from API:", consoles);
-  console.log("Active consoles after filter:", activeConsoles);
-  console.log("Console details:", consoles.map(c => ({
-    id: c.id,
-    name: c.name,
-    is_active: c.is_active,
-    amount: c.amount
-  })));
-
   useEffect(() => {
     if (status === "succeeded" && cardContainerRef.current) {
       const cards = cardContainerRef.current.children;

@@ -149,8 +149,7 @@ const RentPage = () => {
           if (bookingDetails.duration && !durations.includes(bookingDetails.duration)) {
             setBookingDetails(prev => ({ ...prev, duration: null }));
           }
-        } catch (error) {
-          console.error('Failed to fetch durations:', error);
+        } catch {
           setAvailableDurations([]);
         } finally {
           setDurationsLoading(false);

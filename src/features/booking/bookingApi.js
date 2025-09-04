@@ -5,30 +5,13 @@ import { format, add, isValid } from "date-fns";
 
 // Validate promo code using public API
 export const validatePromoCode = async (promoCode) => {
-  console.log("Validating promo code:", promoCode); // Debug log
   const apiUrl = `/api/public/promos?promo_code=${encodeURIComponent(promoCode)}`;
-  console.log("API URL:", apiUrl); // Debug log
 
   const response = await publicApiClient.get(apiUrl);
-  console.log("Full API response:", response); // Debug log
-  console.log("Response status:", response.status); // Debug log
-  console.log("Response headers:", response.headers); // Debug log
-  console.log("Promo validation API response data:", response.data); // Debug log
-
-  // Check if we have data array and log its contents
-  if (response.data && response.data.data) {
-    console.log("Promo data array:", response.data.data); // Debug log
-    console.log("Number of promos returned:", response.data.data.length); // Debug log
-    response.data.data.forEach((promo, index) => {
-      console.log(`Promo ${index}:`, promo); // Debug log
-    });
-  }
-
   return response.data;
 };
 
 export const submitBooking = async (bookingData) => {
-  console.log("Raw booking data:", bookingData); // Debug log
 
   try {
     // Comprehensive data validation
@@ -128,18 +111,6 @@ export const submitBooking = async (bookingData) => {
       email: customerEmail,
     };
 
-    console.log("API Payload:", apiPayload); // Debug log
-    console.log("Payload validation:", {
-      unit_id_type: typeof apiPayload.unit_id,
-      game_id_type: typeof apiPayload.game_id,
-      total_visitors_type: typeof apiPayload.total_visitors,
-      promo_id_type: typeof apiPayload.promo_id,
-      start_time_format: apiPayload.start_time,
-      end_time_format: apiPayload.end_time,
-      fnbs_count: apiPayload.fnbs.length,
-      name_length: apiPayload.name.length,
-      phone_length: apiPayload.phone.length,
-    });
 
     // Gunakan endpoint yang benar untuk guest booking
     let response;
@@ -147,9 +118,7 @@ export const submitBooking = async (bookingData) => {
 
     try {
       // Coba authenticated endpoint dulu
-      console.log("Attempting authenticated booking...");
       response = await apiClient.post("/api/book-room", apiPayload);
-      console.log("Authenticated booking successful:", response.status);
     } catch (error) {
       console.error("Error with authenticated booking:", {
         status: error.response?.status,
@@ -161,9 +130,7 @@ export const submitBooking = async (bookingData) => {
 
       // Jika gagal, coba public endpoint untuk guest booking
       try {
-        console.log("Attempting public booking...");
         response = await publicApiClient.post("/api/public/book-room", apiPayload);
-        console.log("Public booking successful:", response.status);
       } catch (publicError) {
         console.error("Error with public booking:", {
           status: publicError.response?.status,
@@ -175,9 +142,7 @@ export const submitBooking = async (bookingData) => {
 
         // Coba endpoint alternatif
         try {
-          console.log("Attempting guest booking...");
           response = await publicApiClient.post("/api/guest/book-room", apiPayload);
-          console.log("Guest booking successful:", response.status);
         } catch (guestError) {
           console.error("Error with guest booking:", {
             status: guestError.response?.status,
@@ -213,9 +178,6 @@ export const submitBooking = async (bookingData) => {
       }
     }
 
-    console.log("Booking Response:", response); // Debug log
-    console.log("Response Data:", response.data); // Debug log
-    console.log("Response Status:", response.status); // Debug log
 
     // Validate response - some APIs might return data directly or in different structures
     if (!response) {
@@ -231,7 +193,6 @@ export const submitBooking = async (bookingData) => {
 
     // If responseData is still the full axios response, extract only the data
     if (responseData && responseData.data && responseData.headers) {
-      console.log("Detected full axios response, extracting data only");
       responseData = responseData.data;
     }
 

@@ -10,21 +10,16 @@ const BookingSuccessPage = () => {
   const dispatch = useDispatch();
   const queryParams = new URLSearchParams(location.search);
   const invoiceNumber = queryParams.get("invoice_number");
-  
+
   // Get booking state from Redux
   const { status: bookingStatus, invoiceNumber: reduxInvoiceNumber } = useSelector((state) => state.booking);
-  
+
   // Local state for access validation
   const [isValidAccess, setIsValidAccess] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const validateAccess = () => {
-      console.log("Validating BookingSuccessPage access...");
-      console.log("URL invoice number:", invoiceNumber);
-      console.log("Redux invoice number:", reduxInvoiceNumber);
-      console.log("Booking status:", bookingStatus);
-      console.log("Location state:", location.state);
 
       // Check multiple validation criteria
       const hasValidInvoice = invoiceNumber && invoiceNumber.trim() !== "";
@@ -36,20 +31,6 @@ const BookingSuccessPage = () => {
       // Validate invoice number match (if both exist)
       const invoiceMatches = !hasReduxInvoice || !hasValidInvoice || invoiceNumber === reduxInvoiceNumber;
 
-      console.log("Validation checks:", {
-        hasValidInvoice,
-        hasReduxInvoice,
-        hasSuccessfulBooking,
-        hasPaymentCompletedFlag,
-        hasRecentBookingSession,
-        invoiceMatches
-      });
-
-      // Allow access if any of these conditions are met:
-      // 1. Recent successful booking with matching invoice
-      // 2. Payment completed flag from navigation state
-      // 3. Recent booking session marker
-      // 4. Valid invoice number with successful booking status
       const isAccessValid = (
         (hasValidInvoice && hasSuccessfulBooking && invoiceMatches) ||
         hasPaymentCompletedFlag ||
@@ -57,25 +38,22 @@ const BookingSuccessPage = () => {
         (hasValidInvoice && hasReduxInvoice && invoiceMatches)
       );
 
-      console.log("Access validation result:", isAccessValid);
 
       if (isAccessValid) {
         setIsValidAccess(true);
         // Clear the session marker after successful access
         sessionStorage.removeItem("recentBookingComplete");
-        
+
         // Clear booking state after 30 seconds to prevent future unauthorized access
         // but allow enough time for user to view the page
         setTimeout(() => {
-          console.log("Clearing booking state for security");
           dispatch(clearBookingState());
         }, 30000);
       } else {
-        console.log("Access denied - redirecting to home");
         // Redirect to home with warning message
-        navigate("/", { 
+        navigate("/", {
           replace: true,
-          state: { 
+          state: {
             message: "Access to booking confirmation requires a recent booking.",
             type: "warning"
           }

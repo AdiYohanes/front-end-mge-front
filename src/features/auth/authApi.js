@@ -93,9 +93,7 @@ export const resendActivationToken = async (phone) => {
 
 // Fungsi untuk verifikasi OTP
 export const verifyOTP = async (otpData) => {
-  console.log("Sending activate-account request with payload:", otpData);
   const response = await apiClient.post("/api/auth/activate-account", otpData);
-  console.log("Activate account response:", response.data);
   return response.data;
 };
 

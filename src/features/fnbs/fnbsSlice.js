@@ -32,7 +32,6 @@ export const bookFnbsThunk = createAsyncThunk(
   "fnbs/bookFnbs",
   async (fnbData, { rejectWithValue }) => {
     try {
-      console.log("Dispatching F&B booking with data:", fnbData);
       const response = await bookFnbs(fnbData);
       return response;
     } catch (error) {

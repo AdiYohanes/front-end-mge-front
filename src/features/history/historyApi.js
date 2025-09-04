@@ -35,14 +35,6 @@ export const rescheduleBooking = async (bookingId, rescheduleData) => {
     end_time: endTimeString
   };
 
-  console.log('Reschedule API Request:', {
-    bookingId,
-    rescheduleData,
-    requestPayload,
-    startTimeString,
-    endTimeString
-  });
-
   const response = await apiClient.post(
     `/api/reschedule/${bookingId}`,
     requestPayload

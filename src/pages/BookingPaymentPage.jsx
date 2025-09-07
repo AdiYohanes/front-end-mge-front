@@ -22,10 +22,14 @@ const BookingPaymentPage = () => {
     promoValidation,
     invoiceNumber,
   } = useSelector((state) => state.booking);
+  const { user } = useSelector((state) => state.auth);
   const isLoading = bookingStatus === "loading";
 
   const initialBookingDetails = location.state?.bookingDetails || null;
   const isGuestBooking = location.state?.isGuestBooking || false;
+  const fromReward = location.state?.fromReward || false;
+  const rewardData = location.state?.rewardData || null;
+  const isOtsBooking = location.state?.isOtsBooking || false;
 
   const [bookingDetails, setBookingDetails] = useState(initialBookingDetails);
   const [promoCode, setPromoCode] = useState("");
@@ -34,6 +38,15 @@ const BookingPaymentPage = () => {
     phoneNumber: "",
     agreed: false,
   });
+  const [paymentMethod, setPaymentMethod] = useState("cash");
+
+  // Debug log for OTS booking
+  useEffect(() => {
+    console.log("BookingPaymentPage - isOtsBooking:", isOtsBooking);
+    console.log("BookingPaymentPage - location.state:", location.state);
+    console.log("BookingPaymentPage - user role:", user?.role);
+    console.log("BookingPaymentPage - paymentMethod:", paymentMethod);
+  }, [isOtsBooking, location.state, user, paymentMethod]);
   const [useLoginInfo, setUseLoginInfo] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false); // State untuk modal
   const [showTermsModal, setShowTermsModal] = useState(false); // State untuk terms modal
@@ -135,7 +148,10 @@ const BookingPaymentPage = () => {
 
           const qs = invoiceNumber ? `?invoice_number=${encodeURIComponent(invoiceNumber)}` : "";
           navigate(`/booking-success${qs}`, {
-            state: { paymentCompleted: true }
+            state: {
+              paymentCompleted: true,
+              bookingDetails: bookingDetails
+            }
           });
         }
       } catch (_) {
@@ -159,13 +175,15 @@ const BookingPaymentPage = () => {
           : null;
         const fees = Array.isArray(feeRes.data) ? feeRes.data : [];
         setTaxInfo(activeTax || null);
-        setServiceFees(fees);
+        // Set service fees to 0 if there's a reward or OTS booking
+        const userRewardId = bookingDetails?.rewardInfo?.userRewardId || rewardData?.user_reward_id;
+        setServiceFees(userRewardId || isOtsBooking ? [] : fees);
       } catch (err) {
         console.error("Failed to load taxes or service fees", err);
       }
     };
     fetchCharges();
-  }, []);
+  }, [bookingDetails, rewardData, isOtsBooking]);
 
   useEffect(() => {
     if (redirectUrl) {
@@ -230,6 +248,33 @@ const BookingPaymentPage = () => {
     }
   }, [promoValidation]);
 
+  // Handle booking success for reward bookings and OTS bookings
+  useEffect(() => {
+    if (bookingStatus === "succeeded" && invoiceNumber) {
+      const userRewardId = bookingDetails?.rewardInfo?.userRewardId || rewardData?.user_reward_id;
+
+      if (userRewardId || isOtsBooking) {
+        // For reward booking or OTS booking, skip Midtrans and go directly to success page
+        console.log("BookingPaymentPage - Reward/OTS booking completed, skipping Midtrans");
+        toast.success(isOtsBooking ? "OTS booking submitted successfully!" : "Booking submitted successfully! Your reward has been applied.");
+
+        // Disable blocking for success navigation
+        setShouldBlock(false);
+
+        // Redirect to success page
+        navigate(`/booking-success?invoice_number=${encodeURIComponent(invoiceNumber)}`, {
+          state: {
+            paymentCompleted: true,
+            isReward: !!userRewardId,
+            isOts: isOtsBooking,
+            bookingDetails: bookingDetails
+          }
+        });
+      }
+      // Normal booking will be handled by existing redirectUrl useEffect
+    }
+  }, [bookingStatus, invoiceNumber, bookingDetails, rewardData, isOtsBooking, navigate]);
+
   const handleInfoChange = useCallback((e) => {
     const { name, value, type, checked } = e.target;
     setPersonalInfo((prev) => ({
@@ -277,26 +322,48 @@ const BookingPaymentPage = () => {
   // Fungsi ini sekarang hanya untuk validasi dan membuka modal
   const handleProceed = (e) => {
     e.preventDefault();
-    if (!personalInfo.agreed) {
-      toast.error("You must agree to the Terms & Conditions first.");
-      return;
+
+    const userRewardId = bookingDetails?.rewardInfo?.userRewardId || rewardData?.user_reward_id;
+
+    // For reward booking with logged in user, skip personal info validation
+    // For OTS booking, always require personal info (customer info)
+    // For guest users (reward or normal), require personal info
+    if ((!userRewardId || !user) && !isOtsBooking) {
+      if (!personalInfo.agreed) {
+        toast.error("You must agree to the Terms & Conditions first.");
+        return;
+      }
+      if (!personalInfo.fullName || !personalInfo.phoneNumber) {
+        toast.error("Please fill in your name and phone number.");
+        return;
+      }
     }
-    if (
-      !personalInfo.fullName ||
-      !personalInfo.phoneNumber
-    ) {
-      toast.error("Please fill in your name and phone number.");
-      return;
+
+    // For OTS booking, require customer info
+    if (isOtsBooking) {
+      if (!personalInfo.fullName || !personalInfo.phoneNumber) {
+        toast.error("Please fill in customer name and phone number for OTS booking.");
+        return;
+      }
     }
+
     setIsModalOpen(true); // Buka modal jika validasi berhasil
   };
 
   // Fungsi ini dipanggil dari dalam modal untuk submit
   const handleSubmitBooking = () => {
+    const userRewardId = bookingDetails?.rewardInfo?.userRewardId || rewardData?.user_reward_id;
 
     // Validate customer data before submitting
-    if (!personalInfo.fullName || !personalInfo.phoneNumber) {
+    // Skip for logged in user with reward, but require for OTS booking
+    if ((!userRewardId || !user) && !isOtsBooking && (!personalInfo.fullName || !personalInfo.phoneNumber)) {
       toast.error("Name and phone number are required");
+      return;
+    }
+
+    // For OTS booking, always require customer info
+    if (isOtsBooking && (!personalInfo.fullName || !personalInfo.phoneNumber)) {
+      toast.error("Customer name and phone number are required for OTS booking");
       return;
     }
 
@@ -308,7 +375,51 @@ const BookingPaymentPage = () => {
       return;
     }
 
-    const finalData = {
+    // Different request structure for reward vs OTS vs normal booking
+    console.log("BookingPaymentPage - Building finalData:");
+    console.log("  - userRewardId:", userRewardId);
+    console.log("  - isOtsBooking:", isOtsBooking);
+    console.log("  - paymentMethod:", paymentMethod);
+
+    const finalData = userRewardId ? {
+      // Simplified structure for reward booking
+      user_reward_id: userRewardId,
+      unit_id: bookingDetails.psUnit.id,
+      game_id: bookingDetails.selectedGames[0].id,
+      total_visitors: bookingDetails.numberOfPeople,
+      start_time: `${bookingDetails.date.toISOString().split('T')[0]} ${bookingDetails.startTime}`,
+      end_time: (() => {
+        const startDate = new Date(`${bookingDetails.date.toISOString().split('T')[0]} ${bookingDetails.startTime}`);
+        const endDate = new Date(startDate.getTime() + (bookingDetails.duration * 60 * 60 * 1000));
+        return `${endDate.toISOString().split('T')[0]} ${endDate.toTimeString().split(' ')[0].substring(0, 5)}`;
+      })(),
+      notes: document.getElementById("booking-notes")?.value || "No F&B needed.",
+      // Only include customer data for guest reward bookings (when user is not logged in)
+      ...(!user && {
+        name: personalInfo.fullName.trim(),
+        phone: personalInfo.phoneNumber.trim(),
+      })
+    } : isOtsBooking ? {
+      // OTS booking structure
+      unit_id: bookingDetails.psUnit.id,
+      game_id: bookingDetails.selectedGames[0].id,
+      name: personalInfo.fullName.trim(),
+      phone: personalInfo.phoneNumber.trim(),
+      total_visitors: bookingDetails.numberOfPeople,
+      payment_method: paymentMethod,
+      start_time: `${bookingDetails.date.toISOString().split('T')[0]} ${bookingDetails.startTime}`,
+      end_time: (() => {
+        const startDate = new Date(`${bookingDetails.date.toISOString().split('T')[0]} ${bookingDetails.startTime}`);
+        const endDate = new Date(startDate.getTime() + (bookingDetails.duration * 60 * 60 * 1000));
+        return `${endDate.toISOString().split('T')[0]} ${endDate.toTimeString().split(' ')[0].substring(0, 5)}`;
+      })(),
+      notes: document.getElementById("booking-notes")?.value || "OTS Booking.",
+      fnbs: (bookingDetails.foodAndDrinks || []).map(item => ({
+        id: item.id,
+        quantity: item.quantity
+      }))
+    } : {
+      // Normal booking structure
       ...bookingDetails,
       notes: document.getElementById("booking-notes")?.value || "",
       customer: {
@@ -319,40 +430,83 @@ const BookingPaymentPage = () => {
     };
 
 
-    // Validate all required fields with detailed logging
-    const requiredFields = [
-      'psUnit', 'selectedGames', 'date', 'startTime', 'duration', 'numberOfPeople'
-    ];
+    // Different validation for reward vs OTS vs normal booking
+    if (userRewardId) {
+      // Simplified validation for reward booking
+      const requiredFields = ['user_reward_id', 'unit_id', 'game_id', 'total_visitors', 'start_time', 'end_time'];
+      const missingFields = requiredFields.filter(field => {
+        const fieldValue = finalData[field];
+        const isMissing = !fieldValue;
+        if (isMissing) {
+          console.error(`Missing field '${field}':`, fieldValue);
+        }
+        return isMissing;
+      });
 
-    const missingFields = requiredFields.filter(field => {
-      const fieldValue = finalData[field];
-      const isMissing = !fieldValue;
-      if (isMissing) {
-        console.error(`Missing field '${field}':`, fieldValue);
+      if (missingFields.length > 0) {
+        console.error("Missing required fields for reward booking:", missingFields);
+        console.error("Full final data:", finalData);
+        toast.error(`Missing required fields: ${missingFields.join(', ')}`);
+        return;
       }
-      return isMissing;
-    });
+    } else if (isOtsBooking) {
+      // Validation for OTS booking
+      const requiredFields = ['unit_id', 'game_id', 'name', 'phone', 'total_visitors', 'payment_method', 'start_time', 'end_time'];
+      const missingFields = requiredFields.filter(field => {
+        const fieldValue = finalData[field];
+        const isMissing = !fieldValue;
+        if (isMissing) {
+          console.error(`Missing field '${field}':`, fieldValue);
+        }
+        return isMissing;
+      });
 
-    if (missingFields.length > 0) {
-      console.error("Missing required fields:", missingFields);
-      console.error("Full final data:", finalData);
-      toast.error(`Missing required fields: ${missingFields.join(', ')}`);
-      return;
+      if (missingFields.length > 0) {
+        console.error("Missing required fields for OTS booking:", missingFields);
+        console.error("Full final data:", finalData);
+        toast.error(`Missing required fields: ${missingFields.join(', ')}`);
+        return;
+      }
+    } else {
+      // Normal booking validation
+      const requiredFields = [
+        'psUnit', 'selectedGames', 'date', 'startTime', 'duration', 'numberOfPeople'
+      ];
+
+      const missingFields = requiredFields.filter(field => {
+        const fieldValue = finalData[field];
+        const isMissing = !fieldValue;
+        if (isMissing) {
+          console.error(`Missing field '${field}':`, fieldValue);
+        }
+        return isMissing;
+      });
+
+      if (missingFields.length > 0) {
+        console.error("Missing required fields:", missingFields);
+        console.error("Full final data:", finalData);
+        toast.error(`Missing required fields: ${missingFields.join(', ')}`);
+        return;
+      }
+
+      // Additional validation for critical fields
+      if (!finalData.psUnit?.id) {
+        console.error("Missing PS Unit ID:", finalData.psUnit);
+        toast.error("PS Unit information is missing");
+        return;
+      }
+
+      if (!finalData.selectedGames?.[0]?.id) {
+        console.error("Missing Game ID:", finalData.selectedGames);
+        toast.error("Game selection is missing");
+        return;
+      }
     }
 
-    // Additional validation for critical fields
-    if (!finalData.psUnit?.id) {
-      console.error("Missing PS Unit ID:", finalData.psUnit);
-      toast.error("PS Unit information is missing");
-      return;
-    }
-
-    if (!finalData.selectedGames?.[0]?.id) {
-      console.error("Missing Game ID:", finalData.selectedGames);
-      toast.error("Game selection is missing");
-      return;
-    }
-
+    console.log("BookingPaymentPage - Submitting booking data:", finalData);
+    console.log("BookingPaymentPage - User Reward ID:", userRewardId);
+    console.log("BookingPaymentPage - Payment Method:", paymentMethod);
+    console.log("BookingPaymentPage - Is OTS Booking:", isOtsBooking);
     dispatch(submitBookingThunk(finalData));
   };
 
@@ -366,7 +520,10 @@ const BookingPaymentPage = () => {
     // Redirect to success page as a fallback when payment flow ends
     const qs = invoiceNumber ? `?invoice_number=${encodeURIComponent(invoiceNumber)}` : "";
     navigate(`/booking-success${qs}`, {
-      state: { paymentCompleted: true }
+      state: {
+        paymentCompleted: true,
+        bookingDetails: bookingDetails
+      }
     });
   };
 
@@ -467,10 +624,30 @@ const BookingPaymentPage = () => {
               </p>
             </div>
           )}
+          {isOtsBooking && (
+            <div className="mt-4 p-3 bg-blue-100 border border-blue-300 rounded-lg">
+              <p className="text-blue-800 font-medium">
+                🏪 OTS Booking - Please fill in customer information below
+              </p>
+            </div>
+          )}
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
           <div className="lg:order-1 space-y-6">
-            {isGuestBooking && (
+            {/* Reward Booking Banner */}
+            {(bookingDetails?.rewardInfo?.userRewardId || rewardData?.user_reward_id) && (
+              <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
+                <h3 className="text-lg font-semibold text-green-700 mb-2">
+                  🎁 Reward Booking
+                </h3>
+                <p className="text-sm text-green-600">
+                  Your reward has been applied! Personal information is optional for reward bookings.
+                </p>
+              </div>
+            )}
+
+            {/* Guest Booking Banner */}
+            {isGuestBooking && !(bookingDetails?.rewardInfo?.userRewardId || rewardData?.user_reward_id) && (
               <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
                 <h3 className="text-lg font-semibold text-green-500 mb-2">
                   Guest Booking Information
@@ -480,6 +657,8 @@ const BookingPaymentPage = () => {
                 </p>
               </div>
             )}
+
+            {/* Personal Info Form - Always show */}
             <PersonalInfoForm
               formData={personalInfo}
               onFormChange={handleInfoChange}
@@ -487,6 +666,37 @@ const BookingPaymentPage = () => {
               onUseLoginInfoChange={setUseLoginInfo}
               isGuestBooking={isGuestBooking}
             />
+
+            {/* Debug Info */}
+            <div className="mb-4 p-3 bg-yellow-100 border border-yellow-300 rounded-lg">
+              <p className="text-sm text-yellow-800">
+                Debug: isOtsBooking = {String(isOtsBooking)}, user role = {user?.role}
+              </p>
+            </div>
+
+            {/* Payment Method - Only show for OTS booking */}
+            {isOtsBooking && (
+              <div className="flex flex-col space-y-2">
+                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Payment Method <span className="text-red-500">*</span>
+                </span>
+                <div className="space-y-2">
+                  <label className="flex items-center space-x-3 cursor-pointer">
+                    <input
+                      type="radio"
+                      name="paymentMethod"
+                      value="cash"
+                      checked={paymentMethod === "cash"}
+                      onChange={(e) => setPaymentMethod(e.target.value)}
+                      className="radio radio-primary"
+                    />
+                    <span className="text-gray-700">💵 Cash</span>
+                  </label>
+                </div>
+              </div>
+            )}
+
+            {/* Additional Notes - Always show */}
             <div className="flex flex-col space-y-2">
               <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
                 Additional Notes <span className="text-gray-500">(Optional)</span>
@@ -494,7 +704,7 @@ const BookingPaymentPage = () => {
               <textarea
                 id="booking-notes"
                 className="textarea textarea-bordered h-24 w-full bg-white border-gray-300 text-black placeholder-gray-500 focus:border-brand-gold focus:outline-none resize-none"
-                placeholder="Request extra controller, etc."
+                placeholder={isOtsBooking ? "OTS booking notes..." : "Request extra controller, etc."}
               ></textarea>
             </div>
           </div>

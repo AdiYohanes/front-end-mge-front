@@ -11,11 +11,15 @@ const FoodDrinksSuccessPage = () => {
         // Get order details from URL params or localStorage
         const invoiceNumber = searchParams.get('invoice_number');
         const totalPrice = searchParams.get('total_price');
+        const isReward = searchParams.get('is_reward') === 'true';
+        const seating = searchParams.get('seating');
 
-        if (invoiceNumber && totalPrice) {
+        if (invoiceNumber && totalPrice !== null) {
             setOrderDetails({
                 invoiceNumber,
-                totalPrice: parseFloat(totalPrice)
+                totalPrice: parseFloat(totalPrice),
+                isReward: isReward,
+                seating: seating || null
             });
         }
     }, [searchParams]);
@@ -68,10 +72,21 @@ const FoodDrinksSuccessPage = () => {
                                 </div>
                                 <div className="flex justify-between items-center">
                                     <span className="text-gray-600">Status:</span>
-                                    <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm font-medium">
-                                        Pending Payment
+                                    <span className={`px-3 py-1 rounded-full text-sm font-medium ${orderDetails.isReward
+                                        ? 'bg-green-100 text-green-700'
+                                        : 'bg-yellow-100 text-yellow-700'
+                                        }`}>
+                                        {orderDetails.isReward ? 'Success' : 'Pending Payment'}
                                     </span>
                                 </div>
+                                {orderDetails.seating && (
+                                    <div className="flex justify-between items-center">
+                                        <span className="text-gray-600">Seating:</span>
+                                        <span className="font-semibold text-gray-900">
+                                            {orderDetails.seating}
+                                        </span>
+                                    </div>
+                                )}
                             </div>
                         </div>
                     )}
@@ -82,39 +97,70 @@ const FoodDrinksSuccessPage = () => {
                             What's Next?
                         </h3>
                         <div className="space-y-3 text-left">
-                            <div className="flex items-start gap-3">
-                                <div className="w-6 h-6 bg-brand-gold rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                                    <span className="text-white text-xs font-bold">1</span>
-                                </div>
-                                <div>
-                                    <p className="text-gray-900 font-medium">Complete Payment</p>
-                                    <p className="text-gray-600 text-sm">
-                                        You will be redirected to our payment gateway to complete your payment
-                                    </p>
-                                </div>
-                            </div>
-                            <div className="flex items-start gap-3">
-                                <div className="w-6 h-6 bg-brand-gold rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                                    <span className="text-white text-xs font-bold">2</span>
-                                </div>
-                                <div>
-                                    <p className="text-gray-900 font-medium">Order Processing</p>
-                                    <p className="text-gray-600 text-sm">
-                                        Our team will prepare your food & drinks order
-                                    </p>
-                                </div>
-                            </div>
-                            <div className="flex items-start gap-3">
-                                <div className="w-6 h-6 bg-brand-gold rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                                    <span className="text-white text-xs font-bold">3</span>
-                                </div>
-                                <div>
-                                    <p className="text-gray-900 font-medium">Ready for Pickup</p>
-                                    <p className="text-gray-600 text-sm">
-                                        Your order will be ready at the specified time and location
-                                    </p>
-                                </div>
-                            </div>
+                            {orderDetails?.isReward ? (
+                                // Steps for reward booking (no payment needed)
+                                <>
+                                    <div className="flex items-start gap-3">
+                                        <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                                            <span className="text-white text-xs font-bold">1</span>
+                                        </div>
+                                        <div>
+                                            <p className="text-gray-900 font-medium">Order Processing</p>
+                                            <p className="text-gray-600 text-sm">
+                                                Our team will prepare your food & drinks order
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-start gap-3">
+                                        <div className="w-6 h-6 bg-brand-gold rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                                            <span className="text-white text-xs font-bold">2</span>
+                                        </div>
+                                        <div>
+                                            <p className="text-gray-900 font-medium">Ready for Pickup</p>
+                                            <p className="text-gray-600 text-sm">
+                                                Your order will be ready at the specified time and location
+                                            </p>
+                                        </div>
+                                    </div>
+                                </>
+                            ) : (
+                                // Steps for normal booking (payment needed)
+                                <>
+                                    <div className="flex items-start gap-3">
+                                        <div className="w-6 h-6 bg-brand-gold rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                                            <span className="text-white text-xs font-bold">1</span>
+                                        </div>
+                                        <div>
+                                            <p className="text-gray-900 font-medium">Complete Payment</p>
+                                            <p className="text-gray-600 text-sm">
+                                                You will be redirected to our payment gateway to complete your payment
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-start gap-3">
+                                        <div className="w-6 h-6 bg-brand-gold rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                                            <span className="text-white text-xs font-bold">2</span>
+                                        </div>
+                                        <div>
+                                            <p className="text-gray-900 font-medium">Order Processing</p>
+                                            <p className="text-gray-600 text-sm">
+                                                Our team will prepare your food & drinks order
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-start gap-3">
+                                        <div className="w-6 h-6 bg-brand-gold rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                                            <span className="text-white text-xs font-bold">3</span>
+                                        </div>
+                                        <div>
+                                            <p className="text-gray-900 font-medium">Ready for Pickup</p>
+                                            <p className="text-gray-600 text-sm">
+                                                Your order will be ready at the specified time and location
+                                            </p>
+                                        </div>
+                                    </div>
+                                </>
+                            )}
                         </div>
                     </div>
 

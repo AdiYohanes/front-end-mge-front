@@ -120,24 +120,14 @@ const ProfileRewardsPage = () => {
             const applyResponse = await applyReward(rewardId);
             console.log("Your Rewards - Apply Reward API Response:", applyResponse);
 
-            // Check reward type and redirect accordingly
-            const rewardType = applyResponse?.reward?.effects?.type;
-            console.log("Your Rewards - Reward type detected:", rewardType);
+            // Get redirect URL from API response
+            const redirectTo = applyResponse?.redirect_to;
+            console.log("Your Rewards - Redirect to:", redirectTo);
 
-            if (rewardType === "free_fnb") {
-                console.log("Your Rewards - Redirecting to /food-drinks with reward data");
-                // Redirect to FoodPage with reward data
-                navigate("/food-drinks", {
-                    state: {
-                        rewardData: applyResponse,
-                        fromReward: true
-                    }
-                });
-                return; // Exit early, don't show success message
-            } else if (rewardType === "free_play") {
-                console.log("Your Rewards - Redirecting to /rent with reward data");
-                // Redirect to RentPage with reward data
-                navigate("/rent", {
+            if (redirectTo) {
+                console.log("Your Rewards - Redirecting to", redirectTo, "with reward data");
+                // Redirect to the URL specified in API response with reward data
+                navigate(redirectTo, {
                     state: {
                         rewardData: applyResponse,
                         fromReward: true
@@ -145,8 +135,8 @@ const ProfileRewardsPage = () => {
                 });
                 return; // Exit early, don't show success message
             } else {
-                // Unknown reward type, show success message
-                console.warn("Your Rewards - Unknown reward type:", rewardType);
+                // No redirect URL specified, show success message
+                console.warn("Your Rewards - No redirect URL in response");
                 setApplySuccess("Reward applied successfully!");
             }
 
@@ -275,33 +265,22 @@ const ProfileRewardsPage = () => {
                                     const applyResponse = await applyReward(userRewardId);
                                     console.log("Use Now clicked - Apply Reward API Response:", applyResponse);
 
-                                    // Check reward type and redirect accordingly
-                                    const rewardType = applyResponse?.reward?.effects?.type;
-                                    console.log("Reward type detected:", rewardType);
-                                    console.log("Full effects object:", applyResponse?.reward?.effects);
+                                    // Get redirect URL from API response
+                                    const redirectTo = applyResponse?.redirect_to;
+                                    console.log("Use Now - Redirect to:", redirectTo);
 
-                                    if (rewardType === "free_fnb") {
-                                        console.log("Redirecting to /food-drinks with reward data");
-                                        // Redirect to FoodPage with reward data
-                                        navigate("/food-drinks", {
-                                            state: {
-                                                rewardData: applyResponse,
-                                                fromReward: true
-                                            }
-                                        });
-                                    } else if (rewardType === "free_play") {
-                                        console.log("Redirecting to /rent with reward data");
-                                        // Redirect to RentPage with reward data
-                                        navigate("/rent", {
+                                    if (redirectTo) {
+                                        console.log("Use Now - Redirecting to", redirectTo, "with reward data");
+                                        // Redirect to the URL specified in API response with reward data
+                                        navigate(redirectTo, {
                                             state: {
                                                 rewardData: applyResponse,
                                                 fromReward: true
                                             }
                                         });
                                     } else {
-                                        // Unknown reward type, just close modal
-                                        console.warn("Unknown reward type:", rewardType);
-                                        console.log("Available reward types in response:", Object.keys(applyResponse?.reward?.effects || {}));
+                                        // No redirect URL specified, just close modal
+                                        console.warn("Use Now - No redirect URL in response");
                                         setShowSuccessModal(false);
                                     }
                                 } catch (error) {
@@ -497,26 +476,28 @@ const ProfileRewardsPage = () => {
                     return;
                 }
 
-                const normalized = list.map((r) => {
-                    // Calculate days left until expiration
-                    const expiresAt = new Date(r.expires_at);
-                    const now = new Date();
-                    const timeDiff = expiresAt.getTime() - now.getTime();
-                    const daysLeft = Math.ceil(timeDiff / (1000 * 3600 * 24));
+                const normalized = list
+                    .filter((r) => r.status === 'available') // Only show available rewards
+                    .map((r) => {
+                        // Calculate days left until expiration
+                        const expiresAt = new Date(r.expires_at);
+                        const now = new Date();
+                        const timeDiff = expiresAt.getTime() - now.getTime();
+                        const daysLeft = Math.ceil(timeDiff / (1000 * 3600 * 24));
 
-                    return {
-                        id: r.id,
-                        title: r.reward?.name || r.name || r.title,
-                        desc: r.reward?.description || r.description || r.desc,
-                        daysLeft: daysLeft > 0 ? daysLeft : 0,
-                        used: r.status === 'used' || r.used_at !== null,
-                        image: getImageUrl(r.reward?.image || r.image),
-                        expires_at: r.expires_at,
-                        voucher_code: r.voucher_code,
-                        status: r.status,
-                        status_label: r.status_label,
-                    };
-                });
+                        return {
+                            id: r.id,
+                            title: r.reward?.name || r.name || r.title,
+                            desc: r.reward?.description || r.description || r.desc,
+                            daysLeft: daysLeft > 0 ? daysLeft : 0,
+                            used: r.status === 'used' || r.used_at !== null,
+                            image: getImageUrl(r.reward?.image || r.image),
+                            expires_at: r.expires_at,
+                            voucher_code: r.voucher_code,
+                            status: r.status,
+                            status_label: r.status_label,
+                        };
+                    });
 
                 setUserRewards(normalized);
             } catch (error) {

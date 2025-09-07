@@ -17,11 +17,12 @@ const TaglineSection = () => {
       {/* Konten Utama */}
       <div className="container mx-auto px-4 relative z-10 flex flex-col items-center text-center">
         <h1 className="text-6xl sm:text-7xl md:text-8xl lg:text-9xl xl:text-[120px] 2xl:text-[140px] font-minecraft mb-6">
-          <span className="block">Gabut?</span>
-          <span className="block">Mending <span className="text-brand-gold">Ngegame!</span></span>
+          <span className="block">Never</span>
+          <span className="block">Stop <span className="text-brand-gold">Playing!</span></span>
         </h1>
         <p className="max-w-3xl text-base sm:text-lg md:text-xl lg:text-2xl 2xl:text-2xl leading-relaxed text-theme-secondary flex items-center justify-center">
-          Yang seru dan nyaman? Yaa cuma di MGE #NEVERSTOPPLAYING
+          Gaut? Mending Ngegame !<br />
+          Yang Seru dan nyaman? Yaa cuma di MGE!
         </p>
 
         <div className="flex items-center gap-5 mt-12">

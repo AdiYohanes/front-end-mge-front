@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, useLocation } from "react-router";
 import { gsap } from "gsap";
@@ -46,6 +46,7 @@ const RentPage = () => {
     notes: "",
     subtotal: 0,
     numberOfPeople: null,
+    rewardInfo: null,
   };
 
   const initialStep = location.state?.currentStep || 1;
@@ -56,6 +57,7 @@ const RentPage = () => {
   const [availableDurations, setAvailableDurations] = useState([]);
   const [durationsLoading, setDurationsLoading] = useState(false);
   const pageRef = useRef(null);
+  const rewardGamesUpdatedRef = useRef(false);
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -68,6 +70,7 @@ const RentPage = () => {
   const { units, status: unitsStatus } = useSelector((state) => state.units);
   const { status: fnbsStatus } = useSelector((state) => state.fnbs);
   const { user } = useSelector((state) => state.auth);
+  const [isOtsBooking, setIsOtsBooking] = useState(false);
 
   // Handle preserved data when coming back from payment page
   useEffect(() => {
@@ -77,6 +80,77 @@ const RentPage = () => {
 
       // Clear the navigation state to prevent issues with browser back/forward
       navigate(location.pathname, { replace: true });
+    }
+  }, [location.state, navigate, location.pathname]);
+
+  // Check if user is admin for OTS booking
+  useEffect(() => {
+    console.log("RentPage - User role:", user?.role);
+    if (user?.role === 'admin' || user?.role === 'ADMN') {
+      console.log("RentPage - Setting isOtsBooking to true");
+      setIsOtsBooking(true);
+    }
+  }, [user]);
+
+  // Handle reward data when coming from ProfileRewardsPage
+  useEffect(() => {
+    if (location.state?.fromReward && location.state?.rewardData) {
+      const rewardData = location.state.rewardData;
+      console.log("RentPage - Reward data received:", rewardData);
+
+      // Extract reward details
+      const rewardDetails = rewardData.reward_details;
+      const bookingPreset = rewardData.booking_preset;
+      const priceAdjustment = rewardData.price_adjustment;
+
+      if (rewardDetails && bookingPreset) {
+        // Get console name from booking preset
+        const consoleName = bookingPreset.consoles?.[0]?.name || "PlayStation";
+
+        // Set booking details based on reward data
+        setBookingDetails(prev => ({
+          ...prev,
+          console: consoleName,
+          roomType: {
+            id: rewardDetails.unit?.room?.id,
+            name: rewardDetails.unit?.room?.name || "Reguler",
+            max_visitors: rewardDetails.unit?.room?.max_visitors || 2,
+            description: rewardDetails.unit?.room?.description || "",
+            is_available: rewardDetails.unit?.room?.is_available !== false,
+            image: rewardDetails.unit?.room?.image
+          },
+          psUnit: {
+            id: bookingPreset.unit_id,
+            name: rewardDetails.unit?.name || "Reguler 1",
+            price: priceAdjustment?.final_session_price || 0,
+            games: [] // Will be populated when units are loaded
+          },
+          unitPrice: priceAdjustment?.final_session_price || 0,
+          duration: bookingPreset.duration_hours,
+          numberOfPeople: bookingPreset.total_visitors || 1,
+          // Set reward information for display
+          rewardInfo: {
+            name: rewardDetails.name,
+            description: rewardDetails.description,
+            originalPrice: priceAdjustment?.original_session_price || 0,
+            discountAmount: priceAdjustment?.discount_amount || 0,
+            finalPrice: priceAdjustment?.final_session_price || 0,
+            message: priceAdjustment?.message || "Reward applied!",
+            userRewardId: rewardData.user_reward_id
+          }
+        }));
+
+        // Set available durations for reward booking
+        setAvailableDurations([bookingPreset.duration_hours]);
+        console.log("RentPage - Reward duration set:", bookingPreset.duration_hours);
+        console.log("RentPage - Available durations set:", [bookingPreset.duration_hours]);
+
+        // Skip to step 2 (game selection) since console, room, unit, duration are pre-selected but game, date, time need to be chosen
+        setCurrentStep(2);
+
+        // Clear the navigation state to prevent issues with browser back/forward
+        navigate(location.pathname, { replace: true });
+      }
     }
   }, [location.state, navigate, location.pathname]);
 
@@ -121,6 +195,36 @@ const RentPage = () => {
     }
   }, [bookingDetails.console, bookingDetails.roomType, dispatch]);
 
+  // Memoize unit ID to prevent unnecessary re-renders
+  const unitId = useMemo(() => bookingDetails.psUnit?.id, [bookingDetails.psUnit?.id]);
+  const hasReward = useMemo(() => !!bookingDetails.rewardInfo, [bookingDetails.rewardInfo]);
+  const hasGames = useMemo(() => bookingDetails.psUnit?.games?.length > 0, [bookingDetails.psUnit?.games]);
+
+  // Update reward unit with games after units are fetched
+  useEffect(() => {
+    if (hasReward && unitId && units.length > 0 && !hasGames && !rewardGamesUpdatedRef.current) {
+      const unitFromApi = units.find(unit => unit.id === unitId);
+      if (unitFromApi && unitFromApi.games && unitFromApi.games.length > 0) {
+        console.log("RentPage - Updating reward unit with games:", unitFromApi.games);
+        setBookingDetails(prev => ({
+          ...prev,
+          psUnit: {
+            ...prev.psUnit,
+            games: unitFromApi.games
+          }
+        }));
+        rewardGamesUpdatedRef.current = true; // Mark as updated
+      }
+    }
+  }, [units, hasReward, unitId, hasGames]);
+
+  // Reset reward games updated flag when reward changes
+  useEffect(() => {
+    if (!hasReward) {
+      rewardGamesUpdatedRef.current = false;
+    }
+  }, [hasReward]);
+
   // Mengambil data JAM setelah TANGGAL dipilih
   useEffect(() => {
     if (bookingDetails.date && bookingDetails.psUnit) {
@@ -143,11 +247,23 @@ const RentPage = () => {
           const d = bookingDetails.date;
           const dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; // Local YYYY-MM-DD
           const durations = await fetchDurations(unitId, dateStr, bookingDetails.startTime);
-          setAvailableDurations(durations || []);
 
-          // Reset duration if current duration is not available
-          if (bookingDetails.duration && !durations.includes(bookingDetails.duration)) {
-            setBookingDetails(prev => ({ ...prev, duration: null }));
+          // For reward booking, ensure reward duration is always available
+          if (bookingDetails.rewardInfo && bookingDetails.duration) {
+            const rewardDuration = bookingDetails.duration;
+            const durationsWithReward = durations || [];
+            if (!durationsWithReward.includes(rewardDuration)) {
+              durationsWithReward.push(rewardDuration);
+              durationsWithReward.sort((a, b) => a - b); // Sort durations
+            }
+            setAvailableDurations(durationsWithReward);
+          } else {
+            setAvailableDurations(durations || []);
+
+            // Reset duration if current duration is not available (only for non-reward booking)
+            if (bookingDetails.duration && !durations.includes(bookingDetails.duration)) {
+              setBookingDetails(prev => ({ ...prev, duration: null }));
+            }
           }
         } catch {
           setAvailableDurations([]);
@@ -158,14 +274,27 @@ const RentPage = () => {
 
       fetchAvailableDurations();
     } else {
-      setAvailableDurations([]);
+      // For reward booking without date/time, still show the reward duration
+      if (bookingDetails.rewardInfo && bookingDetails.duration) {
+        setAvailableDurations([bookingDetails.duration]);
+      } else {
+        setAvailableDurations([]);
+      }
     }
-  }, [bookingDetails.psUnit, bookingDetails.date, bookingDetails.startTime, bookingDetails.duration]);
+  }, [bookingDetails.psUnit, bookingDetails.date, bookingDetails.startTime, bookingDetails.duration, bookingDetails.rewardInfo]);
 
   // Menghitung subtotal secara otomatis
   useEffect(() => {
-    const basePrice =
-      (bookingDetails.unitPrice || 0) * (bookingDetails.duration || 0);
+    let basePrice = 0;
+
+    // If reward is applied, use the final price from reward data
+    if (bookingDetails.rewardInfo) {
+      basePrice = bookingDetails.rewardInfo.finalPrice || 0;
+    } else {
+      // Normal calculation for non-reward bookings
+      basePrice = (bookingDetails.unitPrice || 0) * (bookingDetails.duration || 0);
+    }
+
     const fnbTotal = bookingDetails.foodAndDrinks.reduce((total, item) => {
       return total + parseInt(item.price, 10) * item.quantity;
     }, 0);
@@ -175,6 +304,7 @@ const RentPage = () => {
     bookingDetails.unitPrice,
     bookingDetails.duration,
     bookingDetails.foodAndDrinks,
+    bookingDetails.rewardInfo,
   ]);
 
   // -- HANDLERS UNTUK SETIAP LANGKAH --
@@ -227,6 +357,14 @@ const RentPage = () => {
 
   const handleNextToStep3 = () => {
     if (bookingDetails.psUnit && bookingDetails.selectedGames.length > 0) {
+      // For reward booking, skip step 4 and go directly to payment
+      if (bookingDetails.rewardInfo) {
+        console.log("RentPage - Reward booking detected, skipping to payment page");
+        handleFinalizeBooking();
+        return;
+      }
+
+      // Normal booking goes to step 3 for date and time selection
       setCurrentStep(3);
       // Scroll to top for better UX
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -238,7 +376,8 @@ const RentPage = () => {
       ...prev,
       date: date,
       startTime: null,
-      duration: null,
+      // Keep duration for reward booking, reset for normal booking
+      duration: prev.rewardInfo ? prev.duration : null,
     }));
   };
 
@@ -247,8 +386,11 @@ const RentPage = () => {
       const maxDuration = getMaxDuration(time);
       const currentDuration = prev.duration;
 
-      // Reset duration if current duration exceeds max allowed for this time
-      const newDuration = currentDuration && currentDuration <= maxDuration ? currentDuration : null;
+      // For reward booking, always keep the reward duration
+      // For normal booking, reset duration if it exceeds max allowed for this time
+      const newDuration = prev.rewardInfo
+        ? prev.duration  // Keep reward duration
+        : (currentDuration && currentDuration <= maxDuration ? currentDuration : null);
 
       return {
         ...prev,
@@ -273,6 +415,14 @@ const RentPage = () => {
 
   const handleNextToStep4 = () => {
     if (bookingDetails.startTime && bookingDetails.duration) {
+      // For reward booking, skip step 4 and go directly to payment
+      if (bookingDetails.rewardInfo) {
+        console.log("RentPage - Reward booking detected, skipping step 4 to payment page");
+        handleFinalizeBooking();
+        return;
+      }
+
+      // Normal booking goes to step 4 for F&B selection
       setTimeout(() => {
         setCurrentStep(4);
         // Scroll to top for better UX
@@ -313,15 +463,28 @@ const RentPage = () => {
   };
 
   const handleFinalizeBooking = () => {
+    console.log("RentPage - handleFinalizeBooking called with isOtsBooking:", isOtsBooking);
     if (user) {
       // User is logged in, proceed to payment page
-      navigate("/booking-payment", { state: { bookingDetails } });
-    } else {
-      // User is not logged in, proceed to guest booking page
+      console.log("RentPage - Navigating to BookingPaymentPage (logged in) with isOtsBooking:", isOtsBooking);
       navigate("/booking-payment", {
         state: {
           bookingDetails,
-          isGuestBooking: true
+          fromReward: location.state?.fromReward || false,
+          rewardData: location.state?.rewardData || null,
+          isOtsBooking: isOtsBooking
+        }
+      });
+    } else {
+      // User is not logged in, proceed to guest booking page
+      console.log("RentPage - Navigating to BookingPaymentPage (guest) with isOtsBooking:", isOtsBooking);
+      navigate("/booking-payment", {
+        state: {
+          bookingDetails,
+          isGuestBooking: true,
+          fromReward: location.state?.fromReward || false,
+          rewardData: location.state?.rewardData || null,
+          isOtsBooking: isOtsBooking
         }
       });
     }
@@ -341,6 +504,23 @@ const RentPage = () => {
         <h1 className="text-4xl lg:text-5xl font-minecraft mb-6 text-theme-primary">
           Book a Room
         </h1>
+
+        {/* OTS Booking Banner */}
+        {isOtsBooking && (
+          <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg max-w-3xl">
+            <div className="flex items-center gap-3">
+              <div className="text-2xl">🏪</div>
+              <div>
+                <h3 className="text-lg font-semibold text-blue-700 mb-1">
+                  OTS (Over The Counter) Booking Mode
+                </h3>
+                <p className="text-sm text-blue-600">
+                  You are logged in as admin. This booking will be processed as OTS with cash payment.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
         <div className="flex items-center gap-2 mb-12">
           <div className="h-3 w-3 bg-black"></div>
           <div className="h-3 w-3 bg-brand-gold"></div>
@@ -472,6 +652,25 @@ const RentPage = () => {
                   </div>
                 )}
 
+                {/* Reward Information */}
+                {bookingDetails.rewardInfo && (
+                  <div className="mt-4 pt-4 border-t border-gray-200">
+                    <div className="flex items-center justify-between bg-green-50 border border-green-200 rounded-lg p-3">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xl">🎁</span>
+                        <span className="font-bold text-green-800">Reward Applied!</span>
+                      </div>
+                      <span className="text-green-600 font-bold">
+                        -{new Intl.NumberFormat("id-ID", {
+                          style: "currency",
+                          currency: "IDR",
+                          minimumFractionDigits: 0,
+                        }).format(bookingDetails.rewardInfo.discountAmount).replace(/\s/g, "")}
+                      </span>
+                    </div>
+                  </div>
+                )}
+
                 <div className="flex justify-between items-center mt-6 pt-4 border-t border-gray-200">
                   <span className="font-bold text-lg text-black">Subtotal</span>
                   <span className="font-bold text-lg text-brand-gold">
@@ -541,13 +740,19 @@ const RentPage = () => {
                 className="text-2xl font-semibold text-theme-primary flex items-center gap-2"
               >
                 <IoMdPeople /> Number of People :
+                {bookingDetails.rewardInfo && (
+                  <span className="text-sm bg-green-100 text-green-700 px-2 py-1 rounded-full font-normal">
+                    🎁 From Reward
+                  </span>
+                )}
               </label>
               <select
                 id="people-select"
-                className="select select-bordered border-brand-gold focus:border-brand-gold focus:outline-none cursor-pointer"
+                className={`select select-bordered border-brand-gold focus:border-brand-gold focus:outline-none ${bookingDetails.rewardInfo ? 'cursor-not-allowed opacity-70' : 'cursor-pointer'
+                  }`}
                 value={bookingDetails.numberOfPeople || ""}
                 onChange={(e) =>
-                  setBookingDetails((prev) => ({
+                  !bookingDetails.rewardInfo && setBookingDetails((prev) => ({
                     ...prev,
                     numberOfPeople: e.target.value ? parseInt(e.target.value) : null,
                     roomType: null,
@@ -556,6 +761,7 @@ const RentPage = () => {
                     unitPrice: 0,
                   }))
                 }
+                disabled={!!bookingDetails.rewardInfo}
               >
                 <option value="" disabled>
                   Select number of people
@@ -574,21 +780,28 @@ const RentPage = () => {
                   rooms={filteredRooms}
                   selectedRoomType={bookingDetails.roomType}
                   onSelectRoomType={handleSelectRoomType}
+                  isReward={!!bookingDetails.rewardInfo}
                 />
                 {bookingDetails.roomType && (
                   <div className="flex items-center justify-center gap-4 mt-8">
                     <label
                       htmlFor="ps-unit-select"
-                      className="text-2xl font-semibold text-theme-primary"
+                      className="text-2xl font-semibold text-theme-primary flex items-center gap-2"
                     >
                       PS Unit Selection :
+                      {bookingDetails.rewardInfo && (
+                        <span className="text-sm bg-green-100 text-green-700 px-2 py-1 rounded-full font-normal">
+                          🎁 From Reward
+                        </span>
+                      )}
                     </label>
                     <select
                       id="ps-unit-select"
-                      className="select select-bordered"
+                      className={`select select-bordered ${bookingDetails.rewardInfo ? 'cursor-not-allowed opacity-70' : ''
+                        }`}
                       value={bookingDetails.psUnit?.id || ""}
-                      onChange={handlePsUnitChange}
-                      disabled={unitsStatus === "loading"}
+                      onChange={!bookingDetails.rewardInfo ? handlePsUnitChange : () => { }}
+                      disabled={unitsStatus === "loading" || !!bookingDetails.rewardInfo}
                     >
                       <option disabled value="">
                         {unitsStatus === "loading"
@@ -678,7 +891,7 @@ const RentPage = () => {
             </div>
 
             {/* Duration and Next Step */}
-            {bookingDetails.startTime && (
+            {(bookingDetails.startTime || bookingDetails.rewardInfo) && (
               <div className="w-full">
                 <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200">
                   {/* Duration Selection - Full Width */}
@@ -689,13 +902,27 @@ const RentPage = () => {
                         className="text-2xl font-semibold text-black flex items-center gap-2"
                       >
                         <FaClock /> Duration :
+                        {bookingDetails.rewardInfo && (
+                          <span className="text-sm bg-green-100 text-green-700 px-2 py-1 rounded-full font-normal">
+                            🎁 From Reward
+                          </span>
+                        )}
                       </label>
                       <select
                         id="duration-select"
-                        className="select select-bordered select-lg min-w-[200px] bg-white border-gray-300 text-black focus:border-brand-gold cursor-pointer"
+                        className={`select select-bordered select-lg min-w-[200px] bg-white border-gray-300 text-black focus:border-brand-gold ${bookingDetails.rewardInfo ? 'cursor-not-allowed opacity-70' : 'cursor-pointer'
+                          }`}
                         value={bookingDetails.duration || ""}
-                        onChange={handleDurationChange}
-                        disabled={durationsLoading || availableDurations.length === 0}
+                        onChange={!bookingDetails.rewardInfo ? handleDurationChange : () => {
+                          console.log("RentPage - Duration change blocked for reward");
+                        }}
+                        disabled={durationsLoading || availableDurations.length === 0 || !!bookingDetails.rewardInfo}
+                        onFocus={() => {
+                          console.log("RentPage - Duration dropdown focused");
+                          console.log("RentPage - Current duration:", bookingDetails.duration);
+                          console.log("RentPage - Available durations:", availableDurations);
+                          console.log("RentPage - Is reward:", !!bookingDetails.rewardInfo);
+                        }}
                       >
                         <option value="">
                           {durationsLoading ? "Loading durations..." : "Select Duration"}
@@ -717,13 +944,18 @@ const RentPage = () => {
                         <p className="text-blue-700 text-xs mb-2">
                           Mon-Thu: 10:00-00:00 | Fri: 14:00-01:00 | Sat: 10:00-01:00 | Sun: 10:00-00:00
                         </p>
-                        {bookingDetails.startTime && (
+                        {(bookingDetails.startTime || bookingDetails.rewardInfo) && (
                           <p className="text-blue-700">
-                            Waktu yang dipilih: <span className="font-semibold">{bookingDetails.startTime}</span>
+                            {bookingDetails.startTime && (
+                              <>Waktu yang dipilih: <span className="font-semibold">{bookingDetails.startTime}</span></>
+                            )}
                             {bookingDetails.duration && (
                               <>
-                                {" • "}Durasi: <span className="font-semibold">{bookingDetails.duration} jam</span>
-                                {(() => {
+                                {bookingDetails.startTime && " • "}Durasi: <span className="font-semibold">{bookingDetails.duration} jam</span>
+                                {bookingDetails.rewardInfo && (
+                                  <span className="text-green-600"> (From Reward)</span>
+                                )}
+                                {bookingDetails.startTime && (() => {
                                   const startHour = parseInt(bookingDetails.startTime.split(':')[0], 10);
                                   const startMinute = parseInt(bookingDetails.startTime.split(':')[1], 10);
                                   const endHour = startHour + bookingDetails.duration;

@@ -121,6 +121,7 @@ const PersonalInfoForm = ({
             />
           </div>
         </div>
+
         {/* Terms & Conditions */}
         <div className="pt-3 border-t border-gray-200">
           <label className="flex items-start gap-3 cursor-pointer">

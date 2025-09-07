@@ -7,6 +7,7 @@ import {
   FaCalendarAlt,
   FaShoppingBasket,
   FaCheckCircle,
+  FaCreditCard,
 } from "react-icons/fa";
 
 const steps = [
@@ -34,9 +35,23 @@ const steps = [
     icon: <FaShoppingBasket />,
     activeIconUrl: "/images/food-navigator.png",
   },
+  {
+    id: 5,
+    name: "Payment",
+    icon: <FaCreditCard />,
+    activeIconUrl: "/images/payment-navigator.png",
+  },
 ];
 
 const BookingNavigator = ({ currentStep, onStepClick, bookingDetails }) => {
+  // Check if this is a reward booking
+  const isRewardBooking = !!bookingDetails.rewardInfo;
+
+  // Filter steps based on booking type
+  const visibleSteps = isRewardBooking
+    ? steps.filter(step => step.id !== 4) // Hide Food & Drinks for reward booking
+    : steps; // Show all steps for normal booking
+
   // Function to check if a step is accessible
   const isStepAccessible = (stepId) => {
     switch (stepId) {
@@ -49,11 +64,29 @@ const BookingNavigator = ({ currentStep, onStepClick, bookingDetails }) => {
           bookingDetails.psUnit !== null &&
           bookingDetails.selectedGames.length > 0;
       case 4:
+        // For reward booking, step 4 is not accessible
+        if (isRewardBooking) return false;
         return bookingDetails.console !== null &&
           bookingDetails.psUnit !== null &&
           bookingDetails.selectedGames.length > 0 &&
           bookingDetails.startTime !== null &&
           bookingDetails.duration > 0;
+      case 5:
+        // Payment step is accessible after step 3 for reward booking, or step 4 for normal booking
+        if (isRewardBooking) {
+          return bookingDetails.console !== null &&
+            bookingDetails.psUnit !== null &&
+            bookingDetails.selectedGames.length > 0 &&
+            bookingDetails.startTime !== null &&
+            bookingDetails.duration > 0;
+        } else {
+          return bookingDetails.console !== null &&
+            bookingDetails.psUnit !== null &&
+            bookingDetails.selectedGames.length > 0 &&
+            bookingDetails.startTime !== null &&
+            bookingDetails.duration > 0 &&
+            currentStep > 4; // Only accessible after F&B step
+        }
       default:
         return false;
     }
@@ -75,7 +108,12 @@ const BookingNavigator = ({ currentStep, onStepClick, bookingDetails }) => {
           bookingDetails.startTime !== null &&
           bookingDetails.duration > 0;
       case 4:
+        // For reward booking, step 4 is always completed (skipped)
+        if (isRewardBooking) return true;
         return currentStep > 4; // Step 4 is completed when we move past it
+      case 5:
+        // Payment step is completed when we navigate to payment page
+        return currentStep > 5;
       default:
         return false;
     }
@@ -84,7 +122,7 @@ const BookingNavigator = ({ currentStep, onStepClick, bookingDetails }) => {
   return (
     <div className="w-full max-w-3xl mt-8">
       <div className="flex border-b-2 border-base-200">
-        {steps.map((step, index) => {
+        {visibleSteps.map((step, index) => {
           const isActive = currentStep === step.id;
           const isCompleted = isStepCompleted(step.id);
           const isAccessible = isStepAccessible(step.id);

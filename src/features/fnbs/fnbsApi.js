@@ -1,4 +1,5 @@
 import publicApiClient from "../../lib/publicApiClient";
+import apiClient from "../../lib/axios";
 
 // Fetch F&B items
 export const fetchFnbs = async () => {
@@ -19,10 +20,12 @@ export const bookFnbs = async (fnbData) => {
     throw new Error("F&B items are required");
   }
 
-  if (!fnbData.name || !fnbData.phone) {
-    throw new Error("Name and phone are required for guest booking");
+  // Use authenticated endpoint for all F&B bookings
+  try {
+    const response = await apiClient.post("/api/book-fnb", fnbData);
+    return response.data;
+  } catch (error) {
+    // Re-throw the error with better message
+    throw error;
   }
-
-  const response = await publicApiClient.post("/api/book-fnb", fnbData);
-  return response.data;
 };

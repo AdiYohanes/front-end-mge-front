@@ -45,27 +45,27 @@ const HeroSlider = ({ onPricelistClick }) => {
 
       {/* Konten teks dan tombol di tengah */}
       <div className="relative z-10 h-full flex flex-col items-center justify-center text-center text-white p-4">
-        <h1 className="font-minecraft text-shadow-lg mb-4 leading-[0.9] text-[64px] sm:text-[80px] md:text-[120px] lg:text-[140px] xl:text-[160px]">
-          <span className="block">Medan Gaming</span>
-          <span className="block">Ecosystem</span>
+        <h1 className="font-minecraft text-shadow-lg mb-10 leading-[0.9]">
+          <span className="block" style={{ fontSize: "180px" }}>Medan Gaming</span>
+          <span className="block" style={{ fontSize: "180px" }}>Ecosystem</span>
         </h1>
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-8 mt-8">
           {/* 2. Diubah dari <Link> menjadi <button> */}
           {/* 'to' dihapus, 'onClick' ditambahkan */}
           <button
             onClick={onPricelistClick}
-            className="text-base btn bg-brand-gold text-white font-funnel tracking-wider hover:bg-white hover:text-black"
+            className="text-xl px-8 py-4 btn bg-brand-gold text-white font-funnel tracking-wider hover:bg-white hover:text-black border-none"
           >
-            <FaRegMoneyBillAlt className="mr-2 h-5 w-5" />
+            <FaRegMoneyBillAlt className="mr-3 h-6 w-6" />
             Pricelist
           </button>
 
           {/* Tombol "Book a Room" tetap sebagai Link navigasi */}
           <Link
             to="/rent"
-            className="text-base btn bg-brand-gold text-white font-funnel tracking-wider hover:bg-white hover:text-black"
+            className="text-xl px-8 py-4 btn bg-brand-gold text-white font-funnel tracking-wider hover:bg-white hover:text-black border-none"
           >
-            <MdPhoneAndroid className="mr-2 h-5 w-5" />
+            <MdPhoneAndroid className="mr-3 h-6 w-6" />
             Book a Room
           </Link>
         </div>

@@ -28,6 +28,7 @@ const FoodPage = () => {
   const { items, categories, selectedCategory, status, bookingStatus, bookingData, bookingError } = useSelector(
     (state) => state.fnbs
   );
+  const { user } = useSelector((state) => state.auth);
   const [selections, setSelections] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [showPersonalInfo, setShowPersonalInfo] = useState(false);
@@ -36,6 +37,7 @@ const FoodPage = () => {
   const [personalInfoData, setPersonalInfoData] = useState({
     fullName: "",
     phoneNumber: "",
+    notes: "",
     agreed: false,
   });
   const [taxInfo, setTaxInfo] = useState(null);
@@ -52,6 +54,10 @@ const FoodPage = () => {
   const { promoValidation } = useSelector((state) => state.booking);
   const rewardToastShownRef = useRef(false);
 
+  // Reward states
+  const [rewardInfo, setRewardInfo] = useState(null);
+  const [userRewardId, setUserRewardId] = useState(null);
+
   // Seating section states
   const [seatingType, setSeatingType] = useState("table"); // "table", "unit", "takeaway"
   const [tableNumber, setTableNumber] = useState("");
@@ -59,8 +65,6 @@ const FoodPage = () => {
   const [availableUnits, setAvailableUnits] = useState([]);
   const [unitsLoading, setUnitsLoading] = useState(false);
 
-  // Payment method states
-  const [paymentMethod, setPaymentMethod] = useState("qris"); // "qris", "cash"
 
   // Get current date for booking summary
   const getCurrentDateTime = () => {
@@ -144,6 +148,19 @@ const FoodPage = () => {
     }
   }, [dispatch, status]);
 
+  // Auto-fill personal info for logged-in users
+  useEffect(() => {
+    if (user && !personalInfoData.fullName && !personalInfoData.phoneNumber) {
+      setPersonalInfoData({
+        fullName: user.name || "",
+        phoneNumber: user.phone || "",
+        notes: "",
+        agreed: false,
+      });
+      setUseLoginInfo(true);
+    }
+  }, [user, personalInfoData.fullName, personalInfoData.phoneNumber]);
+
   // Handle reward data from redirect
   useEffect(() => {
     console.log("FoodPage - useEffect triggered", {
@@ -157,9 +174,29 @@ const FoodPage = () => {
       console.log("FoodPage - Processing reward data:", rewardData);
 
       // Check if reward has free_fnb effects
-      const effects = rewardData?.reward?.effects;
+      const effects = rewardData?.reward_details?.effects;
       if (effects?.type === "free_fnb" && effects?.fnbs) {
         console.log("FoodPage - Processing free_fnb reward:", effects.fnbs);
+
+        // Set user reward ID
+        setUserRewardId(rewardData.user_reward_id);
+        console.log("FoodPage - User Reward ID:", rewardData.user_reward_id);
+
+        // Set reward information
+        setRewardInfo({
+          name: rewardData.reward_details?.name,
+          description: rewardData.reward_details?.description,
+          discountAmount: rewardData.price_adjustment?.discount_amount || 0,
+          finalPrice: rewardData.price_adjustment?.final_fnb_price || 0,
+          message: rewardData.price_adjustment?.message || "Reward applied!",
+          userRewardId: rewardData.user_reward_id
+        });
+        console.log("FoodPage - Reward Info set:", {
+          name: rewardData.reward_details?.name,
+          userRewardId: rewardData.user_reward_id,
+          discountAmount: rewardData.price_adjustment?.discount_amount,
+          finalPrice: rewardData.price_adjustment?.final_fnb_price
+        });
 
         // Set F&B items based on reward data
         const fnbItems = effects.fnbs.map(fnb => ({
@@ -196,11 +233,16 @@ const FoodPage = () => {
       window.rewardFnbs.forEach(rewardFnb => {
         const fnbItem = items.find(item => item.id === parseInt(rewardFnb.fnb_id));
         if (fnbItem) {
+          // Apply final price from reward if available
+          const finalPrice = rewardInfo?.finalPrice || 0;
           rewardSelections.push({
             ...fnbItem,
-            quantity: rewardFnb.quantity
+            quantity: rewardFnb.quantity,
+            // Override price with final price from reward (0 for free items)
+            originalPrice: fnbItem.price,
+            price: finalPrice
           });
-          console.log(`FoodPage - Added free item: ${fnbItem.name} x${rewardFnb.quantity}`);
+          console.log(`FoodPage - Added free item: ${fnbItem.name} x${rewardFnb.quantity} (Price: ${finalPrice})`);
         } else {
           console.warn(`FoodPage - F&B item with ID ${rewardFnb.fnb_id} not found`);
         }
@@ -214,7 +256,7 @@ const FoodPage = () => {
       // Clear the reward data
       delete window.rewardFnbs;
     }
-  }, [items, selections.length]);
+  }, [items, selections.length, rewardInfo]);
 
   // Fetch tax information
   useEffect(() => {
@@ -350,10 +392,6 @@ const FoodPage = () => {
     setSelectedUnit("");
   };
 
-  // Handler untuk payment method change
-  const handlePaymentMethodChange = (method) => {
-    setPaymentMethod(method);
-  };
 
   // Handler untuk order button
   const handleOrderClick = () => {
@@ -376,6 +414,7 @@ const FoodPage = () => {
     setPersonalInfoData({
       fullName: "",
       phoneNumber: "",
+      notes: "",
       agreed: false,
     });
     setUseLoginInfo(false);
@@ -385,8 +424,6 @@ const FoodPage = () => {
     setTableNumber("");
     setSelectedUnit("");
 
-    // Reset payment method
-    setPaymentMethod("qris");
 
     // Reset promo code and validation
     setPromoCode("");
@@ -420,13 +457,13 @@ const FoodPage = () => {
     setPersonalInfoData({
       fullName: "",
       phoneNumber: "",
+      notes: "",
       agreed: false,
     });
     setUseLoginInfo(false);
     setSeatingType("table");
     setTableNumber("");
     setSelectedUnit("");
-    setPaymentMethod("qris");
     setPromoCode("");
     setVoucherDiscount(0);
     setVoucherCode("");
@@ -454,7 +491,7 @@ const FoodPage = () => {
 
   // Handler untuk submit order
   const handleSubmitOrder = () => {
-    // Validate form
+    // Validate form - personal info is always required
     if (!personalInfoData.fullName || !personalInfoData.phoneNumber || !personalInfoData.agreed) {
       toast.error("Please fill in all required fields and agree to terms & conditions");
       return;
@@ -478,20 +515,54 @@ const FoodPage = () => {
 
     // Prepare F&B data for API with personal information and seating
     const fnbData = {
+      // Add user_reward_id at the top level if available
+      ...(userRewardId && { user_reward_id: userRewardId }),
+      // Add personal information - for guest users or when explicitly needed
+      ...(!user && {
+        name: personalInfoData.fullName.trim(),
+        phone: personalInfoData.phoneNumber.trim(),
+      }),
+      // Add seating information
+      ...(seatingType === "unit" && { unit_id: selectedUnit }),
+      ...(seatingType === "table" && { table_number: tableNumber }),
+      // Add notes with seating information and user notes
+      notes: (() => {
+        const baseNote = userRewardId ? "FnB Booking with rewards" : "FnB Booking";
+        let seatingNote = "";
+
+        if (seatingType === "table") {
+          seatingNote = `Seating: Table ${tableNumber}`;
+        } else if (seatingType === "unit") {
+          const unitName = availableUnits.find(unit => unit.id === parseInt(selectedUnit))?.name || selectedUnit;
+          seatingNote = `Seating: Unit ${unitName}`;
+        } else if (seatingType === "takeaway") {
+          seatingNote = "Seating: Take Away";
+        }
+
+        const userNotes = personalInfoData.notes?.trim();
+
+        let finalNotes = baseNote;
+        if (seatingNote) {
+          finalNotes += ` - ${seatingNote}`;
+        }
+        if (userNotes) {
+          finalNotes += ` - Notes: ${userNotes}`;
+        }
+
+        return finalNotes;
+      })(),
+      // Add F&B items
       fnbs: selections.map(item => ({
         id: item.id,
         quantity: item.quantity
-      })),
-      // Add personal information for guest booking
-      name: personalInfoData.fullName.trim(),
-      phone: personalInfoData.phoneNumber.trim(),
-      // Add seating information
-      seating_type: seatingType,
-      ...(seatingType === "table" && { table_number: tableNumber }),
-      ...(seatingType === "unit" && { unit_id: selectedUnit }),
-      // Add payment method
-      payment_method: paymentMethod
+      }))
     };
+
+    // Log data being sent to API
+    console.log("FoodPage - F&B Data to API:", fnbData);
+    if (userRewardId) {
+      console.log("FoodPage - User Reward ID in API data:", userRewardId);
+    }
 
     // Dispatch booking action
     dispatch(bookFnbsThunk(fnbData));
@@ -501,21 +572,37 @@ const FoodPage = () => {
   useEffect(() => {
     if (bookingStatus === "succeeded" && bookingData?.data) {
 
-      // Check if snapUrl is available for direct redirect
-      if (bookingData.snapUrl) {
+      // If there's a reward, don't redirect to Midtrans
+      if (userRewardId) {
+        console.log("FoodPage - Reward booking completed, skipping Midtrans");
+        toast.success("Order submitted successfully! Your reward has been applied.");
 
-        // Show redirect message first
-        toast.success("Order submitted successfully! Redirecting to payment...");
-
-        // Redirect to Midtrans snap URL after a short delay
-        setTimeout(() => {
-          window.location.href = bookingData.snapUrl;
-        }, 1500);
+        // Redirect to success page with order details
+        const { invoice_number } = bookingData.data;
+        const seatingInfo = seatingType === "table" ? `Table ${tableNumber}` :
+          seatingType === "unit" ? `Unit ${availableUnits.find(unit => unit.id === parseInt(selectedUnit))?.name || selectedUnit}` :
+            "Take Away";
+        // For reward booking, total price should be 0
+        navigate(`/food-drinks/success?invoice_number=${invoice_number}&total_price=0&is_reward=true&seating=${encodeURIComponent(seatingInfo)}`);
       } else {
-        // Fallback to success page with order details
-        console.warn("No snapUrl available, using fallback success page");
-        const { invoice_number, total_price } = bookingData.data;
-        navigate(`/food-drinks/success?invoice_number=${invoice_number}&total_price=${total_price}`);
+        // Check if snapUrl is available for direct redirect (normal booking)
+        if (bookingData.snapUrl) {
+          // Show redirect message first
+          toast.success("Order submitted successfully! Redirecting to payment...");
+
+          // Redirect to Midtrans snap URL after a short delay
+          setTimeout(() => {
+            window.location.href = bookingData.snapUrl;
+          }, 1500);
+        } else {
+          // Fallback to success page with order details
+          console.warn("No snapUrl available, using fallback success page");
+          const { invoice_number, total_price } = bookingData.data;
+          const seatingInfo = seatingType === "table" ? `Table ${tableNumber}` :
+            seatingType === "unit" ? `Unit ${availableUnits.find(unit => unit.id === parseInt(selectedUnit))?.name || selectedUnit}` :
+              "Take Away";
+          navigate(`/food-drinks/success?invoice_number=${invoice_number}&total_price=${total_price}&is_reward=false&seating=${encodeURIComponent(seatingInfo)}`);
+        }
       }
 
       // Reset booking status
@@ -535,7 +622,7 @@ const FoodPage = () => {
         toast.error(bookingError?.message || "Failed to submit order. Please try again.");
       }
     }
-  }, [bookingStatus, bookingData, bookingError, navigate, dispatch]);
+  }, [bookingStatus, bookingData, bookingError, navigate, dispatch, userRewardId, availableUnits, seatingType, selectedUnit, tableNumber, personalInfoData.notes]);
 
   // Reset booking status when component unmounts or when going back to selection
   useEffect(() => {
@@ -631,6 +718,24 @@ const FoodPage = () => {
                         ));
                       })()}
                     </div>
+
+                    {/* Reward Information */}
+                    {rewardInfo && (
+                      <div className="mt-4 pt-4 border-t border-gray-200">
+                        <div className="flex items-center justify-between bg-green-50 border border-green-200 rounded-lg p-3">
+                          <div className="flex items-center gap-2">
+                            <span className="text-xl">🎁</span>
+                            <div>
+                              <span className="font-bold text-green-800">{rewardInfo.name}</span>
+                              <p className="text-sm text-green-600">{rewardInfo.message}</p>
+                            </div>
+                          </div>
+                          <span className="text-green-600 font-bold">
+                            -{formatPrice(rewardInfo.discountAmount)}
+                          </span>
+                        </div>
+                      </div>
+                    )}
 
                     <div className="flex justify-between items-center mt-6 pt-4 border-t border-gray-200">
                       <span className="font-bold text-lg text-black">Subtotal</span>
@@ -786,9 +891,42 @@ const FoodPage = () => {
                     </div>
                   </div>
 
+                  {/* Notes Section */}
+                  <div className="mt-4 lg:mt-6 bg-white border border-brand-gold/30 rounded-lg shadow-lg p-4 lg:p-6">
+                    <h3 className="font-minecraft text-xl text-brand-gold mb-4 text-left">Additional Notes</h3>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2 text-left">
+                        Any special requests or additional information? (Optional)
+                      </label>
+                      <textarea
+                        name="notes"
+                        value={personalInfoData.notes || ""}
+                        onChange={(e) => {
+                          // Limit to 200 characters
+                          if (e.target.value.length <= 200) {
+                            handlePersonalInfoChange(e);
+                          }
+                        }}
+                        rows={4}
+                        maxLength={200}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-brand-gold focus:border-brand-gold outline-none text-black placeholder:text-gray-500 resize-none transition-all duration-200"
+                        placeholder="Example: Extra spicy, no ice, serve hot, allergies, etc..."
+                      />
+                      <div className="flex justify-between items-center mt-2">
+                        <p className="text-xs text-gray-500">
+                          Help us serve you better with specific requests
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          {(personalInfoData.notes || "").length}/200 characters
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
                 </div>
 
-                {/* Right Side - Booking Summary and Payment Method */}
+                {/* Right Side - Booking Summary */}
                 <div className="space-y-4 lg:space-y-6 order-first xl:order-last">
                   {/* F&B Booking Summary */}
                   <div className="bg-white border border-brand-gold/30 rounded-lg shadow-lg h-fit">
@@ -843,6 +981,16 @@ const FoodPage = () => {
                           </div>
                         )}
 
+                        {/* Reward Discount */}
+                        {rewardInfo && rewardInfo.discountAmount > 0 && (
+                          <div className="flex justify-between items-center text-green-600 text-sm">
+                            <div className="flex items-center gap-2">
+                              <span>🎁 {rewardInfo.name}</span>
+                            </div>
+                            <span className="font-semibold">-{formatPrice(rewardInfo.discountAmount)}</span>
+                          </div>
+                        )}
+
                         {/* Voucher Discount */}
                         {voucherDiscount > 0 && (
                           <div className="flex justify-between items-center text-green-600 text-sm">
@@ -867,7 +1015,8 @@ const FoodPage = () => {
                             {(() => {
                               const base = selections.reduce((sum, item) => sum + (item.price * item.quantity), 0);
                               const tax = taxInfo?.is_active ? base * (taxInfo.percentage / 100) : 0;
-                              const total = base + tax - voucherDiscount;
+                              const rewardDiscountAmount = rewardInfo?.discountAmount || 0;
+                              const total = base + tax - voucherDiscount - rewardDiscountAmount;
                               return formatPrice(Math.max(total, 0));
                             })()}
                           </span>
@@ -901,39 +1050,6 @@ const FoodPage = () => {
                     </div>
                   </div>
 
-                  {/* Payment Method Section */}
-                  <div className="bg-white border border-brand-gold/30 rounded-lg shadow-lg p-4 lg:p-6">
-                    <h3 className="font-minecraft text-xl text-brand-gold mb-4 text-left">Payment Method</h3>
-
-                    {/* Payment Method Radio Buttons */}
-                    <div className="space-y-3">
-                      {/* QRIS Option */}
-                      <label className="flex items-center space-x-3 cursor-pointer">
-                        <input
-                          type="radio"
-                          name="payment"
-                          value="qris"
-                          checked={paymentMethod === "qris"}
-                          onChange={() => handlePaymentMethodChange("qris")}
-                          className="radio radio-xs"
-                        />
-                        <span className="text-black font-medium">QRIS</span>
-                      </label>
-
-                      {/* Cash Option */}
-                      <label className="flex items-center space-x-3 cursor-pointer">
-                        <input
-                          type="radio"
-                          name="payment"
-                          value="cash"
-                          checked={paymentMethod === "cash"}
-                          onChange={() => handlePaymentMethodChange("cash")}
-                          className="radio radio-xs"
-                        />
-                        <span className="text-black font-medium">Cash</span>
-                      </label>
-                    </div>
-                  </div>
                 </div>
               </div>
 
@@ -1077,6 +1193,9 @@ const FoodPage = () => {
                         const selectedItem = selections.find((s) => s.id === item.id);
                         const quantity = selectedItem?.quantity || 0;
 
+                        const isFreeItem = item.originalPrice && item.price === 0;
+                        const isRewardItem = rewardInfo && quantity > 0 && isFreeItem;
+
                         return (
                           <div
                             key={item.id}
@@ -1085,7 +1204,7 @@ const FoodPage = () => {
                               : "border-2 border-transparent"
                               }`}
                           >
-                            <figure className="h-32 bg-gray-100">
+                            <figure className="h-32 bg-gray-100 relative">
                               <img
                                 src={
                                   item.image
@@ -1095,12 +1214,33 @@ const FoodPage = () => {
                                 alt={item.name}
                                 className="w-full h-full object-contain"
                               />
+                              {isRewardItem && (
+                                <div className="absolute top-2 right-2">
+                                  <div className="bg-green-500 text-white px-2 py-1 rounded-lg flex items-center gap-1 text-xs font-bold">
+                                    <span>🎁</span>
+                                    <span>FREE</span>
+                                  </div>
+                                </div>
+                              )}
                             </figure>
                             <div className="card-body p-4">
                               <h2 className="card-title text-sm font-minecraft">{item.name}</h2>
-                              <p className="text-xs font-bold text-brand-gold">
-                                {formatPrice(item.price)}
-                              </p>
+                              <div className="flex items-center gap-2">
+                                {isFreeItem ? (
+                                  <>
+                                    <p className="text-xs font-bold text-green-600">
+                                      FREE
+                                    </p>
+                                    <p className="text-xs text-gray-500 line-through">
+                                      {formatPrice(item.originalPrice)}
+                                    </p>
+                                  </>
+                                ) : (
+                                  <p className="text-xs font-bold text-brand-gold">
+                                    {formatPrice(item.price)}
+                                  </p>
+                                )}
+                              </div>
                               <div className="card-actions justify-end items-center mt-2">
                                 <button
                                   onClick={() => handleQuantityChange(item, -1)}

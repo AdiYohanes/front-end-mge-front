@@ -19,8 +19,43 @@ export const submitBooking = async (bookingData) => {
       throw new Error("Booking data is required");
     }
 
-    // Validate required customer data
-    if (!bookingData.customer?.fullName?.trim() || !bookingData.customer?.phone?.trim()) {
+    // For reward booking, use simplified validation and direct API call
+    if (bookingData.user_reward_id) {
+      console.log("Reward booking detected, using simplified structure:", bookingData);
+
+      // Validate required fields for reward booking
+      const requiredFields = ['user_reward_id', 'unit_id', 'game_id', 'total_visitors', 'start_time', 'end_time'];
+      const missingFields = requiredFields.filter(field => !bookingData[field]);
+
+      if (missingFields.length > 0) {
+        throw new Error(`Missing required fields for reward booking: ${missingFields.join(', ')}`);
+      }
+
+      // Direct API call for reward booking
+      const response = await apiClient.post("/api/book-room", bookingData);
+      return response.data;
+    }
+
+    // For OTS booking, use simplified validation and direct API call
+    if (bookingData.payment_method) {
+      console.log("OTS booking detected, using simplified structure:", bookingData);
+
+      // Validate required fields for OTS booking
+      const requiredFields = ['unit_id', 'game_id', 'name', 'phone', 'total_visitors', 'payment_method', 'start_time', 'end_time'];
+      const missingFields = requiredFields.filter(field => !bookingData[field]);
+
+      if (missingFields.length > 0) {
+        throw new Error(`Missing required fields for OTS booking: ${missingFields.join(', ')}`);
+      }
+
+      // Direct API call for OTS booking
+      const response = await apiClient.post("/api/book-room", bookingData);
+      return response.data;
+    }
+
+    // Normal booking validation and processing continues below...
+    // Validate required customer data (skip for OTS booking as it has different structure)
+    if (!bookingData.payment_method && (!bookingData.customer?.fullName?.trim() || !bookingData.customer?.phone?.trim())) {
       console.error("Missing customer data:", bookingData.customer);
       throw new Error("Customer name and phone are required");
     }
@@ -128,53 +163,18 @@ export const submitBooking = async (bookingData) => {
       });
       lastError = error;
 
-      // Jika gagal, coba public endpoint untuk guest booking
-      try {
-        response = await publicApiClient.post("/api/public/book-room", apiPayload);
-      } catch (publicError) {
-        console.error("Error with public booking:", {
-          status: publicError.response?.status,
-          message: publicError.response?.data?.message || publicError.message,
-          data: publicError.response?.data,
-          config: publicError.config?.url
-        });
-        lastError = publicError;
+      // Throw error directly for all booking types
+      const statusCode = lastError.response?.status;
+      const serverMessage = lastError.response?.data?.message;
 
-        // Coba endpoint alternatif
-        try {
-          response = await publicApiClient.post("/api/guest/book-room", apiPayload);
-        } catch (guestError) {
-          console.error("Error with guest booking:", {
-            status: guestError.response?.status,
-            message: guestError.response?.data?.message || guestError.message,
-            data: guestError.response?.data,
-            config: guestError.config?.url
-          });
-          lastError = guestError;
-
-          // Detailed error information for debugging
-          const errorDetails = {
-            lastStatus: lastError.response?.status,
-            lastMessage: lastError.response?.data?.message || lastError.message,
-            lastData: lastError.response?.data,
-            payload: apiPayload
-          };
-          console.error("All booking endpoints failed. Error details:", errorDetails);
-
-          // Throw more informative error
-          const statusCode = lastError.response?.status;
-          const serverMessage = lastError.response?.data?.message;
-
-          if (statusCode === 500) {
-            throw new Error(`Server error (500): ${serverMessage || 'Internal server error. Please check your booking details and try again.'}`);
-          } else if (statusCode === 422) {
-            throw new Error(`Validation error (422): ${serverMessage || 'Invalid booking data. Please check all fields.'}`);
-          } else if (statusCode === 401) {
-            throw new Error(`Authentication error (401): Please log in and try again.`);
-          } else {
-            throw new Error(`Booking failed (${statusCode || 'Unknown'}): ${serverMessage || lastError.message}`);
-          }
-        }
+      if (statusCode === 500) {
+        throw new Error(`Server error (500): ${serverMessage || 'Internal server error. Please check your booking details and try again.'}`);
+      } else if (statusCode === 422) {
+        throw new Error(`Validation error (422): ${serverMessage || 'Invalid booking data. Please check all fields.'}`);
+      } else if (statusCode === 401) {
+        throw new Error(`Authentication error (401): Please log in and try again.`);
+      } else {
+        throw new Error(`Booking failed (${statusCode || 'Unknown'}): ${serverMessage || lastError.message}`);
       }
     }
 

@@ -47,11 +47,6 @@ const RoomTypeSelection = ({ rooms, selectedRoomType, onSelectRoomType, isReward
     <div className="mt-8 w-full">
       <h3 className="text-2xl font-minecraft text-theme-primary mb-6 flex items-center gap-2">
         Room Type :
-        {isReward && (
-          <span className="text-sm bg-green-100 text-green-700 px-2 py-1 rounded-full font-normal">
-            🎁 From Reward
-          </span>
-        )}
       </h3>
 
       {rooms.length === 0 && status === "succeeded" ? (
@@ -88,11 +83,6 @@ const RoomTypeSelection = ({ rooms, selectedRoomType, onSelectRoomType, isReward
                   <IoMdPeople />
                   Max {room.max_visitors} Orang
                 </div>
-                {isReward && selectedRoomType?.id === room.id && (
-                  <div className="badge badge-lg bg-green-500 text-white font-semibold absolute top-4 left-4 flex items-center gap-1">
-                    🎁 From Reward
-                  </div>
-                )}
               </figure>
               <div className="card-body p-6">
                 <h2 className="card-title font-minecraft">{room.name}</h2>

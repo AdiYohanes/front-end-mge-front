@@ -799,11 +799,6 @@ const RentPage = () => {
                 className="text-2xl font-semibold text-theme-primary flex items-center gap-2"
               >
                 <IoMdPeople /> Number of People :
-                {bookingDetails.rewardInfo && (
-                  <span className="text-sm bg-green-100 text-green-700 px-2 py-1 rounded-full font-normal">
-                    🎁 From Reward
-                  </span>
-                )}
               </label>
               <select
                 id="people-select"
@@ -848,11 +843,6 @@ const RentPage = () => {
                       className="text-2xl font-semibold text-theme-primary flex items-center gap-2"
                     >
                       PS Unit Selection :
-                      {bookingDetails.rewardInfo && (
-                        <span className="text-sm bg-green-100 text-green-700 px-2 py-1 rounded-full font-normal">
-                          🎁 From Reward
-                        </span>
-                      )}
                     </label>
                     <select
                       id="ps-unit-select"

@@ -27,7 +27,7 @@ const HeroSlider = ({ onPricelistClick }) => {
   }, []);
 
   return (
-    <div className="relative w-full h-[550px] lg:h-[845px] overflow-hidden">
+    <div className="relative w-full h-[400px] sm:h-[500px] md:h-[600px] lg:h-[700px] xl:h-[845px] overflow-hidden">
       {/* Container untuk gambar-gambar slider */}
       {images.map((image, index) => (
         <div
@@ -44,29 +44,33 @@ const HeroSlider = ({ onPricelistClick }) => {
       <div className="absolute top-0 left-0 w-full h-full bg-black opacity-50"></div>
 
       {/* Konten teks dan tombol di tengah */}
-      <div className="relative z-10 h-full flex flex-col items-center justify-center text-center text-white p-4">
-        <h1 className="font-minecraft text-shadow-lg mb-10 leading-[0.9]">
-          <span className="block" style={{ fontSize: "180px" }}>Medan Gaming</span>
-          <span className="block" style={{ fontSize: "180px" }}>Ecosystem</span>
+      <div className="relative z-10 h-full flex flex-col items-center justify-center text-center text-white px-4 py-8 sm:px-6 lg:px-8">
+        <h1 className="font-minecraft text-shadow-lg mb-4 sm:mb-6 md:mb-8 lg:mb-10 leading-[0.9]">
+          <span className="block text-6xl sm:text-7xl md:text-8xl lg:text-9xl xl:text-[180px]">
+            Medan Gaming
+          </span>
+          <span className="block text-6xl sm:text-7xl md:text-8xl lg:text-9xl xl:text-[180px]">
+            Ecosystem
+          </span>
         </h1>
-        <div className="flex flex-col gap-8 mt-8">
-          {/* 2. Diubah dari <Link> menjadi <button> */}
-          {/* 'to' dihapus, 'onClick' ditambahkan */}
+
+        <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 lg:gap-6 mt-2 sm:mt-4 lg:mt-6 w-full max-w-xs sm:max-w-lg lg:max-w-xl">
+          {/* Pricelist Button */}
           <button
             onClick={onPricelistClick}
-            className="text-xl px-8 py-4 btn bg-brand-gold text-white font-funnel tracking-wider hover:bg-white hover:text-black border-none"
+            className="flex items-center justify-center text-xs sm:text-base lg:text-xl px-3 sm:px-6 lg:px-8 py-2 sm:py-4 bg-brand-gold text-white font-funnel tracking-wider hover:bg-white hover:text-black border-none transition-all duration-300 transform hover:scale-105 shadow-lg rounded-lg"
           >
-            <FaRegMoneyBillAlt className="mr-3 h-6 w-6" />
-            Pricelist
+            <FaRegMoneyBillAlt className="mr-1 sm:mr-3 h-3 w-3 sm:h-5 sm:w-5 lg:h-6 lg:w-6" />
+            <span className="whitespace-nowrap">Pricelist</span>
           </button>
 
-          {/* Tombol "Book a Room" tetap sebagai Link navigasi */}
+          {/* Book a Room Button */}
           <Link
             to="/rent"
-            className="text-xl px-8 py-4 btn bg-brand-gold text-white font-funnel tracking-wider hover:bg-white hover:text-black border-none"
+            className="flex items-center justify-center text-xs sm:text-base lg:text-xl px-3 sm:px-6 lg:px-8 py-2 sm:py-4 bg-brand-gold text-white font-funnel tracking-wider hover:bg-white hover:text-black border-none transition-all duration-300 transform hover:scale-105 shadow-lg rounded-lg"
           >
-            <MdPhoneAndroid className="mr-3 h-6 w-6" />
-            Book a Room
+            <MdPhoneAndroid className="mr-1 sm:mr-3 h-3 w-3 sm:h-5 sm:w-5 lg:h-6 lg:w-6" />
+            <span className="whitespace-nowrap">Book a Room</span>
           </Link>
         </div>
       </div>

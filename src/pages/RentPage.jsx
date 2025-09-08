@@ -342,7 +342,7 @@ const RentPage = () => {
 
   const handlePsUnitChange = (e) => {
     const selectedUnitId = parseInt(e.target.value, 10);
-    const selectedUnitObject = units.find((unit) => unit.id === selectedUnitId);
+    const selectedUnitObject = filteredUnits.find((unit) => unit.id === selectedUnitId);
     setBookingDetails((prev) => ({
       ...prev,
       psUnit: selectedUnitObject,
@@ -493,6 +493,24 @@ const RentPage = () => {
   const filteredRooms = allRooms.filter(
     (room) => room.max_visitors >= bookingDetails.numberOfPeople
   );
+
+  // Filter units based on selected console and room
+  const filteredUnits = useMemo(() => {
+    if (!bookingDetails.console || !bookingDetails.roomType) {
+      return [];
+    }
+
+    return units.filter(unit => {
+      // Check if unit belongs to selected room
+      const belongsToRoom = unit.room_id === bookingDetails.roomType.id;
+
+      // Check if unit's room has the selected console
+      const room = allRooms.find(r => r.id === unit.room_id);
+      const hasConsole = room?.consoles?.some(console => console.name === bookingDetails.console);
+
+      return belongsToRoom && hasConsole;
+    });
+  }, [units, bookingDetails.console, bookingDetails.roomType, allRooms]);
 
   const handleToggleBookingSummary = () => {
     setShowBookingSummary(prev => !prev);
@@ -806,11 +824,13 @@ const RentPage = () => {
                       <option disabled value="">
                         {unitsStatus === "loading"
                           ? "Loading units..."
-                          : "Pilih Unit"}
+                          : filteredUnits.length === 0
+                            ? "No units available"
+                            : "Pilih Unit"}
                       </option>
-                      {units.map((unit) => (
+                      {filteredUnits.map((unit) => (
                         <option key={unit.id} value={unit.id}>
-                          {unit.name}
+                          {unit.name} - Rp{parseInt(unit.price).toLocaleString('id-ID')}
                         </option>
                       ))}
                     </select>

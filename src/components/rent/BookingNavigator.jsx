@@ -19,7 +19,7 @@ const steps = [
   },
   {
     id: 2,
-    name: "Room Type",
+    name: "Room",
     icon: <FaCouch />,
     activeIconUrl: "/images/rooms-navigator.png",
   },
@@ -31,7 +31,7 @@ const steps = [
   },
   {
     id: 4,
-    name: "Food & Drinks",
+    name: "Food",
     icon: <FaShoppingBasket />,
     activeIconUrl: "/images/food-navigator.png",
   },
@@ -133,7 +133,7 @@ const BookingNavigator = ({ currentStep, onStepClick, bookingDetails }) => {
               key={step.id}
               onClick={() => isAccessible && onStepClick(step.id)}
               disabled={isDisabled}
-              className={`flex-1 p-4 transition-all duration-300 ease-in-out border-b-4
+              className={`flex-1 p-2 sm:p-4 transition-all duration-300 ease-in-out border-b-4 min-w-0
                 ${isActive
                   ? "bg-brand-gold text-white border-brand-gold shadow-md -translate-y-1"
                   : isCompleted
@@ -146,7 +146,7 @@ const BookingNavigator = ({ currentStep, onStepClick, bookingDetails }) => {
                 ${index === steps.length - 1 ? "rounded-tr-lg" : ""}
               `}
             >
-              <div className="flex items-center justify-center gap-3">
+              <div className="flex items-center justify-center gap-2 sm:gap-3 min-w-0">
                 {/* --- LOGIKA BARU UNTUK IKON --- */}
                 {isActive ? (
                   <img
@@ -162,7 +162,7 @@ const BookingNavigator = ({ currentStep, onStepClick, bookingDetails }) => {
                   </span>
                 )}
                 <span
-                  className={`font-semibold ${isActive ? "font-minecraft" : ""
+                  className={`font-semibold whitespace-nowrap text-sm sm:text-base ${isActive ? "font-minecraft" : ""
                     }`}
                 >
                   {step.name}

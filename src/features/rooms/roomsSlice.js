@@ -5,9 +5,12 @@ export const fetchRoomsThunk = createAsyncThunk(
   "rooms/fetchRooms",
   async (_, { rejectWithValue }) => {
     try {
-      // Kita hanya akan menampilkan ruangan yang is_available
       const roomsData = await fetchRooms();
-      return roomsData.filter((room) => room.is_available);
+      // Filter rooms yang is_available dan memiliki units
+      const availableRooms = roomsData.filter((room) =>
+        room.is_available && room.units && room.units.length > 0
+      );
+      return availableRooms;
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || error.message);
     }

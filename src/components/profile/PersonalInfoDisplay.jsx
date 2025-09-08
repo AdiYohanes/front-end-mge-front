@@ -39,9 +39,27 @@ const PersonalInfoDisplay = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
 
+    // Email validation function
+    const isValidEmail = (email) => {
+      if (!email || email.trim() === "") return true; // Empty email is valid (optional)
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      return emailRegex.test(email);
+    };
+
+    // Validate email format if provided
+    if (formData.email && !isValidEmail(formData.email)) {
+      toast.error("Please enter a valid email address.");
+      return;
+    }
+
     const changes = {};
     if (formData.fullName !== user.name) changes.name = formData.fullName;
-    if (formData.email !== user.email) changes.email = formData.email;
+
+    // Only include email if it has been changed and is not empty
+    if (formData.email !== user.email && formData.email.trim() !== "") {
+      changes.email = formData.email;
+    }
+
     if (formData.username !== user.username)
       changes.username = formData.username;
     if (formData.phoneNumber !== user.phone)
@@ -87,7 +105,7 @@ const PersonalInfoDisplay = () => {
         {/* Email */}
         <div className="form-control">
           <label className="label">
-            <span className="label-text font-semibold">Email*</span>
+            <span className="label-text font-semibold">Email</span>
           </label>
           <input
             type="email"
@@ -95,7 +113,7 @@ const PersonalInfoDisplay = () => {
             value={formData.email}
             onChange={handleChange}
             className="input input-bordered w-full focus:border-brand-gold focus:ring-brand-gold"
-            required
+            placeholder="Enter your email (optional)"
           />
         </div>
 
@@ -133,9 +151,8 @@ const PersonalInfoDisplay = () => {
         <div className="card-actions justify-end pt-4">
           <button
             type="submit"
-            className={`btn bg-brand-gold text-white w-full sm:w-auto ${
-              isLoading ? "loading" : ""
-            }`}
+            className={`btn bg-brand-gold text-white w-full sm:w-auto ${isLoading ? "loading" : ""
+              }`}
             disabled={isLoading}
           >
             {isLoading ? "Saving..." : "Save Changes"}

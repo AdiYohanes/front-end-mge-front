@@ -1,6 +1,6 @@
 // src/features/auth/pages/VerificationPage.jsx
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import OtpInput from "react-otp-input";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router";
@@ -9,6 +9,10 @@ import { resendTokenThunk, verifyOTPThunk } from "../authSlice"; // Import thunk
 
 const VerificationPage = () => {
   const [otp, setOtp] = useState("");
+  const [hasShownRedirectToast, setHasShownRedirectToast] = useState(false);
+  const [hasShownSuccessToast, setHasShownSuccessToast] = useState(false);
+  const [hasShownErrorToast, setHasShownErrorToast] = useState(false);
+  const previousStatus = useRef(null);
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -20,27 +24,35 @@ const VerificationPage = () => {
 
   // Redirect jika tidak ada nomor telepon
   useEffect(() => {
-    if (!registrationPhone) {
+    if (!registrationPhone && !hasShownRedirectToast) {
+      setHasShownRedirectToast(true);
       toast.error("Phone number not found. Please register again.");
       setTimeout(() => {
         navigate("/register");
       }, 2000);
     }
-  }, [registrationPhone, navigate]);
+  }, [registrationPhone, navigate, hasShownRedirectToast]);
 
   // Handle verification result
   useEffect(() => {
-
-    if (status === "succeeded" && !error) {
-      toast.success("Verification successful! Please login to continue.");
-      setTimeout(() => {
-        navigate("/login");
-      }, 1500);
-    } else if (status === "failed" && error) {
-      console.error("Verification error:", error);
-      toast.error(error || "Verification failed. Please try again.");
+    // Hanya proses jika status berubah dan bukan loading
+    if (status !== previousStatus.current && status !== "loading") {
+      if (status === "succeeded" && !error && !hasShownSuccessToast) {
+        setHasShownSuccessToast(true);
+        toast.success("Verification successful! Please login to continue.");
+        setTimeout(() => {
+          navigate("/login");
+        }, 1500);
+      } else if (status === "failed" && error && !hasShownErrorToast) {
+        setHasShownErrorToast(true);
+        console.error("Verification error:", error);
+        toast.error(error || "Verification failed. Please try again.");
+      }
     }
-  }, [status, error, navigate]);
+
+    // Update previous status
+    previousStatus.current = status;
+  }, [status, error, navigate, hasShownSuccessToast, hasShownErrorToast]);
 
   // Jika tidak ada nomor telepon, tampilkan loading
   if (!registrationPhone) {
@@ -79,7 +91,10 @@ const VerificationPage = () => {
   // Fungsi baru untuk menangani Resend OTP
   const handleResendOtp = () => {
     if (!registrationPhone) {
-      toast.error("Phone number not found. Please register again.");
+      if (!hasShownRedirectToast) {
+        setHasShownRedirectToast(true);
+        toast.error("Phone number not found. Please register again.");
+      }
       return;
     }
 

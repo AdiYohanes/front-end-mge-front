@@ -87,7 +87,7 @@ const ProfileRewardsPage = () => {
             // Remove redeemed reward from available list
             setAvailableRewards(prev => prev.filter(reward => reward.id !== rewardId));
 
-            // Show success modal
+            // Show success modal immediately after redeem
             setShowSuccessModal(true);
         } catch (error) {
             const message = error.response?.data?.message || error.message || "Failed to redeem reward";
@@ -295,7 +295,15 @@ const ProfileRewardsPage = () => {
                             Use Now
                         </button>
                         <button
-                            onClick={() => setShowSuccessModal(false)}
+                            onClick={async () => {
+                                setShowSuccessModal(false);
+                                // Refresh user rewards to show the newly redeemed reward
+                                await loadUserRewards();
+                                // Refresh page to update user points
+                                setTimeout(() => {
+                                    window.location.reload();
+                                }, 100);
+                            }}
                             className="btn btn-ghost text-theme-primary w-full py-3 text-lg font-medium"
                         >
                             Use Later
@@ -328,6 +336,7 @@ const ProfileRewardsPage = () => {
 
     const RewardCard = ({ item, actionLabel }) => {
         const isApplying = applyingId === item.id;
+        const isUsed = item.status === 'used' || item.used;
 
         const handleImageError = (e) => {
             e.target.src = "/images/coin.png"; // Fallback to default image
@@ -342,13 +351,23 @@ const ProfileRewardsPage = () => {
                         className="h-full w-full object-cover"
                         onError={handleImageError}
                     />
-                    {item.daysLeft && item.daysLeft > 0 && (
+                    {item.daysLeft && item.daysLeft > 0 && !isUsed && (
                         <div className="absolute top-2 right-2">
                             <div className="bg-brand-gold text-white px-3 py-1 rounded-lg flex items-center gap-1">
                                 <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                                     <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
                                 </svg>
                                 <span className="font-minecraft text-sm font-bold">{item.daysLeft} days</span>
+                            </div>
+                        </div>
+                    )}
+                    {isUsed && (
+                        <div className="absolute top-2 right-2">
+                            <div className="bg-gray-500 text-white px-3 py-1 rounded-lg flex items-center gap-1">
+                                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                </svg>
+                                <span className="font-minecraft text-sm font-bold">Used</span>
                             </div>
                         </div>
                     )}
@@ -359,12 +378,15 @@ const ProfileRewardsPage = () => {
                     <div className="border-t border-gray-300 my-2"></div>
                     <div className="card-actions mt-2">
                         <button
-                            onClick={() => !item.used && handleApplyReward(item.id)}
-                            className="btn btn-lg bg-brand-gold hover:bg-yellow-600 text-white w-full disabled:opacity-60 disabled:cursor-not-allowed text-lg font-medium"
-                            disabled={item.used || isApplying}
-                            aria-disabled={item.used || isApplying}
+                            onClick={() => !isUsed && handleApplyReward(item.id)}
+                            className={`btn btn-lg w-full text-lg font-medium ${isUsed
+                                ? 'bg-gray-400 text-white cursor-not-allowed'
+                                : 'bg-brand-gold hover:bg-yellow-600 text-white'
+                                }`}
+                            disabled={isUsed || isApplying}
+                            aria-disabled={isUsed || isApplying}
                         >
-                            {isApplying ? "Applying..." : item.used ? "Used" : actionLabel}
+                            {isApplying ? "Applying..." : isUsed ? "Used" : actionLabel}
                         </button>
                     </div>
                 </div>
@@ -477,7 +499,6 @@ const ProfileRewardsPage = () => {
                 }
 
                 const normalized = list
-                    .filter((r) => r.status === 'available') // Only show available rewards
                     .map((r) => {
                         // Calculate days left until expiration
                         const expiresAt = new Date(r.expires_at);
@@ -509,6 +530,9 @@ const ProfileRewardsPage = () => {
                 setUserRewardsLoading(false);
             }
         };
+
+        // Make loadUserRewards available outside the useEffect
+        window.loadUserRewards = loadUserRewards;
 
         loadAvailable();
         loadUserRewards();

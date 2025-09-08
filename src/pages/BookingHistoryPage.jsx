@@ -1,16 +1,171 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import toast from "react-hot-toast";
 
 import {
   fetchHistoryThunk,
   fetchDetailThunk,
 } from "../features/history/historySlice";
 import BookingDetailModal from "../components/history/BookingDetailModal";
-import { FaSearch, FaFilter, FaGamepad } from "react-icons/fa";
+import { FaSearch, FaFilter, FaGamepad, FaTimes } from "react-icons/fa";
 import { format } from "date-fns";
+import apiClient from "../lib/axios";
+
+// Komponen Modal Rating
+const RatingModal = ({ isOpen, onClose, onRate, booking }) => {
+  const [rating, setRating] = useState(0);
+  const [feedback, setFeedback] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Reset state when modal opens
+  React.useEffect(() => {
+    if (isOpen) {
+      setRating(0);
+      setFeedback("");
+      setIsSubmitting(false);
+    }
+  }, [isOpen]);
+
+  const handleStarClick = (starRating) => {
+    setRating(starRating);
+  };
+
+  const handleSubmit = async () => {
+    if (!booking?.invoice_number) {
+      toast.error("Invoice number not found!");
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      const response = await apiClient.post("/api/customer/customer-reviews", {
+        invoice_number: booking.invoice_number,
+        rating: rating,
+        description: feedback
+      });
+
+      console.log("Review submitted successfully:", response.data);
+
+      // Show success message
+      toast.success(
+        <div className="flex items-center gap-3">
+          <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
+            <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+            </svg>
+          </div>
+          <div>
+            <p className="font-semibold text-gray-800">Review Submitted Successfully!</p>
+            <p className="text-sm text-gray-600">Thank you for your valuable feedback!</p>
+          </div>
+        </div>,
+        {
+          duration: 3000,
+          style: {
+            background: '#ffffff',
+            border: '1px solid #e5e7eb',
+            borderRadius: '8px',
+            padding: '16px',
+            boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
+          },
+        }
+      );
+
+      // Call the original onRate callback
+      onRate(booking.id, rating, feedback);
+      onClose();
+    } catch (error) {
+      console.error("Failed to submit review:", error);
+      const errorMessage = error.response?.data?.message || "Failed to submit review. Please try again.";
+      toast.error(errorMessage);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-none p-8 max-w-xl w-full mx-4 shadow-2xl relative">
+        {/* Close Button */}
+        <button
+          onClick={onClose}
+          className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors"
+        >
+          <FaTimes className="w-5 h-5" />
+        </button>
+
+        {/* Header */}
+        <div className="text-center mb-6">
+          <h2 className="text-2xl font-minecraft text-brand-gold mb-2">
+            Rate your Experience with MGE!
+          </h2>
+        </div>
+
+        {/* Stars Rating */}
+        <div className="flex justify-center mb-4">
+          <div className="flex gap-2">
+            {[1, 2, 3, 4, 5].map((star) => (
+              <button
+                key={star}
+                onClick={() => handleStarClick(star)}
+                className="focus:outline-none transition-transform hover:scale-110"
+              >
+                <img
+                  src="/images/start-reveiw.png"
+                  alt={`Star ${star}`}
+                  className={`w-8 h-8 transition-opacity duration-200 ${star <= rating ? "opacity-100" : "opacity-30"
+                    }`}
+                />
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Rating Value */}
+        <div className="text-center mb-6">
+          <span className="text-lg font-semibold text-gray-800">
+            {rating}/5
+          </span>
+        </div>
+
+        {/* Feedback Section */}
+        <div className="mb-6">
+          <p className="text-sm text-gray-700 mb-3">
+            Let us know what's your feedback for our services below
+          </p>
+          <textarea
+            value={feedback}
+            onChange={(e) => setFeedback(e.target.value)}
+            placeholder="Your feedback means a lot for us!"
+            className="w-full h-24 p-3 border border-gray-300 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-brand-gold focus:border-transparent"
+          />
+        </div>
+
+        {/* Rate Button */}
+        <button
+          onClick={handleSubmit}
+          disabled={rating === 0 || isSubmitting}
+          className="w-full bg-brand-gold hover:bg-yellow-600 text-white font-semibold py-3 px-6 rounded-none transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {isSubmitting ? (
+            <div className="flex items-center justify-center gap-2">
+              <span className="loading loading-spinner loading-sm"></span>
+              Submitting...
+            </div>
+          ) : (
+            "Rate"
+          )}
+        </button>
+      </div>
+    </div>
+  );
+};
 
 // Komponen untuk satu baris item booking
-const BookingItem = ({ booking, onViewDetails }) => {
+const BookingItem = ({ booking, onViewDetails, onRate, ratedBookings }) => {
   // Handle different booking types (room booking vs F&B only booking)
   const isRoomBooking = booking.unit_id && booking.start_time;
 
@@ -128,14 +283,30 @@ const BookingItem = ({ booking, onViewDetails }) => {
           </div>
         )}
 
-        {/* Action Button */}
-        <div className="flex justify-end">
+        {/* Action Buttons */}
+        <div className="flex justify-end gap-3">
           <button
             onClick={() => onViewDetails(booking.id)}
             className="btn btn-outline border-brand-gold text-brand-gold hover:bg-brand-gold hover:text-white hover:border-brand-gold transition-all duration-200 font-medium px-6"
           >
             View Details
           </button>
+          {booking.status === 'completed' && !ratedBookings.has(booking.id) && (
+            <button
+              onClick={() => onRate(booking)}
+              className="btn btn-outline border-gray-400 text-gray-600 hover:bg-gray-100 hover:border-gray-500 transition-all duration-200 font-medium px-6"
+            >
+              Rate
+            </button>
+          )}
+          {booking.status === 'completed' && ratedBookings.has(booking.id) && (
+            <div className="flex items-center gap-2 text-green-600 bg-green-50 px-4 py-2 rounded-lg border border-green-200">
+              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+              </svg>
+              <span className="text-sm font-medium">Rated</span>
+            </div>
+          )}
         </div>
       </div>
     </div>
@@ -146,11 +317,26 @@ const BookingHistoryPage = () => {
   const [activeTab, setActiveTab] = useState("active");
   const [searchQuery, setSearchQuery] = useState("");
   const [sortFilter, setSortFilter] = useState("newest");
+  const [ratingModal, setRatingModal] = useState({ isOpen: false, booking: null });
+  const [ratedBookings, setRatedBookings] = useState(new Set());
 
   const dispatch = useDispatch();
   const { bookings, status, selectedBookingDetail } = useSelector(
     (state) => state.history
   );
+
+  // Load rated bookings from localStorage
+  useEffect(() => {
+    const savedRatedBookings = localStorage.getItem('ratedBookings');
+    if (savedRatedBookings) {
+      setRatedBookings(new Set(JSON.parse(savedRatedBookings)));
+    }
+  }, []);
+
+  // Save rated bookings to localStorage
+  const saveRatedBookings = (ratedSet) => {
+    localStorage.setItem('ratedBookings', JSON.stringify([...ratedSet]));
+  };
 
   useEffect(() => {
     // Ambil data history hanya jika belum pernah diambil
@@ -207,6 +393,24 @@ const BookingHistoryPage = () => {
 
   const handleViewDetails = (bookingId) =>
     dispatch(fetchDetailThunk(bookingId));
+
+  const handleRateClick = (booking) => {
+    setRatingModal({ isOpen: true, booking });
+  };
+
+  const handleRateSubmit = (bookingId, rating, feedback) => {
+    // Add booking to rated bookings
+    const newRatedBookings = new Set([...ratedBookings, bookingId]);
+    setRatedBookings(newRatedBookings);
+    saveRatedBookings(newRatedBookings);
+
+    console.log("Rating submitted:", { bookingId, rating, feedback });
+    console.log("Rated bookings updated:", newRatedBookings);
+  };
+
+  const handleCloseRatingModal = () => {
+    setRatingModal({ isOpen: false, booking: null });
+  };
 
   return (
     <>
@@ -320,6 +524,8 @@ const BookingHistoryPage = () => {
                   key={booking.id}
                   booking={booking}
                   onViewDetails={handleViewDetails}
+                  onRate={handleRateClick}
+                  ratedBookings={ratedBookings}
                 />
               ))}
             </div>
@@ -328,6 +534,14 @@ const BookingHistoryPage = () => {
       </div>
 
       {selectedBookingDetail && <BookingDetailModal />}
+
+      {/* Rating Modal */}
+      <RatingModal
+        isOpen={ratingModal.isOpen}
+        onClose={handleCloseRatingModal}
+        onRate={handleRateSubmit}
+        booking={ratingModal.booking}
+      />
     </>
   );
 };

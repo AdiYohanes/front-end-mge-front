@@ -22,7 +22,7 @@ const BookingDetailModal = () => {
 
   const booking = selectedBookingDetail;
   const bookingDate = booking
-    ? format(new Date(booking.start_time), "eeee, dd MMMM yyyy")
+    ? format(new Date(booking.start_time || booking.created_at), "eeee, dd MMMM yyyy")
     : "";
 
   const renderContent = () => {
@@ -34,10 +34,11 @@ const BookingDetailModal = () => {
       );
     }
     if (detailStatus === "succeeded" && booking) {
-      const unitPrice =
-        (booking.total_price /
-          (new Date(booking.end_time) - new Date(booking.start_time))) *
-        3600000;
+      // Calculate subtotal (total_price - service_fee - tax)
+      const serviceFee = parseFloat(booking.service_fee_amount || 0);
+      const taxAmount = parseFloat(booking.tax_amount || 0);
+      const subtotal = parseFloat(booking.total_price) - serviceFee - taxAmount;
+
       return (
         <>
           <div className="p-6 space-y-4">
@@ -57,29 +58,41 @@ const BookingDetailModal = () => {
               <span className="text-right">Total</span>
             </div>
             <div className="space-y-3 text-sm">
-              <div className="grid grid-cols-4 gap-4 items-center">
-                <span className="font-bold">Console</span>
-                <span>{booking.unit.consoles[0]?.name || "N/A"}</span>
-                <span className="text-center">1</span>
-                <span className="text-right">-</span>
-              </div>
-              <div className="grid grid-cols-4 gap-4 items-center">
-                <span className="font-bold">Room Type</span>
-                <span>
-                  {booking.unit.name} ({booking.total_visitors})
-                </span>
-                <span className="text-center">1</span>
-                <span className="text-right">{formatPrice(unitPrice)}</span>
-              </div>
-              <div className="grid grid-cols-4 gap-4 items-center">
-                <span className="font-bold">Duration</span>
-                <span>
-                  {format(new Date(booking.start_time), "HH:mm")} -{" "}
-                  {format(new Date(booking.end_time), "HH:mm")}
-                </span>
-                <span className="text-center">{booking.duration || 1}</span>
-                <span className="text-right">-</span>
-              </div>
+              {booking.unit && (
+                <>
+                  <div className="grid grid-cols-4 gap-4 items-center">
+                    <span className="font-bold">Console</span>
+                    <span>{booking.unit.consoles?.[0]?.name || "N/A"}</span>
+                    <span className="text-center">1</span>
+                    <span className="text-right">-</span>
+                  </div>
+                  <div className="grid grid-cols-4 gap-4 items-center">
+                    <span className="font-bold">Room Type</span>
+                    <span>
+                      {booking.unit?.name || 'N/A'} ({booking.total_visitors || 1})
+                    </span>
+                    <span className="text-center">1</span>
+                    <span className="text-right">{formatPrice(subtotal)}</span>
+                  </div>
+                  <div className="grid grid-cols-4 gap-4 items-center">
+                    <span className="font-bold">Duration</span>
+                    <span>
+                      {booking.start_time ? format(new Date(booking.start_time), "HH:mm") : "N/A"} -{" "}
+                      {booking.end_time ? format(new Date(booking.end_time), "HH:mm") : "N/A"}
+                    </span>
+                    <span className="text-center">{booking.duration || 1}</span>
+                    <span className="text-right">-</span>
+                  </div>
+                </>
+              )}
+              {!booking.unit && (
+                <div className="grid grid-cols-4 gap-4 items-center">
+                  <span className="font-bold">Order Type</span>
+                  <span>Food & Drinks Only</span>
+                  <span className="text-center">1</span>
+                  <span className="text-right">{formatPrice(subtotal)}</span>
+                </div>
+              )}
               {booking.fnbs.length > 0 && (
                 <div className="grid grid-cols-4 gap-4 items-start pt-2">
                   <span className="font-bold">Food & Drinks</span>
@@ -102,13 +115,21 @@ const BookingDetailModal = () => {
             {/* Kalkulasi Total */}
             <div className="mt-6 pt-4 border-t-2 border-base-200 space-y-2">
               <div className="flex justify-between font-semibold">
-                <span className="text-gray-500">PPN 10%</span>
-                <span>{formatPrice(booking.total_price * 0.1)}</span>
+                <span>Subtotal</span>
+                <span>{formatPrice(subtotal)}</span>
+              </div>
+              <div className="flex justify-between font-semibold">
+                <span className="text-gray-500">Service Fee</span>
+                <span>{formatPrice(serviceFee)}</span>
+              </div>
+              <div className="flex justify-between font-semibold">
+                <span className="text-gray-500">Tax (PPN 10%)</span>
+                <span>{formatPrice(taxAmount)}</span>
               </div>
               <div className="flex justify-between font-bold text-lg">
-                <span>Subtotal</span>
+                <span>Total</span>
                 <span className="text-brand-gold">
-                  {formatPrice(booking.total_price)}
+                  {formatPrice(parseFloat(booking.total_price))}
                 </span>
               </div>
             </div>

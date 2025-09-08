@@ -1318,33 +1318,33 @@ const FoodPage = () => {
         {showBackConfirmation && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
             {/* Modal Content */}
-            <div className="bg-base-100 rounded-lg shadow-xl w-full max-w-sm text-center p-6">
-              {/* Gambar Kustom di Atas - Sama dengan ConfirmationModal */}
-              <div className="flex justify-center mb-4">
+            <div className="bg-white rounded-xl shadow-xl w-full max-w-md text-center p-8">
+              {/* Success Image */}
+              <div className="flex justify-center mb-6">
                 <img
-                  src="/images/tanya.png"
-                  alt="warning icon"
-                  className="h-16 w-auto"
+                  src="/images/success.png"
+                  alt="success icon"
+                  className="h-20 w-auto"
                 />
               </div>
 
               {/* Judul & Children (Isi Pesan) */}
-              <h3 className="text-lg font-bold mb-2 text-gray-800">Change of plans?</h3>
-              <div className="text-sm text-gray-600 mb-6">
+              <h3 className="text-2xl font-minecraft text-gray-900 mb-4">Change of plans?</h3>
+              <div className="text-gray-600 mb-8">
                 <p className="leading-relaxed">You'll be redirected to the food & drinks page to adjust your order</p>
               </div>
 
               {/* Tombol Aksi */}
-              <div className="space-y-2">
+              <div className="space-y-3">
                 <button
                   onClick={handleCancelBack}
-                  className="btn bg-brand-gold text-white w-full"
+                  className="btn bg-brand-gold hover:bg-brand-gold/80 text-white w-full py-3 font-medium"
                 >
                   Continue Payment
                 </button>
                 <button
                   onClick={handleConfirmBack}
-                  className="btn btn-ghost w-full"
+                  className="btn btn-outline border-gray-300 text-gray-700 hover:bg-gray-50 w-full py-3 font-medium"
                 >
                   Adjust Order
                 </button>

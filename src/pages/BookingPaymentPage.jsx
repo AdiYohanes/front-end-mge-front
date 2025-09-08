@@ -50,7 +50,6 @@ const BookingPaymentPage = () => {
   const [useLoginInfo, setUseLoginInfo] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false); // State untuk modal
   const [showTermsModal, setShowTermsModal] = useState(false); // State untuk terms modal
-  const [showPaymentModal, setShowPaymentModal] = useState(false); // State untuk payment modal
   const [showExitWarning, setShowExitWarning] = useState(false); // State untuk exit warning modal (back to booking)
   const [showNavigationWarning, setShowNavigationWarning] = useState(false); // State untuk navigation warning modal (other exits)
   const [showPromoModal, setShowPromoModal] = useState(false); // State untuk promo modal
@@ -160,7 +159,38 @@ const BookingPaymentPage = () => {
     };
     window.addEventListener("message", handlePaymentMessage);
     return () => window.removeEventListener("message", handlePaymentMessage);
-  }, [navigate, invoiceNumber]);
+  }, [navigate, invoiceNumber, bookingDetails]);
+
+  // Handle redirect from external Midtrans URL (fallback)
+  useEffect(() => {
+    const handleRedirectFromMidtrans = () => {
+      // Check if we're coming back from Midtrans redirect
+      const urlParams = new URLSearchParams(window.location.search);
+      const transactionStatus = urlParams.get('transaction_status');
+      const orderId = urlParams.get('order_id');
+
+      // If we have payment success indicators in URL
+      if (transactionStatus && ['settlement', 'capture', 'success', 'pending'].includes(transactionStatus.toLowerCase())) {
+        console.log("Detected Midtrans redirect with success status:", transactionStatus);
+
+        // Set session marker for successful payment
+        sessionStorage.setItem("recentBookingComplete", "true");
+        setShouldBlock(false);
+
+        // Redirect to success page
+        const qs = orderId ? `?invoice_number=${encodeURIComponent(orderId)}` : "";
+        navigate(`/booking-success${qs}`, {
+          state: {
+            paymentCompleted: true,
+            bookingDetails: bookingDetails
+          }
+        });
+      }
+    };
+
+    // Check on component mount
+    handleRedirectFromMidtrans();
+  }, [navigate, bookingDetails]);
 
   useEffect(() => {
     // Fetch taxes and service fee for payment calculation
@@ -187,10 +217,13 @@ const BookingPaymentPage = () => {
 
   useEffect(() => {
     if (redirectUrl) {
-      // Buka modal payment dengan iframe Midtrans
-      setShowPaymentModal(true);
-      // Disable blocking during payment process
-      setShouldBlock(false);
+      // Show redirect message first
+      toast.success("Booking submitted successfully! Redirecting to payment...");
+
+      // Redirect to Midtrans snap URL after a short delay
+      setTimeout(() => {
+        window.location.href = redirectUrl;
+      }, 1500);
     }
   }, [redirectUrl]);
 
@@ -510,22 +543,6 @@ const BookingPaymentPage = () => {
     dispatch(submitBookingThunk(finalData));
   };
 
-  // Handle payment modal close
-  const handleClosePaymentModal = () => {
-    setShowPaymentModal(false);
-    // Set session marker for fallback access
-    sessionStorage.setItem("recentBookingComplete", "true");
-    // Disable blocking for payment completion navigation
-    setShouldBlock(false);
-    // Redirect to success page as a fallback when payment flow ends
-    const qs = invoiceNumber ? `?invoice_number=${encodeURIComponent(invoiceNumber)}` : "";
-    navigate(`/booking-success${qs}`, {
-      state: {
-        paymentCompleted: true,
-        bookingDetails: bookingDetails
-      }
-    });
-  };
 
   // Handle exit warning modal (back to booking button)
   const handleContinueBooking = () => {
@@ -732,6 +749,18 @@ const BookingPaymentPage = () => {
           >
             Proceed to Payment
           </button>
+
+          {/* Redirect Message */}
+          {redirectUrl && (
+            <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+              <p className="text-blue-800 font-medium">
+                🚀 Redirecting to payment gateway...
+              </p>
+              <p className="text-sm text-blue-600 mt-1">
+                Please wait while we redirect you to complete your payment.
+              </p>
+            </div>
+          )}
         </div>
       </div>
 
@@ -855,29 +884,6 @@ const BookingPaymentPage = () => {
         </div>
       )}
 
-      {/* Payment Modal dengan iframe Midtrans - Full Screen */}
-      {showPaymentModal && redirectUrl && (
-        <div className="fixed inset-0 z-50 bg-white">
-          {/* Close Button - Minimal */}
-          <button
-            onClick={handleClosePaymentModal}
-            className="absolute top-4 right-4 z-10 p-2 bg-white/80 hover:bg-white rounded-full shadow-lg transition-colors"
-          >
-            <svg className="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
-
-          {/* iframe Midtrans - Full Screen */}
-          <iframe
-            src={redirectUrl}
-            className="w-full h-full"
-            title="Payment Gateway"
-            frameBorder="0"
-            allow="payment"
-          />
-        </div>
-      )}
     </>
   );
 };

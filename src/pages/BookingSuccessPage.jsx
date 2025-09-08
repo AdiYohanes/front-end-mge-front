@@ -14,8 +14,6 @@ const BookingSuccessPage = () => {
   // Get booking state from Redux
   const { status: bookingStatus, invoiceNumber: reduxInvoiceNumber } = useSelector((state) => state.booking);
 
-  // Local state for access validation
-  const [isValidAccess, setIsValidAccess] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [bookingDetails, setBookingDetails] = useState(null);
   const [isRewardBooking, setIsRewardBooking] = useState(false);
@@ -23,60 +21,31 @@ const BookingSuccessPage = () => {
 
   useEffect(() => {
     const validateAccess = () => {
+      // Allow public access - no validation required
 
-      // Check multiple validation criteria
-      const hasValidInvoice = invoiceNumber && invoiceNumber.trim() !== "";
-      const hasReduxInvoice = reduxInvoiceNumber && reduxInvoiceNumber.trim() !== "";
-      const hasSuccessfulBooking = bookingStatus === "succeeded";
-      const hasPaymentCompletedFlag = location.state?.paymentCompleted === true;
-      const hasRecentBookingSession = sessionStorage.getItem("recentBookingComplete") === "true";
+      // Check if this is a reward booking
+      const isReward = location.state?.isReward === true;
+      setIsRewardBooking(isReward);
 
-      // Validate invoice number match (if both exist)
-      const invoiceMatches = !hasReduxInvoice || !hasValidInvoice || invoiceNumber === reduxInvoiceNumber;
+      // Check if this is an OTS booking
+      const isOts = location.state?.isOts === true;
+      setIsOtsBooking(isOts);
 
-      const isAccessValid = (
-        (hasValidInvoice && hasSuccessfulBooking && invoiceMatches) ||
-        hasPaymentCompletedFlag ||
-        hasRecentBookingSession ||
-        (hasValidInvoice && hasReduxInvoice && invoiceMatches)
-      );
-
-
-      if (isAccessValid) {
-        setIsValidAccess(true);
-
-        // Check if this is a reward booking
-        const isReward = location.state?.isReward === true;
-        setIsRewardBooking(isReward);
-
-        // Check if this is an OTS booking
-        const isOts = location.state?.isOts === true;
-        setIsOtsBooking(isOts);
-
-        // Get booking details from location state if available
-        if (location.state?.bookingDetails) {
-          setBookingDetails(location.state.bookingDetails);
-        }
-
-        // Clear the session marker after successful access
-        sessionStorage.removeItem("recentBookingComplete");
-
-        // Clear booking state after 30 seconds to prevent future unauthorized access
-        // but allow enough time for user to view the page
-        setTimeout(() => {
-          dispatch(clearBookingState());
-        }, 30000);
-      } else {
-        // Redirect to home with warning message
-        navigate("/", {
-          replace: true,
-          state: {
-            message: "Access to booking confirmation requires a recent booking.",
-            type: "warning"
-          }
-        });
-        return;
+      // Get booking details from location state if available
+      if (location.state?.bookingDetails) {
+        setBookingDetails(location.state.bookingDetails);
       }
+
+      // Clear the session marker after successful access (if exists)
+      if (sessionStorage.getItem("recentBookingComplete") === "true") {
+        sessionStorage.removeItem("recentBookingComplete");
+      }
+
+      // Clear booking state after 30 seconds to prevent future unauthorized access
+      // but allow enough time for user to view the page
+      setTimeout(() => {
+        dispatch(clearBookingState());
+      }, 30000);
 
       setIsLoading(false);
     };
@@ -84,7 +53,7 @@ const BookingSuccessPage = () => {
     // Small delay to ensure Redux state is loaded
     const timer = setTimeout(validateAccess, 100);
     return () => clearTimeout(timer);
-  }, [invoiceNumber, reduxInvoiceNumber, bookingStatus, location.state, navigate]);
+  }, [invoiceNumber, reduxInvoiceNumber, bookingStatus, location.state, navigate, dispatch]);
 
   // Show loading while validating
   if (isLoading) {
@@ -98,21 +67,6 @@ const BookingSuccessPage = () => {
     );
   }
 
-  // Show error if access is not valid (shouldn't reach here due to redirect, but just in case)
-  if (!isValidAccess) {
-    return (
-      <div className="container mx-auto px-4 py-16 lg:py-24 flex justify-center">
-        <div className="w-full max-w-2xl text-center flex flex-col items-center">
-          <div className="text-error text-6xl mb-4">⚠️</div>
-          <h1 className="text-2xl font-bold text-gray-800 mb-4">Access Denied</h1>
-          <p className="text-gray-600 mb-8">This page can only be accessed after completing a booking.</p>
-          <Link to="/" className="btn bg-brand-gold text-white">
-            Go to Home
-          </Link>
-        </div>
-      </div>
-    );
-  }
 
   // Use fallback invoice number if needed
   const displayInvoiceNumber = invoiceNumber || reduxInvoiceNumber || "BOOK-UNKNOWN";
@@ -180,17 +134,20 @@ const BookingSuccessPage = () => {
 
         {/* 3. Tulisan Sukses */}
         <h1 className="text-4xl lg:text-5xl font-minecraft text-gray-800 mb-4">
-          Your booking has been made!
+          {invoiceNumber ? "Your booking has been made!" : "Booking Confirmation"}
         </h1>
 
         {/* 5. Teks Konfirmasi */}
         <p className="max-w-md mx-auto text-gray-600 leading-relaxed mb-8">
-          {isRewardBooking
-            ? "Your reward booking has been confirmed! We will send you a confirmation through Whatsapp. Please sit tight!"
-            : isOtsBooking
-              ? "Your OTS booking has been confirmed! Payment will be processed at the counter. We will send you a confirmation through Whatsapp. Please sit tight!"
-              : "We will send you a confirmation and payment information through Whatsapp. Please sit tight!"
-          }
+          {invoiceNumber ? (
+            isRewardBooking
+              ? "Your reward booking has been confirmed! We will send you a confirmation through Whatsapp. Please sit tight!"
+              : isOtsBooking
+                ? "Your OTS booking has been confirmed! Payment will be processed at the counter. We will send you a confirmation through Whatsapp. Please sit tight!"
+                : "We will send you a confirmation and payment information through Whatsapp. Please sit tight!"
+          ) : (
+            "This is a booking confirmation page. If you have a valid booking, please contact our support team for assistance."
+          )}
         </p>
 
         {/* 4. Booking Details */}
@@ -252,6 +209,18 @@ const BookingSuccessPage = () => {
             {displayInvoiceNumber}
           </p>
         </div>
+
+        {/* Public Access Information */}
+        {!invoiceNumber && (
+          <div className="mb-10 p-6 bg-blue-50 border border-blue-200 rounded-lg max-w-md mx-auto">
+            <h3 className="font-minecraft text-lg text-blue-800 mb-3">Need Help?</h3>
+            <div className="text-sm text-blue-700 space-y-2">
+              <p><strong>Email:</strong> support@gamingrental.com</p>
+              <p><strong>Phone:</strong> +62 812-3456-7890</p>
+              <p><strong>WhatsApp:</strong> +62 812-3456-7890</p>
+            </div>
+          </div>
+        )}
 
         {/* 6. Tombol Aksi */}
         <div className="flex flex-col sm:flex-row justify-center gap-4 w-full max-w-md">

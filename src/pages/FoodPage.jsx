@@ -686,24 +686,32 @@ const FoodPage = () => {
                             label: "Date & Time",
                             value: getCurrentDateTime(),
                             quantity: "-",
-                          },
-                          {
-                            label: "Food & Drinks",
-                            value: selections.length > 0
-                              ? selections.map(item => `${item.name} (x${item.quantity})`).join(', ')
-                              : null,
-                            quantity: selections.length > 0
-                              ? selections.reduce((acc, item) => acc + item.quantity, 0)
-                              : "-",
-                            total: selections.length > 0
-                              ? formatPrice(selections.reduce((sum, item) => sum + (item.price * item.quantity), 0))
-                              : "-",
+                            total: "-",
                           },
                         ];
 
-                        return summaryItems.map((item) => (
+                        // Add individual food & drink items
+                        if (selections.length > 0) {
+                          selections.forEach((item, index) => {
+                            summaryItems.push({
+                              label: index === 0 ? "Food & Drinks" : "", // Show label only for first item
+                              value: item.name,
+                              quantity: item.quantity,
+                              total: formatPrice(item.price * item.quantity),
+                            });
+                          });
+                        } else {
+                          summaryItems.push({
+                            label: "Food & Drinks",
+                            value: "No items selected",
+                            quantity: "-",
+                            total: "-",
+                          });
+                        }
+
+                        return summaryItems.map((item, index) => (
                           <div
-                            key={item.label}
+                            key={`${item.label}-${index}`}
                             className="grid grid-cols-4 gap-4 items-center text-sm"
                           >
                             <span className="font-bold text-black text-left">{item.label}</span>

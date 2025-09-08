@@ -108,6 +108,14 @@ const RentPage = () => {
         const consoleName = bookingPreset.consoles?.[0]?.name || "PlayStation";
 
         // Set booking details based on reward data
+        console.log("RentPage - Setting reward booking details:", {
+          unitId: bookingPreset.unit_id,
+          unitIdType: typeof bookingPreset.unit_id,
+          unitName: rewardDetails.unit?.name,
+          consoleName,
+          roomName: rewardDetails.unit?.room?.name
+        });
+
         setBookingDetails(prev => ({
           ...prev,
           console: consoleName,
@@ -148,11 +156,21 @@ const RentPage = () => {
         // Skip to step 2 (game selection) since console, room, unit, duration are pre-selected but game, date, time need to be chosen
         setCurrentStep(2);
 
+        // Trigger units API call to load games for the reward unit
+        const params = {
+          console_name: rewardDetails.unit?.console?.name || consoleName,
+          room_name: rewardDetails.unit?.room?.name || "Reguler",
+        };
+        console.log("RentPage - Fetching units for reward with params:", params);
+        console.log("RentPage - Reward unit console:", rewardDetails.unit?.console);
+        console.log("RentPage - Reward unit room:", rewardDetails.unit?.room);
+        dispatch(fetchUnitsThunk(params));
+
         // Clear the navigation state to prevent issues with browser back/forward
         navigate(location.pathname, { replace: true });
       }
     }
-  }, [location.state, navigate, location.pathname]);
+  }, [location.state, navigate, location.pathname, dispatch]);
 
   // Animasi masuk
   useEffect(() => {
@@ -198,25 +216,48 @@ const RentPage = () => {
   // Memoize unit ID to prevent unnecessary re-renders
   const unitId = useMemo(() => bookingDetails.psUnit?.id, [bookingDetails.psUnit?.id]);
   const hasReward = useMemo(() => !!bookingDetails.rewardInfo, [bookingDetails.rewardInfo]);
-  const hasGames = useMemo(() => bookingDetails.psUnit?.games?.length > 0, [bookingDetails.psUnit?.games]);
 
   // Update reward unit with games after units are fetched
   useEffect(() => {
-    if (hasReward && unitId && units.length > 0 && !hasGames && !rewardGamesUpdatedRef.current) {
-      const unitFromApi = units.find(unit => unit.id === unitId);
-      if (unitFromApi && unitFromApi.games && unitFromApi.games.length > 0) {
-        console.log("RentPage - Updating reward unit with games:", unitFromApi.games);
+    if (hasReward && unitId && units.length > 0 && !rewardGamesUpdatedRef.current) {
+      console.log("RentPage - Debug reward unit loading:", {
+        unitId,
+        unitIdType: typeof unitId,
+        unitsLength: units.length,
+        units: units.map(u => ({ id: u.id, name: u.name, type: typeof u.id }))
+      });
+
+      // Try multiple comparison methods to handle type mismatch
+      const unitFromApi = units.find(unit =>
+        unit.id === unitId ||
+        unit.id === parseInt(unitId, 10) ||
+        parseInt(unit.id, 10) === unitId ||
+        String(unit.id) === String(unitId)
+      );
+      console.log("RentPage - Unit search result:", unitFromApi);
+
+      if (unitFromApi) {
+        console.log("RentPage - Updating reward unit with complete unit data including games:", unitFromApi.games?.length || 0, "games");
         setBookingDetails(prev => ({
           ...prev,
           psUnit: {
             ...prev.psUnit,
-            games: unitFromApi.games
+            ...unitFromApi, // Update with complete unit data including games
+            // Preserve reward-specific data
+            price: prev.psUnit.price, // Keep reward price
+            name: prev.psUnit.name, // Keep reward unit name
           }
         }));
         rewardGamesUpdatedRef.current = true; // Mark as updated
+      } else {
+        console.log("RentPage - Unit not found in API response");
+        console.log("RentPage - Available unit IDs:", units.map(u => u.id));
+        console.log("RentPage - Looking for unit ID:", unitId);
+        // Mark as updated to prevent infinite loop
+        rewardGamesUpdatedRef.current = true;
       }
     }
-  }, [units, hasReward, unitId, hasGames]);
+  }, [units, hasReward, unitId]);
 
   // Reset reward games updated flag when reward changes
   useEffect(() => {
@@ -840,7 +881,7 @@ const RentPage = () => {
                   <div>
                     <GameSelectionUnit
                       unitName={bookingDetails.psUnit.name}
-                      availableGames={bookingDetails.psUnit.games}
+                      availableGames={bookingDetails.psUnit.games || []}
                       selectedGame={bookingDetails.selectedGames[0]}
                       onSelectGame={handleSelectGame}
                     />

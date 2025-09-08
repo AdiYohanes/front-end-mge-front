@@ -7,10 +7,13 @@ export const fetchUnitsThunk = createAsyncThunk(
     "units/fetchUnits",
     async (params, { rejectWithValue }) => {
         // params adalah objek: { console_name, room_name }
+        console.log("UnitsSlice - Fetching units with params:", params);
         try {
             const units = await fetchUnits(params);
+            console.log("UnitsSlice - Units API returned:", units);
             return units;
         } catch (error) {
+            console.log("UnitsSlice - Units API error:", error);
             return rejectWithValue(error.response?.data?.message || error.message);
         }
     }
@@ -33,6 +36,8 @@ const unitsSlice = createSlice({
             })
             .addCase(fetchUnitsThunk.fulfilled, (state, action) => {
                 state.status = "succeeded";
+                console.log("UnitsSlice - Units API response:", action.payload);
+                console.log("UnitsSlice - Units count:", action.payload?.length || 0);
                 state.units = action.payload;
             })
             .addCase(fetchUnitsThunk.rejected, (state, action) => {

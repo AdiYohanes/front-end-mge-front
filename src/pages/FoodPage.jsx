@@ -57,6 +57,7 @@ const FoodPage = () => {
   // Reward states
   const [rewardInfo, setRewardInfo] = useState(null);
   const [userRewardId, setUserRewardId] = useState(null);
+  const [isRewardBooking, setIsRewardBooking] = useState(false);
 
   // Seating section states
   const [seatingType, setSeatingType] = useState("table"); // "table", "unit", "takeaway"
@@ -191,6 +192,9 @@ const FoodPage = () => {
           message: rewardData.price_adjustment?.message || "Reward applied!",
           userRewardId: rewardData.user_reward_id
         });
+
+        // Mark as reward booking to disable item selection
+        setIsRewardBooking(true);
         console.log("FoodPage - Reward Info set:", {
           name: rewardData.reward_details?.name,
           userRewardId: rewardData.user_reward_id,
@@ -351,6 +355,12 @@ const FoodPage = () => {
 
   // Handler untuk mengubah kuantitas item
   const handleQuantityChange = (item, delta) => {
+    // Disable quantity changes for reward bookings
+    if (isRewardBooking) {
+      toast.error("Cannot modify items in reward booking. Items are pre-selected.");
+      return;
+    }
+
     const currentQuantity = selections.find((s) => s.id === item.id)?.quantity || 0;
     const newQuantity = currentQuantity + delta;
 
@@ -648,8 +658,12 @@ const FoodPage = () => {
             <div className="h-2 w-2 lg:h-3 lg:w-3 bg-brand-gold"></div>
           </div>
           <p className="text-white text-sm sm:text-base lg:text-lg max-w-2xl mx-auto mb-4 lg:mb-6">
-            Pilih makanan dan minuman favoritmu untuk menemani sesi gaming yang seru!
+            {isRewardBooking
+              ? "Your reward items have been pre-selected! Review your order and proceed to payment."
+              : "Pilih makanan dan minuman favoritmu untuk menemani sesi gaming yang seru!"
+            }
           </p>
+
 
           {/* Booking Summary - Only show when not in personal info form */}
           {!showPersonalInfo && (
@@ -1110,14 +1124,15 @@ const FoodPage = () => {
                   <div className="relative w-full md:max-w-md">
                     <input
                       type="text"
-                      placeholder="Search food & drinks..."
+                      placeholder={isRewardBooking ? "Search disabled for reward booking" : "Search food & drinks..."}
                       value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
+                      onChange={(e) => !isRewardBooking && setSearchQuery(e.target.value)}
                       aria-label="Search food and drinks"
-                      className="input input-bordered w-full pl-10 pr-4 bg-white border border-gray-300 rounded-lg focus:border-brand-gold focus:ring-1 focus:ring-brand-gold/20 transition-all duration-300"
+                      disabled={isRewardBooking}
+                      className={`input input-bordered w-full pl-10 pr-4 bg-white border border-gray-300 rounded-lg focus:border-brand-gold focus:ring-1 focus:ring-brand-gold/20 transition-all duration-300 ${isRewardBooking ? 'opacity-50 cursor-not-allowed' : ''}`}
                     />
-                    <FaSearch className="absolute inset-y-3 left-3 flex items-center pointer-events-none text-gray-400 w-4 h-4" />
-                    {searchQuery && (
+                    <FaSearch className={`absolute inset-y-3 left-3 flex items-center pointer-events-none w-4 h-4 ${isRewardBooking ? 'text-gray-300' : 'text-gray-400'}`} />
+                    {searchQuery && !isRewardBooking && (
                       <button
                         onClick={() => setSearchQuery("")}
                         aria-label="Clear search"
@@ -1134,10 +1149,13 @@ const FoodPage = () => {
                   <div className="flex flex-wrap gap-2 justify-start md:justify-end">
                     <button
                       onClick={() => {
-                        dispatch(setSelectedCategory("all"));
-                        setSearchQuery("");
+                        if (!isRewardBooking) {
+                          dispatch(setSelectedCategory("all"));
+                          setSearchQuery("");
+                        }
                       }}
-                      className={`btn btn-sm capitalize transition-all duration-300 ${selectedCategory === "all"
+                      disabled={isRewardBooking}
+                      className={`btn btn-sm capitalize transition-all duration-300 ${isRewardBooking ? 'opacity-50 cursor-not-allowed' : ''} ${selectedCategory === "all"
                         ? "bg-brand-gold text-white shadow-lg"
                         : "btn-ghost hover:bg-brand-gold/10"
                         }`}
@@ -1148,10 +1166,13 @@ const FoodPage = () => {
                       <button
                         key={cat.id}
                         onClick={() => {
-                          dispatch(setSelectedCategory(cat.category));
-                          setSearchQuery("");
+                          if (!isRewardBooking) {
+                            dispatch(setSelectedCategory(cat.category));
+                            setSearchQuery("");
+                          }
                         }}
-                        className={`btn btn-sm capitalize transition-all duration-300 ${selectedCategory === cat.category
+                        disabled={isRewardBooking}
+                        className={`btn btn-sm capitalize transition-all duration-300 ${isRewardBooking ? 'opacity-50 cursor-not-allowed' : ''} ${selectedCategory === cat.category
                           ? "bg-brand-gold text-white shadow-lg"
                           : "btn-ghost hover:bg-brand-gold/10"
                           }`}
@@ -1173,8 +1194,9 @@ const FoodPage = () => {
               {/* F&B Items Grid */}
               {status === "succeeded" && (
                 <>
+
                   {/* Search Results Info */}
-                  {(searchQuery || selectedCategory !== "all") && (
+                  {!isRewardBooking && (searchQuery || selectedCategory !== "all") && (
                     <div className="text-center mb-6">
                       <p className="text-sm text-theme-secondary">
                         {filteredItems.length > 0
@@ -1250,22 +1272,33 @@ const FoodPage = () => {
                                 )}
                               </div>
                               <div className="card-actions justify-end items-center mt-2">
-                                <button
-                                  onClick={() => handleQuantityChange(item, -1)}
-                                  className="btn btn-xs btn-ghost btn-circle"
-                                  disabled={quantity === 0}
-                                >
-                                  <FaMinus className="w-3 h-3" />
-                                </button>
-                                <span className="font-bold text-sm w-6 text-center">
-                                  {quantity}
-                                </span>
-                                <button
-                                  onClick={() => handleQuantityChange(item, 1)}
-                                  className="btn btn-xs btn-ghost btn-circle"
-                                >
-                                  <FaPlus className="w-3 h-3" />
-                                </button>
+                                {isRewardBooking ? (
+                                  <div className="flex items-center gap-2">
+                                    <span className="text-xs text-gray-500">Quantity</span>
+                                    <span className="font-bold text-sm w-6 text-center text-brand-gold">
+                                      {quantity}
+                                    </span>
+                                  </div>
+                                ) : (
+                                  <>
+                                    <button
+                                      onClick={() => handleQuantityChange(item, -1)}
+                                      className="btn btn-xs btn-ghost btn-circle"
+                                      disabled={quantity === 0}
+                                    >
+                                      <FaMinus className="w-3 h-3" />
+                                    </button>
+                                    <span className="font-bold text-sm w-6 text-center">
+                                      {quantity}
+                                    </span>
+                                    <button
+                                      onClick={() => handleQuantityChange(item, 1)}
+                                      className="btn btn-xs btn-ghost btn-circle"
+                                    >
+                                      <FaPlus className="w-3 h-3" />
+                                    </button>
+                                  </>
+                                )}
                               </div>
                             </div>
                           </div>

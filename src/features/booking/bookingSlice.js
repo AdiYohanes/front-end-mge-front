@@ -56,6 +56,7 @@ const initialState = {
   error: null,
   redirectUrl: null, // Untuk menyimpan snapUrl
   invoiceNumber: null,
+  bookingData: null, // Untuk menyimpan booking data seperti di fnbsSlice
   promoValidation: {
     status: "idle",
     error: null,
@@ -79,6 +80,7 @@ const bookingSlice = createSlice({
       state.error = null;
       state.redirectUrl = null;
       state.invoiceNumber = null;
+      state.bookingData = null;
     },
   },
   extraReducers: (builder) => {
@@ -93,7 +95,10 @@ const bookingSlice = createSlice({
 
         // Ensure payload is serializable - extract only the data we need
         const payload = action.payload || {};
-        ("Booking fulfilled payload:", payload);
+        console.log("Booking fulfilled payload:", payload);
+
+        // Store the full booking data (similar to fnbsSlice)
+        state.bookingData = payload;
 
         // Extract snapUrl safely
         state.redirectUrl = payload.snapUrl || payload.snap_url || null;

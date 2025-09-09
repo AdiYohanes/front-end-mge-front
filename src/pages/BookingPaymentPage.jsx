@@ -2,13 +2,17 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useLocation, useNavigate } from "react-router";
 import { useDispatch, useSelector } from "react-redux";
-import { submitBookingThunk, validatePromoThunk, clearPromoValidation } from "../features/booking/bookingSlice";
+import { submitBookingThunk, validatePromoThunk, clearPromoValidation, clearBookingState } from "../features/booking/bookingSlice";
 import BookingSummary from "../components/rent/BookingSummary";
 import publicApiClient from "../lib/publicApiClient";
 import PersonalInfoForm from "../components/rent/PersonalInfoForm";
 import ConfirmationModal from "../components/common/ConfirmationModal"; // Import modal
 import TermsModal from "../components/common/TermsModal";
 import toast from "react-hot-toast";
+
+// Constants for better readability
+const MIDTRANS_SUCCESS_STATUSES = ['settlement', 'capture', 'success', 'pending'];
+const MIDTRANS_FAILURE_STATUSES = ['cancel', 'cancelled', 'expire', 'expired', 'deny', 'denied'];
 
 const BookingPaymentPage = () => {
   const location = useLocation();
@@ -22,6 +26,9 @@ const BookingPaymentPage = () => {
     promoValidation,
     invoiceNumber,
   } = useSelector((state) => state.booking);
+
+  // Get bookingData from booking state (similar to FoodPage.jsx)
+  const bookingData = useSelector((state) => state.booking.bookingData);
   const { user } = useSelector((state) => state.auth);
   const isLoading = bookingStatus === "loading";
 
@@ -119,7 +126,69 @@ const BookingPaymentPage = () => {
     };
   }, [shouldBlock]);
 
+  // Helper function to handle Midtrans redirect - moved up to avoid hoisting issues
+  const handleMidtransRedirect = useCallback((transactionStatus, orderId) => {
+    console.log("BookingPaymentPage - Processing Midtrans redirect:", {
+      transactionStatus,
+      orderId,
+      currentUrl: window.location.href
+    });
+
+    // Disable navigation blocking for any Midtrans redirect
+    setShouldBlock(false);
+
+    if (MIDTRANS_SUCCESS_STATUSES.includes(transactionStatus.toLowerCase())) {
+      console.log("Detected Midtrans redirect with success status:", transactionStatus);
+
+      // Set session marker for successful payment
+      sessionStorage.setItem("recentBookingComplete", "true");
+
+      // Redirect to success page
+      const qs = orderId ? `?invoice_number=${encodeURIComponent(orderId)}` : "";
+      console.log("BookingPaymentPage - Redirecting to success page:", `/booking-success${qs}`);
+
+      navigate(`/booking-success${qs}`, {
+        state: {
+          paymentCompleted: true,
+          bookingDetails: bookingDetails || null
+        }
+      });
+    } else if (MIDTRANS_FAILURE_STATUSES.includes(transactionStatus.toLowerCase())) {
+      console.log("Detected Midtrans redirect with cancelled status:", transactionStatus);
+
+      navigate('/booking-cancelled', {
+        state: {
+          paymentCancelled: true,
+          transactionStatus: transactionStatus,
+          orderId: orderId
+        }
+      });
+    } else {
+      console.log("Detected Midtrans redirect with unknown status:", transactionStatus);
+
+      // For unknown status, redirect to cancelled page as fallback
+      navigate('/booking-cancelled', {
+        state: {
+          paymentCancelled: true,
+          transactionStatus: transactionStatus,
+          orderId: orderId
+        }
+      });
+    }
+  }, [navigate, bookingDetails]);
+
   useEffect(() => {
+    // Check if this is a Midtrans redirect first
+    const urlParams = new URLSearchParams(window.location.search);
+    const transactionStatus = urlParams.get('transaction_status');
+
+    if (transactionStatus && [...MIDTRANS_SUCCESS_STATUSES, ...MIDTRANS_FAILURE_STATUSES].includes(transactionStatus.toLowerCase())) {
+      console.log("BookingPaymentPage - Direct Midtrans redirect detected, redirecting immediately");
+      const orderId = urlParams.get('order_id');
+      handleMidtransRedirect(transactionStatus, orderId);
+      return;
+    }
+
     if (!initialBookingDetails) {
       console.error("Missing booking details on page load");
       console.error("Location state:", location.state);
@@ -128,23 +197,22 @@ const BookingPaymentPage = () => {
       return;
     }
 
-  }, [initialBookingDetails, navigate, location.state]);
+  }, [initialBookingDetails, navigate, location.state, handleMidtransRedirect]);
 
   // Fallback listener: if the iframe posts a success-like message, redirect to success page
   useEffect(() => {
     const handlePaymentMessage = (event) => {
       try {
         const data = event.data;
+        console.log("BookingPaymentPage - Received message:", data);
         if (!data) return;
+
         const status = data.transaction_status || data.status || data.resultType;
         const normalized = String(status || "").toLowerCase();
-        const shouldRedirect = ["settlement", "capture", "success", "pending"].includes(normalized);
-        if (shouldRedirect) {
-          // Set session marker for successful payment
-          sessionStorage.setItem("recentBookingComplete", "true");
-          // Disable blocking for successful payment navigation
-          setShouldBlock(false);
+        console.log("BookingPaymentPage - Message status:", normalized);
 
+        if (MIDTRANS_SUCCESS_STATUSES.includes(normalized)) {
+          console.log("BookingPaymentPage - Message indicates success, redirecting...");
           const qs = invoiceNumber ? `?invoice_number=${encodeURIComponent(invoiceNumber)}` : "";
           navigate(`/booking-success${qs}`, {
             state: {
@@ -153,44 +221,14 @@ const BookingPaymentPage = () => {
             }
           });
         }
-      } catch (_) {
-        // ignore parse errors
+      } catch (error) {
+        console.error("BookingPaymentPage - Error handling payment message:", error);
       }
     };
+
     window.addEventListener("message", handlePaymentMessage);
     return () => window.removeEventListener("message", handlePaymentMessage);
   }, [navigate, invoiceNumber, bookingDetails]);
-
-  // Handle redirect from external Midtrans URL (fallback)
-  useEffect(() => {
-    const handleRedirectFromMidtrans = () => {
-      // Check if we're coming back from Midtrans redirect
-      const urlParams = new URLSearchParams(window.location.search);
-      const transactionStatus = urlParams.get('transaction_status');
-      const orderId = urlParams.get('order_id');
-
-      // If we have payment success indicators in URL
-      if (transactionStatus && ['settlement', 'capture', 'success', 'pending'].includes(transactionStatus.toLowerCase())) {
-        console.log("Detected Midtrans redirect with success status:", transactionStatus);
-
-        // Set session marker for successful payment
-        sessionStorage.setItem("recentBookingComplete", "true");
-        setShouldBlock(false);
-
-        // Redirect to success page
-        const qs = orderId ? `?invoice_number=${encodeURIComponent(orderId)}` : "";
-        navigate(`/booking-success${qs}`, {
-          state: {
-            paymentCompleted: true,
-            bookingDetails: bookingDetails
-          }
-        });
-      }
-    };
-
-    // Check on component mount
-    handleRedirectFromMidtrans();
-  }, [navigate, bookingDetails]);
 
   useEffect(() => {
     // Fetch taxes and service fee for payment calculation
@@ -215,41 +253,7 @@ const BookingPaymentPage = () => {
     fetchCharges();
   }, [bookingDetails, rewardData, isOtsBooking]);
 
-  useEffect(() => {
-    if (redirectUrl) {
-      // Show redirect message first
-      toast.success("Booking submitted successfully! Redirecting to payment...");
 
-      // Redirect to Midtrans snap URL after a short delay
-      setTimeout(() => {
-        window.location.href = redirectUrl;
-      }, 1500);
-    }
-  }, [redirectUrl]);
-
-  useEffect(() => {
-    if (bookingStatus === "failed" && bookingError) {
-      console.error("Booking failed with error:", bookingError);
-      console.error("Booking status:", bookingStatus);
-      console.error("Error type:", typeof bookingError); // Debug log
-      console.error("Error stringified:", JSON.stringify(bookingError)); // Debug log
-
-      // Check for specific phone number already exists error
-      // The error message might be in different formats, so check multiple possibilities
-      const errorMessage = String(bookingError).toLowerCase();
-
-      // Check for phone number already exists error in various formats
-      if (errorMessage.includes("a user with this phone number already exists") ||
-        errorMessage.includes("phone number already exists") ||
-        errorMessage.includes("user with this phone number") ||
-        errorMessage.includes("already exists") ||
-        (errorMessage.includes("404") && errorMessage.includes("server error"))) {
-        toast.error("Nomor yang kamu gunakan telah terdaftar ! silakan login untuk booking");
-      } else {
-        toast.error(bookingError);
-      }
-    }
-  }, [bookingStatus, bookingError]);
 
   // Handle promo validation response
   useEffect(() => {
@@ -281,13 +285,13 @@ const BookingPaymentPage = () => {
     }
   }, [promoValidation]);
 
-  // Handle booking success for reward bookings and OTS bookings
+  // Handle booking success - same logic as FoodPage.jsx
   useEffect(() => {
-    if (bookingStatus === "succeeded" && invoiceNumber) {
+    if (bookingStatus === "succeeded" && bookingData?.data) {
       const userRewardId = bookingDetails?.rewardInfo?.userRewardId || rewardData?.user_reward_id;
 
+      // If there's a reward or OTS booking, don't redirect to Midtrans
       if (userRewardId || isOtsBooking) {
-        // For reward booking or OTS booking, skip Midtrans and go directly to success page
         console.log("BookingPaymentPage - Reward/OTS booking completed, skipping Midtrans");
         toast.success(isOtsBooking ? "OTS booking submitted successfully!" : "Booking submitted successfully! Your reward has been applied.");
 
@@ -303,10 +307,62 @@ const BookingPaymentPage = () => {
             bookingDetails: bookingDetails
           }
         });
+      } else {
+        // Check if snapUrl is available for direct redirect (normal booking) - same as FoodPage.jsx
+        if (bookingData.snapUrl) {
+          // Validate snapUrl before redirecting
+          const snapUrl = bookingData.snapUrl;
+          console.log("BookingPaymentPage - snapUrl received:", snapUrl);
+
+          // Check if snapUrl is a valid Midtrans URL
+          if (snapUrl.includes('midtrans') || snapUrl.includes('snap')) {
+            // Show redirect message first
+            toast.success("Booking submitted successfully! Redirecting to payment...");
+
+            // Redirect to Midtrans snap URL after a short delay
+            setTimeout(() => {
+              window.location.href = snapUrl;
+            }, 1500);
+          } else {
+            // Invalid snapUrl, use fallback
+            console.warn("Invalid snapUrl detected, using fallback success page:", snapUrl);
+            navigate(`/booking-success?invoice_number=${encodeURIComponent(invoiceNumber)}`, {
+              state: {
+                paymentCompleted: true,
+                bookingDetails: bookingDetails
+              }
+            });
+          }
+        } else {
+          // Fallback to success page with order details
+          console.warn("No snapUrl available, using fallback success page");
+          navigate(`/booking-success?invoice_number=${encodeURIComponent(invoiceNumber)}`, {
+            state: {
+              paymentCompleted: true,
+              bookingDetails: bookingDetails
+            }
+          });
+        }
       }
-      // Normal booking will be handled by existing redirectUrl useEffect
+
+      // Reset booking status
+      dispatch(clearBookingState());
+    } else if (bookingStatus === "failed" && bookingError) {
+      console.error("Booking failed with error:", bookingError);
+
+      // Handle validation errors
+      if (bookingError.errors) {
+        // Show specific validation errors
+        Object.entries(bookingError.errors).forEach(([field, messages]) => {
+          const fieldName = field === 'fnbs' ? 'Food & Drinks' : field;
+          toast.error(`${fieldName}: ${messages[0]}`);
+        });
+      } else {
+        // Show general error message
+        toast.error(bookingError?.message || "Failed to submit booking. Please try again.");
+      }
     }
-  }, [bookingStatus, invoiceNumber, bookingDetails, rewardData, isOtsBooking, navigate]);
+  }, [bookingStatus, bookingData, bookingDetails, rewardData, isOtsBooking, navigate, dispatch, bookingError, invoiceNumber]);
 
   const handleInfoChange = useCallback((e) => {
     const { name, value, type, checked } = e.target;
@@ -750,8 +806,8 @@ const BookingPaymentPage = () => {
             Proceed to Payment
           </button>
 
-          {/* Redirect Message */}
-          {redirectUrl && (
+          {/* Redirect Message - same as FoodPage.jsx */}
+          {bookingStatus === "succeeded" && bookingData?.snapUrl && (
             <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
               <p className="text-blue-800 font-medium">
                 🚀 Redirecting to payment gateway...

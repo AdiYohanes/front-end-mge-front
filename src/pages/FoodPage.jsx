@@ -600,10 +600,18 @@ const FoodPage = () => {
           // Show redirect message first
           toast.success("Order submitted successfully! Redirecting to payment...");
 
-          // Redirect to Midtrans snap URL after a short delay
-          setTimeout(() => {
-            window.location.href = bookingData.snapUrl;
-          }, 1500);
+          // COMMENTED OUT FOR TESTING - Redirect to Midtrans snap URL after a short delay
+          // setTimeout(() => {
+          //   window.location.href = bookingData.snapUrl;
+          // }, 1500);
+
+          // FOR TESTING: Redirect to success page instead of Midtrans
+          console.log("TESTING MODE: Skipping Midtrans redirect, going to success page");
+          const { invoice_number, total_price } = bookingData.data;
+          const seatingInfo = seatingType === "table" ? `Table ${tableNumber}` :
+            seatingType === "unit" ? `Unit ${availableUnits.find(unit => unit.id === parseInt(selectedUnit))?.name || selectedUnit}` :
+              "Take Away";
+          navigate(`/food-drinks/success?invoice_number=${invoice_number}&total_price=${total_price}&is_reward=false&seating=${encodeURIComponent(seatingInfo)}`);
         } else {
           // Fallback to success page with order details
           console.warn("No snapUrl available, using fallback success page");
@@ -1092,8 +1100,8 @@ const FoodPage = () => {
                   )}
                 </button>
 
-                {/* Redirect Message */}
-                {bookingStatus === "succeeded" && bookingData?.snapUrl && (
+                {/* Redirect Message - COMMENTED OUT FOR TESTING */}
+                {/* {bookingStatus === "succeeded" && bookingData?.snapUrl && (
                   <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
                     <p className="text-blue-800 font-medium">
                       🚀 Redirecting to payment gateway...
@@ -1102,7 +1110,7 @@ const FoodPage = () => {
                       Please wait while we redirect you to complete your payment.
                     </p>
                   </div>
-                )}
+                )} */}
               </div>
             </div>
           ) : (

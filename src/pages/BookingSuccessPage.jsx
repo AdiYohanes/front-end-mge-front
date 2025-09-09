@@ -18,10 +18,43 @@ const BookingSuccessPage = () => {
   const [bookingDetails, setBookingDetails] = useState(null);
   const [isRewardBooking, setIsRewardBooking] = useState(false);
   const [isOtsBooking, setIsOtsBooking] = useState(false);
+  const [, setShouldBlock] = useState(false);
 
   useEffect(() => {
     const validateAccess = () => {
-      // Allow public access - no validation required
+      // Check if this is a direct Midtrans redirect
+      const urlParams = new URLSearchParams(location.search);
+      const transactionStatus = urlParams.get('transaction_status');
+      const orderId = urlParams.get('order_id');
+      const statusCode = urlParams.get('status_code');
+
+      console.log("BookingSuccessPage - URL parameters:", {
+        transactionStatus,
+        orderId,
+        statusCode,
+        invoiceNumber,
+        currentUrl: window.location.href
+      });
+
+      // If this is a Midtrans redirect, validate the transaction status
+      if (transactionStatus) {
+        if (['settlement', 'capture', 'success', 'pending'].includes(transactionStatus.toLowerCase())) {
+          console.log("BookingSuccessPage - Valid Midtrans success redirect detected");
+          // This is a valid success redirect from Midtrans
+          setShouldBlock(false);
+        } else {
+          console.log("BookingSuccessPage - Invalid transaction status, redirecting to cancelled page");
+          // Invalid status, redirect to cancelled page
+          navigate('/booking-cancelled', {
+            state: {
+              paymentCancelled: true,
+              transactionStatus: transactionStatus,
+              orderId: orderId
+            }
+          });
+          return;
+        }
+      }
 
       // Check if this is a reward booking
       const isReward = location.state?.isReward === true;
@@ -53,7 +86,7 @@ const BookingSuccessPage = () => {
     // Small delay to ensure Redux state is loaded
     const timer = setTimeout(validateAccess, 100);
     return () => clearTimeout(timer);
-  }, [invoiceNumber, reduxInvoiceNumber, bookingStatus, location.state, navigate, dispatch]);
+  }, [invoiceNumber, reduxInvoiceNumber, bookingStatus, location.state, location.search, navigate, dispatch]);
 
   // Show loading while validating
   if (isLoading) {

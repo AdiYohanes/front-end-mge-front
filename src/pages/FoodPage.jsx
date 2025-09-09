@@ -587,39 +587,31 @@ const FoodPage = () => {
         console.log("FoodPage - Reward booking completed, skipping Midtrans");
         toast.success("Order submitted successfully! Your reward has been applied.");
 
-        // Redirect to success page with order details
-        const { invoice_number } = bookingData.data;
-        const seatingInfo = seatingType === "table" ? `Table ${tableNumber}` :
-          seatingType === "unit" ? `Unit ${availableUnits.find(unit => unit.id === parseInt(selectedUnit))?.name || selectedUnit}` :
-            "Take Away";
-        // For reward booking, total price should be 0
-        navigate(`/food-drinks/success?invoice_number=${invoice_number}&total_price=0&is_reward=true&seating=${encodeURIComponent(seatingInfo)}`);
+        // COMMENTED FOR TESTING - Redirect to success page with order details
+        // const { invoice_number } = bookingData.data;
+        // const seatingInfo = seatingType === "table" ? `Table ${tableNumber}` :
+        //   seatingType === "unit" ? `Unit ${availableUnits.find(unit => unit.id === parseInt(selectedUnit))?.name || selectedUnit}` :
+        //     "Take Away";
+        // // For reward booking, total price should be 0
+        // navigate(`/food-drinks/success?invoice_number=${invoice_number}&total_price=0&is_reward=true&seating=${encodeURIComponent(seatingInfo)}`);
       } else {
         // Check if snapUrl is available for direct redirect (normal booking)
         if (bookingData.snapUrl) {
           // Show redirect message first
           toast.success("Order submitted successfully! Redirecting to payment...");
 
-          // COMMENTED OUT FOR TESTING - Redirect to Midtrans snap URL after a short delay
-          // setTimeout(() => {
-          //   window.location.href = bookingData.snapUrl;
-          // }, 1500);
-
-          // FOR TESTING: Redirect to success page instead of Midtrans
-          console.log("TESTING MODE: Skipping Midtrans redirect, going to success page");
-          const { invoice_number, total_price } = bookingData.data;
-          const seatingInfo = seatingType === "table" ? `Table ${tableNumber}` :
-            seatingType === "unit" ? `Unit ${availableUnits.find(unit => unit.id === parseInt(selectedUnit))?.name || selectedUnit}` :
-              "Take Away";
-          navigate(`/food-drinks/success?invoice_number=${invoice_number}&total_price=${total_price}&is_reward=false&seating=${encodeURIComponent(seatingInfo)}`);
+          // Redirect to Midtrans snap URL after a short delay
+          setTimeout(() => {
+            window.location.href = bookingData.snapUrl;
+          }, 1500);
         } else {
-          // Fallback to success page with order details
-          console.warn("No snapUrl available, using fallback success page");
-          const { invoice_number, total_price } = bookingData.data;
-          const seatingInfo = seatingType === "table" ? `Table ${tableNumber}` :
-            seatingType === "unit" ? `Unit ${availableUnits.find(unit => unit.id === parseInt(selectedUnit))?.name || selectedUnit}` :
-              "Take Away";
-          navigate(`/food-drinks/success?invoice_number=${invoice_number}&total_price=${total_price}&is_reward=false&seating=${encodeURIComponent(seatingInfo)}`);
+          // COMMENTED FOR TESTING - Fallback to success page with order details
+          // console.warn("No snapUrl available, using fallback success page");
+          // const { invoice_number, total_price } = bookingData.data;
+          // const seatingInfo = seatingType === "table" ? `Table ${tableNumber}` :
+          //   seatingType === "unit" ? `Unit ${availableUnits.find(unit => unit.id === parseInt(selectedUnit))?.name || selectedUnit}` :
+          //     "Take Away";
+          // navigate(`/food-drinks/success?invoice_number=${invoice_number}&total_price=${total_price}&is_reward=false&seating=${encodeURIComponent(seatingInfo)}`);
         }
       }
 
@@ -1100,8 +1092,8 @@ const FoodPage = () => {
                   )}
                 </button>
 
-                {/* Redirect Message - COMMENTED OUT FOR TESTING */}
-                {/* {bookingStatus === "succeeded" && bookingData?.snapUrl && (
+                {/* Redirect Message */}
+                {bookingStatus === "succeeded" && bookingData?.snapUrl && (
                   <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
                     <p className="text-blue-800 font-medium">
                       🚀 Redirecting to payment gateway...
@@ -1110,7 +1102,7 @@ const FoodPage = () => {
                       Please wait while we redirect you to complete your payment.
                     </p>
                   </div>
-                )} */}
+                )}
               </div>
             </div>
           ) : (

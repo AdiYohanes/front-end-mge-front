@@ -298,15 +298,15 @@ const BookingPaymentPage = () => {
         // Disable blocking for success navigation
         setShouldBlock(false);
 
-        // Redirect to success page
-        navigate(`/booking-success?invoice_number=${encodeURIComponent(invoiceNumber)}`, {
-          state: {
-            paymentCompleted: true,
-            isReward: !!userRewardId,
-            isOts: isOtsBooking,
-            bookingDetails: bookingDetails
-          }
-        });
+        // COMMENTED FOR TESTING - Redirect to success page
+        // navigate(`/booking-success?invoice_number=${encodeURIComponent(invoiceNumber)}`, {
+        //   state: {
+        //     paymentCompleted: true,
+        //     isReward: !!userRewardId,
+        //     isOts: isOtsBooking,
+        //     bookingDetails: bookingDetails
+        //   }
+        // });
       } else {
         // Check if snapUrl is available for direct redirect (normal booking) - same as FoodPage.jsx
         if (bookingData.snapUrl) {
@@ -324,24 +324,24 @@ const BookingPaymentPage = () => {
               window.location.href = snapUrl;
             }, 1500);
           } else {
-            // Invalid snapUrl, use fallback
-            console.warn("Invalid snapUrl detected, using fallback success page:", snapUrl);
-            navigate(`/booking-success?invoice_number=${encodeURIComponent(invoiceNumber)}`, {
-              state: {
-                paymentCompleted: true,
-                bookingDetails: bookingDetails
-              }
-            });
+            // COMMENTED FOR TESTING - Invalid snapUrl, use fallback
+            // console.warn("Invalid snapUrl detected, using fallback success page:", snapUrl);
+            // navigate(`/booking-success?invoice_number=${encodeURIComponent(invoiceNumber)}`, {
+            //   state: {
+            //     paymentCompleted: true,
+            //     bookingDetails: bookingDetails
+            //   }
+            // });
           }
         } else {
-          // Fallback to success page with order details
-          console.warn("No snapUrl available, using fallback success page");
-          navigate(`/booking-success?invoice_number=${encodeURIComponent(invoiceNumber)}`, {
-            state: {
-              paymentCompleted: true,
-              bookingDetails: bookingDetails
-            }
-          });
+          // COMMENTED FOR TESTING - Fallback to success page with order details
+          // console.warn("No snapUrl available, using fallback success page");
+          // navigate(`/booking-success?invoice_number=${encodeURIComponent(invoiceNumber)}`, {
+          //   state: {
+          //     paymentCompleted: true,
+          //     bookingDetails: bookingDetails
+          //   }
+          // });
         }
       }
 

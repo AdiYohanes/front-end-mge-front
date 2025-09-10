@@ -5,7 +5,7 @@ import OtpInput from "react-otp-input";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router";
 import toast from "react-hot-toast";
-import { resendTokenThunk, verifyOTPThunk } from "../authSlice"; // Import thunk resend dan verify
+import { resendTokenThunk, verifyOTPThunk, resetStatus } from "../authSlice"; // Import thunk resend dan verify
 
 const VerificationPage = () => {
   const [otp, setOtp] = useState("");
@@ -40,6 +40,8 @@ const VerificationPage = () => {
       if (status === "succeeded" && !error && !hasShownSuccessToast) {
         setHasShownSuccessToast(true);
         toast.success("Verification successful! Please login to continue.");
+        // Reset status sebelum navigate untuk mencegah duplicate toast
+        dispatch(resetStatus());
         setTimeout(() => {
           navigate("/login");
         }, 1500);

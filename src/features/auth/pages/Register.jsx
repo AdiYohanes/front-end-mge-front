@@ -154,9 +154,10 @@ const Register = () => {
     // Jika status dari Redux adalah 'succeeded' (artinya registrasi berhasil)
     if (status === "succeeded" && apiError === null) {
       toast.success("Registration successful! Please check your WhatsApp for OTP verification.");
+      // Reset status sebelum navigate untuk mencegah duplicate toast
+      dispatch(resetStatus());
       setTimeout(() => {
         navigate("/verification"); // Arahkan user ke halaman verification
-        dispatch(resetStatus()); // Reset status agar tidak trigger ulang
       }, 1500);
     }
   }, [status, apiError, navigate]);

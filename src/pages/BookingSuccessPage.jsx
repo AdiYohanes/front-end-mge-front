@@ -12,12 +12,13 @@ const BookingSuccessPage = () => {
   const invoiceNumber = queryParams.get("invoice_number");
 
   // Get booking state from Redux
-  const { status: bookingStatus, invoiceNumber: reduxInvoiceNumber } = useSelector((state) => state.booking);
+  const { status: bookingStatus, invoiceNumber: reduxInvoiceNumber, bookingData } = useSelector((state) => state.booking);
 
   const [isLoading, setIsLoading] = useState(true);
   const [bookingDetails, setBookingDetails] = useState(null);
   const [isRewardBooking, setIsRewardBooking] = useState(false);
   const [isOtsBooking, setIsOtsBooking] = useState(false);
+  const [isGuestBooking, setIsGuestBooking] = useState(false);
   const [, setShouldBlock] = useState(false);
 
   useEffect(() => {
@@ -34,6 +35,21 @@ const BookingSuccessPage = () => {
         statusCode,
         invoiceNumber,
         currentUrl: window.location.href
+      });
+
+      console.log("BookingSuccessPage - Location state:", {
+        isReward: location.state?.isReward,
+        isOts: location.state?.isOts,
+        isGuestBooking: location.state?.isGuestBooking,
+        paymentCompleted: location.state?.paymentCompleted
+      });
+
+      console.log("BookingSuccessPage - Booking data from Redux:", {
+        bookingData: bookingData,
+        hasData: !!bookingData?.data,
+        points_earned: bookingData?.data?.points_earned,
+        total_booking_hours: bookingData?.data?.total_booking_hours,
+        points_per_hour: bookingData?.data?.unit?.points_per_hour
       });
 
       // If this is a Midtrans redirect, validate the transaction status
@@ -64,6 +80,10 @@ const BookingSuccessPage = () => {
       const isOts = location.state?.isOts === true;
       setIsOtsBooking(isOts);
 
+      // Check if this is a guest booking
+      const isGuest = location.state?.isGuestBooking === true;
+      setIsGuestBooking(isGuest);
+
       // Get booking details from location state if available
       if (location.state?.bookingDetails) {
         setBookingDetails(location.state.bookingDetails);
@@ -86,7 +106,7 @@ const BookingSuccessPage = () => {
     // Small delay to ensure Redux state is loaded
     const timer = setTimeout(validateAccess, 100);
     return () => clearTimeout(timer);
-  }, [invoiceNumber, reduxInvoiceNumber, bookingStatus, location.state, location.search, navigate, dispatch]);
+  }, [invoiceNumber, reduxInvoiceNumber, bookingStatus, bookingData, location.state, location.search, navigate, dispatch]);
 
   // Show loading while validating
   if (isLoading) {
@@ -104,16 +124,28 @@ const BookingSuccessPage = () => {
   // Use fallback invoice number if needed
   const displayInvoiceNumber = invoiceNumber || reduxInvoiceNumber || "BOOK-UNKNOWN";
 
-  // Calculate points based on booking type
+  // Calculate points based on booking type and API response
   const calculatePoints = () => {
-    if (isRewardBooking || isOtsBooking) {
-      return 0; // No points for reward bookings or OTS bookings
+    if (isRewardBooking || isOtsBooking || isGuestBooking) {
+      return 0; // No points for reward bookings, OTS bookings, or guest bookings
     }
+
+    // Use points_earned from booking API response if available
+    if (bookingData?.data?.points_earned !== undefined) {
+      console.log("BookingSuccessPage - Using points from API response:", {
+        points_earned: bookingData.data.points_earned,
+        bookingData: bookingData.data
+      });
+      return bookingData.data.points_earned;
+    }
+
+    // Fallback to bookingDetails if API data not available
     if (bookingDetails?.duration) {
-      // 1 point per hour of booking
+      // 1 point per hour of booking (fallback)
       return Math.floor(bookingDetails.duration);
     }
-    return 10; // Default fallback
+
+    return 0; // No points if no data available
   };
 
   const earnedPoints = calculatePoints();
@@ -150,8 +182,8 @@ const BookingSuccessPage = () => {
           </div>
         )}
 
-        {/* 3. Points Section - Only show for normal bookings */}
-        {!isRewardBooking && !isOtsBooking && earnedPoints > 0 && (
+        {/* 3. Points Section - Only show for normal bookings (logged in users only) */}
+        {!isRewardBooking && !isOtsBooking && !isGuestBooking && earnedPoints > 0 && (
           <div className="flex justify-center items-center gap-4 mb-8 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
             <img
               src="/images/coin.png"

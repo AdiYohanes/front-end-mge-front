@@ -150,7 +150,8 @@ const BookingPaymentPage = () => {
       navigate(`/booking-success${qs}`, {
         state: {
           paymentCompleted: true,
-          bookingDetails: bookingDetails || null
+          bookingDetails: bookingDetails || null,
+          isGuestBooking: isGuestBooking
         }
       });
     } else if (MIDTRANS_FAILURE_STATUSES.includes(transactionStatus.toLowerCase())) {
@@ -175,7 +176,7 @@ const BookingPaymentPage = () => {
         }
       });
     }
-  }, [navigate, bookingDetails]);
+  }, [navigate, bookingDetails, isGuestBooking]);
 
   useEffect(() => {
     // Check if this is a Midtrans redirect first
@@ -217,7 +218,8 @@ const BookingPaymentPage = () => {
           navigate(`/booking-success${qs}`, {
             state: {
               paymentCompleted: true,
-              bookingDetails: bookingDetails
+              bookingDetails: bookingDetails,
+              isGuestBooking: isGuestBooking
             }
           });
         }
@@ -228,7 +230,7 @@ const BookingPaymentPage = () => {
 
     window.addEventListener("message", handlePaymentMessage);
     return () => window.removeEventListener("message", handlePaymentMessage);
-  }, [navigate, invoiceNumber, bookingDetails]);
+  }, [navigate, invoiceNumber, bookingDetails, isGuestBooking]);
 
   useEffect(() => {
     // Fetch taxes and service fee for payment calculation
@@ -298,15 +300,16 @@ const BookingPaymentPage = () => {
         // Disable blocking for success navigation
         setShouldBlock(false);
 
-        // COMMENTED FOR TESTING - Redirect to success page
-        // navigate(`/booking-success?invoice_number=${encodeURIComponent(invoiceNumber)}`, {
-        //   state: {
-        //     paymentCompleted: true,
-        //     isReward: !!userRewardId,
-        //     isOts: isOtsBooking,
-        //     bookingDetails: bookingDetails
-        //   }
-        // });
+        // Redirect to success page for reward/OTS booking
+        navigate(`/booking-success?invoice_number=${encodeURIComponent(invoiceNumber)}`, {
+          state: {
+            paymentCompleted: true,
+            isReward: !!userRewardId,
+            isOts: isOtsBooking,
+            isGuestBooking: isGuestBooking,
+            bookingDetails: bookingDetails
+          }
+        });
       } else {
         // Check if snapUrl is available for direct redirect (normal booking) - same as FoodPage.jsx
         if (bookingData.snapUrl) {
@@ -362,7 +365,7 @@ const BookingPaymentPage = () => {
         toast.error(bookingError?.message || "Failed to submit booking. Please try again.");
       }
     }
-  }, [bookingStatus, bookingData, bookingDetails, rewardData, isOtsBooking, navigate, dispatch, bookingError, invoiceNumber]);
+  }, [bookingStatus, bookingData, bookingDetails, rewardData, isOtsBooking, isGuestBooking, navigate, dispatch, bookingError, invoiceNumber]);
 
   const handleInfoChange = useCallback((e) => {
     const { name, value, type, checked } = e.target;

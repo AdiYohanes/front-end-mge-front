@@ -5,7 +5,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { fetchPricelistsThunk } from "../../features/pricelists/pricelistsSlice";
 import { FaPlaystation, FaCrown } from "react-icons/fa";
 import { IoMdPeople } from "react-icons/io";
-import { SiPlaystation4, SiPlaystation5 } from "react-icons/si";
+import { SiPlaystation4, SiPlaystation5, SiNetflix } from "react-icons/si";
 import { BsNintendoSwitch } from "react-icons/bs";
 
 
@@ -65,8 +65,8 @@ const PricelistSection = forwardRef((props, ref) => {
     return match ? parseInt(match[0], 10) : null;
   };
 
-  const detectConsoleType = (label) => {
-    const name = String(label).toLowerCase();
+  const detectConsoleType = (consoleName) => {
+    const name = String(consoleName).toLowerCase();
     if (/(ps\s*5|ps5|playstation\s*5)/.test(name)) return "ps5";
     if (/(ps\s*4|ps4|playstation\s*4)/.test(name)) return "ps4";
     if (/(nintendo\s*switch|switch)/.test(name)) return "switch";
@@ -78,8 +78,10 @@ const PricelistSection = forwardRef((props, ref) => {
     const seenTypes = new Set();
 
     if (Array.isArray(consoles)) {
-      consoles.forEach((label) => {
-        const type = detectConsoleType(label);
+      consoles.forEach((console) => {
+        // Handle new structure: console is an object with {id, name}
+        const consoleName = console.name || console;
+        const type = detectConsoleType(consoleName);
         if (type && !seenTypes.has(type)) {
           seenTypes.add(type);
           if (type === "ps5") {
@@ -141,7 +143,7 @@ const PricelistSection = forwardRef((props, ref) => {
                 </div>
                 <div className="flex items-center gap-2 mt-2 text-black">
                   <IoMdPeople className="w-4 h-4" />
-                  <span className="text-sm">Kapasitas: 1-{room.max_visitors} Orang</span>
+                  <span className="text-sm">{room.max_visitors}</span>
                 </div>
               </div>
 
@@ -170,14 +172,16 @@ const PricelistSection = forwardRef((props, ref) => {
                           <span className="text-black font-medium">
                             {unit.unit_name}
                           </span>
-                          {renderConsoleIcons(unit.consoles)}
+                          <div className="flex items-center gap-2">
+                            {renderConsoleIcons(unit.consoles)}
+                            {unit.has_netflix && (
+                              <SiNetflix className="w-4 h-4 text-red-600" aria-label="Netflix" title="Netflix Available" />
+                            )}
+                          </div>
                         </div>
                         <div className="text-right">
                           <span className="text-lg font-bold text-black">
-                            {formatPrice(unit.price_per_hour)}
-                          </span>
-                          <span className="text-sm text-black ml-1">
-                            /jam
+                            {unit.price_per_hour}
                           </span>
                         </div>
                       </div>

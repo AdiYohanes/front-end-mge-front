@@ -1,18 +1,30 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate, useSearchParams } from "react-router";
+import { useNavigate, useSearchParams, useLocation } from "react-router";
 import { FaCheckCircle, FaShoppingBag, FaHome, FaHistory } from "react-icons/fa";
 
 const FoodDrinksSuccessPage = () => {
     const navigate = useNavigate();
+    const location = useLocation();
     const [searchParams] = useSearchParams();
     const [orderDetails, setOrderDetails] = useState(null);
 
     useEffect(() => {
-        // Get order details from URL params or localStorage
-        const invoiceNumber = searchParams.get('invoice_number');
-        const totalPrice = searchParams.get('total_price');
-        const isReward = searchParams.get('is_reward') === 'true';
-        const seating = searchParams.get('seating');
+        // Get order details from location state (preferred) or URL params (fallback)
+        const stateData = location.state;
+        const invoiceNumber = stateData?.invoice_number || searchParams.get('invoice_number');
+        const totalPrice = stateData?.total_price || searchParams.get('total_price');
+        const isReward = stateData?.is_reward || searchParams.get('is_reward') === 'true';
+        const seating = stateData?.seating || searchParams.get('seating');
+        const bookingData = stateData?.bookingData;
+
+        console.log("FoodDrinksSuccessPage - Data received:", {
+            stateData,
+            invoiceNumber,
+            totalPrice,
+            isReward,
+            seating,
+            bookingData
+        });
 
         if (invoiceNumber && totalPrice !== null) {
             const now = new Date();
@@ -31,10 +43,13 @@ const FoodDrinksSuccessPage = () => {
                     minute: '2-digit'
                 }),
                 paymentMethod: isReward ? '🎁 Reward Points' : '💳 Online Payment',
-                orderId: `ORD-${invoiceNumber.slice(-6)}`
+                // Use booking data from API response if available
+                fnbItems: bookingData?.fnbs || [],
+                status: bookingData?.status || 'pending',
+                notes: bookingData?.notes || 'F&B Only Order'
             });
         }
-    }, [searchParams]);
+    }, [searchParams, location.state]);
 
     const formatPrice = (price) =>
         new Intl.NumberFormat("id-ID", {
@@ -78,108 +93,106 @@ const FoodDrinksSuccessPage = () => {
                             <h2 className="font-minecraft text-2xl text-brand-gold mb-6 text-center">
                                 Order Details
                             </h2>
-                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                                {/* Left Column - Order Information */}
-                                <div className="space-y-4">
-                                    <div className="bg-gray-50 rounded-lg p-4">
-                                        <h3 className="font-semibold text-gray-900 mb-3 text-lg">Order Information</h3>
-                                        <div className="space-y-3">
-                                            <div className="flex justify-between items-center">
-                                                <span className="text-gray-600 font-medium">Order ID:</span>
-                                                <span className="font-semibold text-gray-900 font-mono text-sm">
-                                                    {orderDetails.orderId}
-                                                </span>
-                                            </div>
-                                            <div className="flex justify-between items-center">
-                                                <span className="text-gray-600 font-medium">Invoice Number:</span>
-                                                <span className="font-semibold text-gray-900 font-mono text-sm">
-                                                    {orderDetails.invoiceNumber}
-                                                </span>
-                                            </div>
-                                            <div className="flex justify-between items-center">
-                                                <span className="text-gray-600 font-medium">Order Date:</span>
-                                                <span className="font-semibold text-gray-900">
-                                                    {orderDetails.orderDate}
-                                                </span>
-                                            </div>
-                                            <div className="flex justify-between items-center">
-                                                <span className="text-gray-600 font-medium">Order Time:</span>
-                                                <span className="font-semibold text-gray-900">
-                                                    {orderDetails.orderTime}
-                                                </span>
-                                            </div>
-                                        </div>
-                                    </div>
+                            {/* Order Information Grid */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                                <div className="bg-gray-50 rounded-lg p-4 text-center">
+                                    <p className="text-gray-600 text-sm font-medium mb-1">Invoice Number</p>
+                                    <p className="font-semibold text-gray-900 font-mono text-sm">
+                                        {orderDetails.invoiceNumber}
+                                    </p>
+                                </div>
+                                <div className="bg-gray-50 rounded-lg p-4 text-center">
+                                    <p className="text-gray-600 text-sm font-medium mb-1">Order Date</p>
+                                    <p className="font-semibold text-gray-900 text-sm">
+                                        {orderDetails.orderDate}
+                                    </p>
+                                </div>
+                                <div className="bg-gray-50 rounded-lg p-4 text-center">
+                                    <p className="text-gray-600 text-sm font-medium mb-1">Payment Method</p>
+                                    <p className="font-semibold text-gray-900 text-sm">
+                                        {orderDetails.paymentMethod}
+                                    </p>
+                                </div>
+                                <div className="bg-gray-50 rounded-lg p-4 text-center">
+                                    <p className="text-gray-600 text-sm font-medium mb-1">Status</p>
+                                    <span className={`inline-block px-3 py-1 rounded-full text-xs font-medium ${orderDetails.isReward || orderDetails.status === 'success' || orderDetails.status === 'completed'
+                                            ? 'bg-green-100 text-green-700'
+                                            : orderDetails.status === 'pending'
+                                                ? 'bg-yellow-100 text-yellow-700'
+                                                : 'bg-gray-100 text-gray-700'
+                                        }`}>
+                                        {orderDetails.isReward ? 'Success' :
+                                            orderDetails.status === 'success' || orderDetails.status === 'completed' ? 'Success' :
+                                                orderDetails.status === 'pending' ? 'Pending Payment' :
+                                                    orderDetails.status || 'Pending'}
+                                    </span>
+                                </div>
+                            </div>
 
-                                    <div className="bg-gray-50 rounded-lg p-4">
-                                        <h3 className="font-semibold text-gray-900 mb-3 text-lg">Payment & Status</h3>
-                                        <div className="space-y-3">
-                                            <div className="flex justify-between items-center">
-                                                <span className="text-gray-600 font-medium">Payment Method:</span>
-                                                <span className="font-semibold text-gray-900">
-                                                    {orderDetails.paymentMethod}
-                                                </span>
-                                            </div>
-                                            <div className="flex justify-between items-center">
-                                                <span className="text-gray-600 font-medium">Status:</span>
-                                                <span className={`px-4 py-2 rounded-full text-sm font-medium ${orderDetails.isReward
-                                                    ? 'bg-green-100 text-green-700'
-                                                    : 'bg-yellow-100 text-yellow-700'
-                                                    }`}>
-                                                    {orderDetails.isReward ? 'Success' : 'Pending Payment'}
-                                                </span>
-                                            </div>
-                                        </div>
-                                    </div>
+                            {/* Order Summary */}
+                            <div className="bg-gray-50 rounded-lg p-6 mb-6">
+                                <div className="flex justify-between items-center mb-4">
+                                    <h3 className="font-semibold text-gray-900 text-lg">Order Summary</h3>
+                                    <span className="font-bold text-brand-gold text-2xl">
+                                        {formatPrice(orderDetails.totalPrice)}
+                                    </span>
                                 </div>
 
-                                {/* Right Column - Order Summary */}
-                                <div className="space-y-4">
-                                    <div className="bg-gray-50 rounded-lg p-4">
-                                        <h3 className="font-semibold text-gray-900 mb-3 text-lg">Order Summary</h3>
-                                        <div className="space-y-3">
-                                            <div className="flex justify-between items-center">
-                                                <span className="text-gray-600 font-medium">Total Amount:</span>
-                                                <span className="font-bold text-brand-gold text-xl">
-                                                    {formatPrice(orderDetails.totalPrice)}
-                                                </span>
-                                            </div>
-                                            {orderDetails.seating && (
-                                                <div className="flex justify-between items-center">
-                                                    <span className="text-gray-600 font-medium">Seating:</span>
-                                                    <span className="font-semibold text-gray-900">
-                                                        {orderDetails.seating}
-                                                    </span>
+                                {orderDetails.seating && (
+                                    <div className="flex justify-between items-center mb-2">
+                                        <span className="text-gray-600 font-medium">Seating:</span>
+                                        <span className="font-semibold text-gray-900">
+                                            {orderDetails.seating}
+                                        </span>
+                                    </div>
+                                )}
+
+                                <div className="flex justify-between items-center">
+                                    <span className="text-gray-600 font-medium">Order Type:</span>
+                                    <span className="font-semibold text-gray-900">
+                                        Food & Drinks
+                                    </span>
+                                </div>
+                            </div>
+
+                            {/* F&B Items from API Response */}
+                            <div className="bg-gray-50 rounded-lg p-6">
+                                <h3 className="font-semibold text-gray-900 mb-4 text-lg">Items Ordered</h3>
+                                {orderDetails.fnbItems && orderDetails.fnbItems.length > 0 ? (
+                                    <div className="space-y-3">
+                                        {orderDetails.fnbItems.map((item, index) => (
+                                            <div key={index} className="flex justify-between items-center p-4 bg-white rounded-lg border border-gray-200">
+                                                <div className="flex-1">
+                                                    <p className="font-semibold text-gray-900">{item.name}</p>
+                                                    <p className="text-sm text-gray-500">Quantity: {item.pivot?.quantity || 0}</p>
                                                 </div>
-                                            )}
-                                            <div className="flex justify-between items-center">
-                                                <span className="text-gray-600 font-medium">Order Type:</span>
-                                                <span className="font-semibold text-gray-900">
-                                                    Food & Drinks
-                                                </span>
+                                                <div className="text-right">
+                                                    <p className="font-semibold text-brand-gold text-lg">
+                                                        {formatPrice(parseFloat(item.pivot?.price || item.price) * (item.pivot?.quantity || 0))}
+                                                    </p>
+                                                    <p className="text-sm text-gray-500">
+                                                        {formatPrice(parseFloat(item.pivot?.price || item.price))} each
+                                                    </p>
+                                                </div>
                                             </div>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <div className="space-y-3">
+                                        <div className="flex items-center gap-3 text-gray-600">
+                                            <span className="w-2 h-2 bg-brand-gold rounded-full"></span>
+                                            <span>Food & Drinks items will be prepared</span>
+                                        </div>
+                                        <div className="flex items-center gap-3 text-gray-600">
+                                            <span className="w-2 h-2 bg-brand-gold rounded-full"></span>
+                                            <span>Fresh ingredients and quality service</span>
+                                        </div>
+                                        <div className="flex items-center gap-3 text-gray-600">
+                                            <span className="w-2 h-2 bg-brand-gold rounded-full"></span>
+                                            <span>Estimated preparation time: 15-30 minutes</span>
                                         </div>
                                     </div>
-
-                                    {/* F&B Items Preview */}
-                                    <div className="bg-gray-50 rounded-lg p-4">
-                                        <h3 className="font-semibold text-gray-900 mb-3 text-lg">Items Ordered</h3>
-                                        <div className="space-y-2">
-                                            <div className="flex items-center gap-2 text-sm text-gray-600">
-                                                <span className="w-2 h-2 bg-brand-gold rounded-full"></span>
-                                                <span>Food & Drinks items will be prepared</span>
-                                            </div>
-                                            <div className="flex items-center gap-2 text-sm text-gray-600">
-                                                <span className="w-2 h-2 bg-brand-gold rounded-full"></span>
-                                                <span>Fresh ingredients and quality service</span>
-                                            </div>
-                                            <div className="flex items-center gap-2 text-sm text-gray-600">
-                                                <span className="w-2 h-2 bg-brand-gold rounded-full"></span>
-                                                <span>Estimated preparation time: 15-30 minutes</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
+                                )}
                             </div>
                         </div>
                     )}
@@ -309,12 +322,6 @@ const FoodDrinksSuccessPage = () => {
                                 <div className="space-y-2">
                                     <p className="text-gray-600">
                                         <span className="font-medium">Keep this page safe</span> for your records
-                                    </p>
-                                    <p className="text-gray-600">
-                                        <span className="font-medium">Order ID:</span>{" "}
-                                        <span className="font-mono text-brand-gold font-semibold">
-                                            {orderDetails?.orderId || 'N/A'}
-                                        </span>
                                     </p>
                                     <p className="text-gray-600">
                                         <span className="font-medium">Invoice:</span>{" "}

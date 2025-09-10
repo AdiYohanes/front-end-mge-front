@@ -587,13 +587,21 @@ const FoodPage = () => {
         console.log("FoodPage - Reward booking completed, skipping Midtrans");
         toast.success("Order submitted successfully! Your reward has been applied.");
 
-        // COMMENTED FOR TESTING - Redirect to success page with order details
-        // const { invoice_number } = bookingData.data;
-        // const seatingInfo = seatingType === "table" ? `Table ${tableNumber}` :
-        //   seatingType === "unit" ? `Unit ${availableUnits.find(unit => unit.id === parseInt(selectedUnit))?.name || selectedUnit}` :
-        //     "Take Away";
-        // // For reward booking, total price should be 0
-        // navigate(`/food-drinks/success?invoice_number=${invoice_number}&total_price=0&is_reward=true&seating=${encodeURIComponent(seatingInfo)}`);
+        // Redirect to success page with order details for reward booking
+        const { invoice_number } = bookingData.data;
+        const seatingInfo = seatingType === "table" ? `Table ${tableNumber}` :
+          seatingType === "unit" ? `Unit ${availableUnits.find(unit => unit.id === parseInt(selectedUnit))?.name || selectedUnit}` :
+            "Take Away";
+        // For reward booking, total price should be 0
+        navigate(`/food-drinks/success`, {
+          state: {
+            invoice_number: invoice_number,
+            total_price: 0,
+            is_reward: true,
+            seating: seatingInfo,
+            bookingData: bookingData.data
+          }
+        });
       } else {
         // Check if snapUrl is available for direct redirect (normal booking)
         if (bookingData.snapUrl) {
@@ -605,13 +613,21 @@ const FoodPage = () => {
             window.location.href = bookingData.snapUrl;
           }, 1500);
         } else {
-          // COMMENTED FOR TESTING - Fallback to success page with order details
-          // console.warn("No snapUrl available, using fallback success page");
-          // const { invoice_number, total_price } = bookingData.data;
-          // const seatingInfo = seatingType === "table" ? `Table ${tableNumber}` :
-          //   seatingType === "unit" ? `Unit ${availableUnits.find(unit => unit.id === parseInt(selectedUnit))?.name || selectedUnit}` :
-          //     "Take Away";
-          // navigate(`/food-drinks/success?invoice_number=${invoice_number}&total_price=${total_price}&is_reward=false&seating=${encodeURIComponent(seatingInfo)}`);
+          // Fallback to success page with order details
+          console.warn("No snapUrl available, using fallback success page");
+          const { invoice_number, total_price } = bookingData.data;
+          const seatingInfo = seatingType === "table" ? `Table ${tableNumber}` :
+            seatingType === "unit" ? `Unit ${availableUnits.find(unit => unit.id === parseInt(selectedUnit))?.name || selectedUnit}` :
+              "Take Away";
+          navigate(`/food-drinks/success`, {
+            state: {
+              invoice_number: invoice_number,
+              total_price: total_price,
+              is_reward: false,
+              seating: seatingInfo,
+              bookingData: bookingData.data
+            }
+          });
         }
       }
 

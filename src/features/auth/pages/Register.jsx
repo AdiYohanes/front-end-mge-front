@@ -245,7 +245,7 @@ const Register = () => {
               placeholder="ex: 081234567890"
               className={`input input-sm input-bordered w-full ${errors.phoneNumber || apiErrors.phoneNumber ? "input-error" : ""}`}
               value={phoneNumber}
-              onChange={(e) => handleInputChange("phoneNumber", e.target.value.slice(0, 14), setPhoneNumber)}
+              onChange={(e) => handleInputChange("phoneNumber", e.target.value.replace(/[^0-9]/g, '').slice(0, 14), setPhoneNumber)}
               maxLength={14}
               disabled={isLoading}
               aria-label="Phone Number"

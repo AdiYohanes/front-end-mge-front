@@ -34,6 +34,7 @@ const FoodPage = () => {
   const [showPersonalInfo, setShowPersonalInfo] = useState(false);
   const [showBookingSummary, setShowBookingSummary] = useState(true);
   const [useLoginInfo, setUseLoginInfo] = useState(false);
+  const [hasManuallyToggled, setHasManuallyToggled] = useState(false);
   const [personalInfoData, setPersonalInfoData] = useState({
     fullName: "",
     phoneNumber: "",
@@ -149,9 +150,19 @@ const FoodPage = () => {
     }
   }, [dispatch, status]);
 
-  // Auto-fill personal info for logged-in users
+  // Auto-fill personal info for logged-in users (only on initial load)
   useEffect(() => {
-    if (user && !personalInfoData.fullName && !personalInfoData.phoneNumber) {
+    console.log("FoodPage - Auto-fill useEffect triggered:", {
+      user: !!user,
+      hasFullName: !!personalInfoData.fullName,
+      hasPhoneNumber: !!personalInfoData.phoneNumber,
+      useLoginInfo,
+      hasManuallyToggled,
+      shouldAutoFill: user && !personalInfoData.fullName && !personalInfoData.phoneNumber && !useLoginInfo && !hasManuallyToggled
+    });
+
+    if (user && !personalInfoData.fullName && !personalInfoData.phoneNumber && !useLoginInfo && !hasManuallyToggled) {
+      console.log("FoodPage - Auto-filling personal info");
       setPersonalInfoData({
         fullName: user.name || "",
         phoneNumber: user.phone || "",
@@ -160,7 +171,7 @@ const FoodPage = () => {
       });
       setUseLoginInfo(true);
     }
-  }, [user, personalInfoData.fullName, personalInfoData.phoneNumber]);
+  }, [user, personalInfoData.fullName, personalInfoData.phoneNumber, useLoginInfo, hasManuallyToggled]);
 
   // Handle reward data from redirect
   useEffect(() => {
@@ -390,9 +401,41 @@ const FoodPage = () => {
   }, []);
 
   // Handler untuk use login info change
-  const handleUseLoginInfoChange = useCallback((checked) => {
+  const handleUseLoginInfoChange = (checked) => {
+    console.log("FoodPage - handleUseLoginInfoChange called:", {
+      checked,
+      user: !!user,
+      currentUseLoginInfo: useLoginInfo,
+      currentPersonalInfo: personalInfoData
+    });
+
+    // Mark that user has manually toggled
+    setHasManuallyToggled(true);
+
+    // Update state immediately
     setUseLoginInfo(checked);
-  }, []);
+
+    // Use setTimeout to ensure state update is processed
+    setTimeout(() => {
+      // Jika uncheck, clear personal info data
+      if (!checked) {
+        console.log("FoodPage - Unchecking, clearing personal info");
+        setPersonalInfoData(prev => ({
+          ...prev,
+          fullName: "",
+          phoneNumber: "",
+        }));
+      } else if (user) {
+        console.log("FoodPage - Checking, filling with user data:", { name: user.name, phone: user.phone });
+        // Jika check dan user ada, isi dengan data user
+        setPersonalInfoData(prev => ({
+          ...prev,
+          fullName: user.name || "",
+          phoneNumber: user.phone || "",
+        }));
+      }
+    }, 0);
+  };
 
   // Handler untuk seating type change
   const handleSeatingTypeChange = (type) => {
@@ -831,6 +874,7 @@ const FoodPage = () => {
                     onFormChange={handlePersonalInfoChange}
                     useLoginInfo={useLoginInfo}
                     onUseLoginInfoChange={handleUseLoginInfoChange}
+                    isGuestBooking={!user}
                   />
 
                   {/* Seating Section */}

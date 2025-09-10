@@ -16,18 +16,19 @@ const PersonalInfoForm = ({
   const { user } = useSelector((state) => state.auth);
   const [showTermsModal, setShowTermsModal] = useState(false);
 
-  useEffect(() => {
-    // Gunakan onFormChange untuk memperbarui state di induk
-    if (useLoginInfo && user) {
-      onFormChange({ target: { name: "fullName", value: user.name || "" } });
-      onFormChange({
-        target: { name: "phoneNumber", value: user.phone || "" },
-      });
-    } else if (!useLoginInfo) {
-      onFormChange({ target: { name: "fullName", value: "" } });
-      onFormChange({ target: { name: "phoneNumber", value: "" } });
-    }
-  }, [useLoginInfo, user, onFormChange]);
+  // Removed automatic form data update - now handled by parent component
+  // useEffect(() => {
+  //   // Gunakan onFormChange untuk memperbarui state di induk
+  //   if (useLoginInfo && user) {
+  //     onFormChange({ target: { name: "fullName", value: user.name || "" } });
+  //     onFormChange({
+  //       target: { name: "phoneNumber", value: user.phone || "" },
+  //     });
+  //   } else if (!useLoginInfo) {
+  //     onFormChange({ target: { name: "fullName", value: "" } });
+  //     onFormChange({ target: { name: "phoneNumber", value: "" } });
+  //   }
+  // }, [useLoginInfo, user, onFormChange]);
 
   // Handler untuk Terms Modal
   const handleTermsAccept = () => {
@@ -62,7 +63,10 @@ const PersonalInfoForm = ({
                 : "text-gray-400 focus:ring-gray-300"
                 }`}
               checked={useLoginInfo}
-              onChange={(e) => onUseLoginInfoChange(e.target.checked)}
+              onChange={(e) => {
+                console.log("PersonalInfoForm - Checkbox onChange:", { checked: e.target.checked, user: !!user });
+                onUseLoginInfoChange(e.target.checked);
+              }}
               disabled={!user}
             />
             <div>
@@ -90,14 +94,18 @@ const PersonalInfoForm = ({
             Full Name *
           </label>
           <div className="relative">
-            <FaUser className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm" />
+            <FaUser className={`absolute left-3 top-1/2 -translate-y-1/2 text-sm ${useLoginInfo ? 'text-gray-300' : 'text-gray-400'}`} />
             <input
               type="text"
               name="fullName"
               value={formData.fullName}
               onChange={onFormChange}
-              className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-brand-gold focus:border-brand-gold outline-none text-black placeholder:text-gray-500"
-              placeholder="Enter your full name"
+              disabled={useLoginInfo}
+              className={`w-full pl-10 pr-4 py-2.5 border rounded-md text-sm outline-none ${useLoginInfo
+                ? 'border-gray-200 bg-gray-50 text-gray-500 cursor-not-allowed'
+                : 'border-gray-300 focus:ring-2 focus:ring-brand-gold focus:border-brand-gold text-black'
+                } placeholder:text-gray-500`}
+              placeholder={useLoginInfo ? "Using account information" : "Enter your full name"}
               required
             />
           </div>
@@ -109,14 +117,23 @@ const PersonalInfoForm = ({
             Phone Number *
           </label>
           <div className="relative">
-            <FaPhone className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm" />
+            <FaPhone className={`absolute left-3 top-1/2 -translate-y-1/2 text-sm ${useLoginInfo ? 'text-gray-300' : 'text-gray-400'}`} />
             <input
               type="tel"
               name="phoneNumber"
               value={formData.phoneNumber}
-              onChange={onFormChange}
-              className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-brand-gold focus:border-brand-gold outline-none text-black placeholder:text-gray-500"
-              placeholder="Enter your phone number"
+              onChange={(e) => {
+                // Only allow numbers and limit to 14 characters
+                const value = e.target.value.replace(/[^0-9]/g, '').slice(0, 14);
+                onFormChange({ target: { name: 'phoneNumber', value } });
+              }}
+              disabled={useLoginInfo}
+              className={`w-full pl-10 pr-4 py-2.5 border rounded-md text-sm outline-none ${useLoginInfo
+                ? 'border-gray-200 bg-gray-50 text-gray-500 cursor-not-allowed'
+                : 'border-gray-300 focus:ring-2 focus:ring-brand-gold focus:border-brand-gold text-black'
+                } placeholder:text-gray-500`}
+              placeholder={useLoginInfo ? "Using account information" : "Enter your phone number (numbers only)"}
+              maxLength={14}
               required
             />
           </div>

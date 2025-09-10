@@ -35,7 +35,7 @@ const ForgotPassword = () => {
         setIsSuccess(true);
       })
       // Error akan ditangani oleh useEffect di bawah
-      .catch(() => {});
+      .catch(() => { });
   };
 
   useEffect(() => {
@@ -89,11 +89,11 @@ const ForgotPassword = () => {
               id="phone"
               type="tel"
               placeholder="e.g., 081234567890"
-              className={`input input-bordered w-full pl-10 ${
-                errors.phone ? "input-error" : ""
-              }`}
+              className={`input input-bordered w-full pl-10 ${errors.phone ? "input-error" : ""
+                }`}
               value={phone}
-              onChange={(e) => setPhone(e.target.value)}
+              onChange={(e) => setPhone(e.target.value.replace(/[^0-9]/g, '').slice(0, 14))}
+              maxLength={14}
               disabled={isLoading}
             />
             <MdPhone className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
@@ -105,9 +105,8 @@ const ForgotPassword = () => {
         <div className="form-control mt-6">
           <button
             type="submit"
-            className={`btn bg-brand-gold text-white w-full ${
-              isLoading ? "loading" : ""
-            }`}
+            className={`btn bg-brand-gold text-white w-full ${isLoading ? "loading" : ""
+              }`}
             disabled={isLoading}
           >
             {isLoading ? "Sending..." : "Send Verification Code"}

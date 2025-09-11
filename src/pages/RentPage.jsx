@@ -604,10 +604,9 @@ const RentPage = () => {
 
               {/* Full Booking Summary Content */}
               <div className="p-6 pt-0">
-                <div className="grid grid-cols-4 gap-4 text-sm font-semibold text-black mb-2">
+                <div className="grid grid-cols-3 gap-4 text-sm font-semibold text-black mb-2">
                   <span>Type</span>
                   <span>Description</span>
-                  <span className="text-center">Quantity</span>
                   <span className="text-right">Total</span>
                 </div>
                 <div className="border-t border-gray-200 pb-2"></div>
@@ -633,49 +632,59 @@ const RentPage = () => {
                       return total + parseInt(item.price, 10) * item.quantity;
                     }, 0);
 
+                    // Calculate unit total price (unit price * duration)
+                    const unitTotalPrice = bookingDetails.psUnit && bookingDetails.duration
+                      ? bookingDetails.unitPrice * bookingDetails.duration
+                      : 0;
+
                     const summaryItems = [
                       {
                         label: "Console",
                         value: bookingDetails.console,
-                        quantity: bookingDetails.console ? 1 : "-",
                       },
                       {
                         label: "Room Type",
                         value: bookingDetails.roomType?.name,
-                        quantity: bookingDetails.roomType ? 1 : "-",
                       },
                       {
                         label: "PS Unit",
                         value: bookingDetails.psUnit?.name,
-                        quantity: bookingDetails.psUnit ? 1 : "-",
                         total: bookingDetails.psUnit ? new Intl.NumberFormat("id-ID", {
                           style: "currency",
                           currency: "IDR",
                           minimumFractionDigits: 0,
-                        }).format(bookingDetails.unitPrice).replace(/\s/g, "") : "-",
+                        }).format(bookingDetails.unitPrice).replace(/\s/g, "") + "/jam" : "-",
                       },
                       {
                         label: "Game",
                         value: bookingDetails.selectedGames[0]?.title,
-                        quantity: bookingDetails.selectedGames.length > 0 ? bookingDetails.selectedGames.length : "-",
                       },
-                      { label: "Date", value: formattedDate, quantity: "-" },
+                      {
+                        label: "Date",
+                        value: formattedDate,
+                      },
                       {
                         label: "Start Time",
                         value: bookingDetails.startTime,
-                        quantity: bookingDetails.startTime ? 1 : "-",
                       },
                       {
                         label: "Duration",
                         value: bookingDetails.duration ? `${bookingDetails.duration} Hour(s)` : null,
-                        quantity: "-",
+                      },
+                      {
+                        label: "Unit Total",
+                        value: bookingDetails.psUnit && bookingDetails.duration
+                          ? `${bookingDetails.unitPrice.toLocaleString('id-ID')} × ${bookingDetails.duration} jam`
+                          : null,
+                        total: unitTotalPrice > 0 ? new Intl.NumberFormat("id-ID", {
+                          style: "currency",
+                          currency: "IDR",
+                          minimumFractionDigits: 0,
+                        }).format(unitTotalPrice).replace(/\s/g, "") : "-",
                       },
                       {
                         label: "Food & Drinks",
                         value: fnbValue,
-                        quantity: bookingDetails.foodAndDrinks?.length > 0
-                          ? bookingDetails.foodAndDrinks.reduce((acc, item) => acc + item.quantity, 0)
-                          : "-",
                         total: fnbTotal > 0 ? new Intl.NumberFormat("id-ID", {
                           style: "currency",
                           currency: "IDR",
@@ -687,13 +696,12 @@ const RentPage = () => {
                     return summaryItems.map((item) => (
                       <div
                         key={item.label}
-                        className="grid grid-cols-4 gap-4 items-center text-sm"
+                        className="grid grid-cols-3 gap-4 items-center text-sm"
                       >
                         <span className="font-bold text-black">{item.label}</span>
                         <span className="text-black break-words">
                           {item.value || "-"}
                         </span>
-                        <span className="text-center text-black">{item.quantity}</span>
                         <span className="text-right font-semibold text-black">
                           {item.total || "-"}
                         </span>

@@ -625,9 +625,6 @@ const RentPage = () => {
                       ? bookingDetails.foodAndDrinks
                       : [];
 
-                    const fnbTotal = bookingDetails.foodAndDrinks?.reduce((total, item) => {
-                      return total + parseInt(item.price, 10) * item.quantity;
-                    }, 0);
 
                     // Calculate unit total price (unit price * duration)
                     const unitTotalPrice = bookingDetails.psUnit && bookingDetails.duration
@@ -673,33 +670,22 @@ const RentPage = () => {
                           minimumFractionDigits: 0,
                         }).format(unitTotalPrice).replace(/\s/g, "") : "-",
                       },
-                      {
+                      ...(fnbItems.length > 0 ? fnbItems.map((item, index) => {
+                        const itemTotal = parseInt(item.price, 10) * item.quantity;
+                        return {
+                          label: index === 0 ? "Food & Drinks" : "",
+                          value: `${item.name} (x${item.quantity})`,
+                          total: new Intl.NumberFormat("id-ID", {
+                            style: "currency",
+                            currency: "IDR",
+                            minimumFractionDigits: 0,
+                          }).format(itemTotal).replace(/\s/g, ""),
+                        };
+                      }) : [{
                         label: "Food & Drinks",
-                        value: fnbItems.length > 0 ? (
-                          <ul className="list-disc list-inside space-y-1">
-                            {fnbItems.map((item, index) => {
-                              const itemTotal = parseInt(item.price, 10) * item.quantity;
-                              return (
-                                <li key={index} className="text-sm flex justify-between items-center">
-                                  <span>{item.name} (x{item.quantity})</span>
-                                  <span className="font-semibold text-black ml-2">
-                                    {new Intl.NumberFormat("id-ID", {
-                                      style: "currency",
-                                      currency: "IDR",
-                                      minimumFractionDigits: 0,
-                                    }).format(itemTotal).replace(/\s/g, "")}
-                                  </span>
-                                </li>
-                              );
-                            })}
-                          </ul>
-                        ) : null,
-                        total: fnbTotal > 0 ? new Intl.NumberFormat("id-ID", {
-                          style: "currency",
-                          currency: "IDR",
-                          minimumFractionDigits: 0,
-                        }).format(fnbTotal).replace(/\s/g, "") : "-",
-                      },
+                        value: null,
+                        total: "-",
+                      }]),
                     ];
 
                     return summaryItems.map((item) => (

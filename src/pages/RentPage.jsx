@@ -642,12 +642,12 @@ const RentPage = () => {
                       },
                       {
                         label: "PS Unit",
-                        value: bookingDetails.psUnit?.name,
-                        total: bookingDetails.psUnit ? new Intl.NumberFormat("id-ID", {
+                        value: bookingDetails.psUnit ? `${bookingDetails.psUnit.name} (${new Intl.NumberFormat("id-ID", {
                           style: "currency",
                           currency: "IDR",
                           minimumFractionDigits: 0,
-                        }).format(bookingDetails.unitPrice).replace(/\s/g, "") + "/jam" : "-",
+                        }).format(bookingDetails.unitPrice).replace(/\s/g, "")}/jam)` : "-",
+                        total: "-",
                       },
                       {
                         label: "Game",

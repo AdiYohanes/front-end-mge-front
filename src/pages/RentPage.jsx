@@ -670,12 +670,6 @@ const RentPage = () => {
                       {
                         label: "Duration",
                         value: bookingDetails.duration ? `${bookingDetails.duration} Hour(s)` : null,
-                      },
-                      {
-                        label: "Unit Total",
-                        value: bookingDetails.psUnit && bookingDetails.duration
-                          ? `${bookingDetails.unitPrice.toLocaleString('id-ID')} × ${bookingDetails.duration} jam`
-                          : null,
                         total: unitTotalPrice > 0 ? new Intl.NumberFormat("id-ID", {
                           style: "currency",
                           currency: "IDR",

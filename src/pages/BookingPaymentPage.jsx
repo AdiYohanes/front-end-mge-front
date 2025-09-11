@@ -742,14 +742,6 @@ const BookingPaymentPage = () => {
               onUseLoginInfoChange={setUseLoginInfo}
               isGuestBooking={isGuestBooking}
             />
-
-            {/* Debug Info */}
-            <div className="mb-4 p-3 bg-yellow-100 border border-yellow-300 rounded-lg">
-              <p className="text-sm text-yellow-800">
-                Debug: isOtsBooking = {String(isOtsBooking)}, user role = {user?.role}
-              </p>
-            </div>
-
             {/* Payment Method - Only show for OTS booking */}
             {isOtsBooking && (
               <div className="flex flex-col space-y-2">

@@ -45,31 +45,35 @@ const HeroSlider = ({ onPricelistClick }) => {
 
       {/* Konten teks dan tombol di tengah */}
       <div className="relative z-10 h-full flex flex-col items-center justify-center text-center text-white px-4 py-8 sm:px-6 lg:px-8">
-        <h1 className="font-minecraft text-shadow-lg mb-4 sm:mb-6 md:mb-8 lg:mb-10 leading-[0.9]">
-          <span className="block text-6xl sm:text-7xl md:text-8xl lg:text-9xl xl:text-[180px]">
-            Medan Gaming
-          </span>
-          <span className="block text-6xl sm:text-7xl md:text-8xl lg:text-9xl xl:text-[180px]">
-            Ecosystem
-          </span>
-        </h1>
+        {/* Title Section - Perfectly Centered */}
+        <div className="flex flex-col items-center justify-center mb-6 sm:mb-8 md:mb-10 lg:mb-12">
+          <h1 className="font-minecraft text-shadow-lg leading-[0.9] text-center">
+            <span className="block text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl 2xl:text-[180px]">
+              Medan Gaming
+            </span>
+            <span className="block text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl 2xl:text-[180px]">
+              Ecosystem
+            </span>
+          </h1>
+        </div>
 
-        <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 lg:gap-6 mt-2 sm:mt-4 lg:mt-6 w-full max-w-xs sm:max-w-lg lg:max-w-xl">
+        {/* Buttons Section - Perfectly Centered with Identical Sizes */}
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 lg:gap-6 w-full max-w-sm sm:max-w-md lg:max-w-lg">
           {/* Pricelist Button */}
           <button
             onClick={onPricelistClick}
-            className="flex items-center justify-center text-xs sm:text-base lg:text-xl px-3 sm:px-6 lg:px-8 py-2 sm:py-4 bg-brand-gold text-white font-funnel tracking-wider hover:bg-white hover:text-black border-none transition-all duration-300 transform hover:scale-105 shadow-lg rounded-lg"
+            className="w-[160px] sm:w-[180px] lg:w-[200px] flex items-center justify-center text-sm sm:text-base lg:text-lg xl:text-xl px-6 py-3 sm:px-8 sm:py-4 lg:px-10 lg:py-5 bg-brand-gold text-white font-funnel tracking-wider hover:bg-white hover:text-black border-none transition-all duration-300 transform hover:scale-105 shadow-lg rounded-lg"
           >
-            <FaRegMoneyBillAlt className="mr-1 sm:mr-3 h-3 w-3 sm:h-5 sm:w-5 lg:h-6 lg:w-6" />
+            <FaRegMoneyBillAlt className="mr-2 sm:mr-3 h-4 w-4 sm:h-5 sm:w-5 lg:h-6 lg:w-6" />
             <span className="whitespace-nowrap">Pricelist</span>
           </button>
 
           {/* Book a Room Button */}
           <Link
             to="/rent"
-            className="flex items-center justify-center text-xs sm:text-base lg:text-xl px-3 sm:px-6 lg:px-8 py-2 sm:py-4 bg-brand-gold text-white font-funnel tracking-wider hover:bg-white hover:text-black border-none transition-all duration-300 transform hover:scale-105 shadow-lg rounded-lg"
+            className="w-[160px] sm:w-[180px] lg:w-[200px] flex items-center justify-center text-sm sm:text-base lg:text-lg xl:text-xl px-6 py-3 sm:px-8 sm:py-4 lg:px-10 lg:py-5 bg-brand-gold text-white font-funnel tracking-wider hover:bg-white hover:text-black border-none transition-all duration-300 transform hover:scale-105 shadow-lg rounded-lg"
           >
-            <MdPhoneAndroid className="mr-1 sm:mr-3 h-3 w-3 sm:h-5 sm:w-5 lg:h-6 lg:w-6" />
+            <MdPhoneAndroid className="mr-2 sm:mr-3 h-4 w-4 sm:h-5 sm:w-5 lg:h-6 lg:w-6" />
             <span className="whitespace-nowrap">Book a Room</span>
           </Link>
         </div>

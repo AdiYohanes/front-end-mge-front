@@ -136,7 +136,7 @@ const bookingSlice = createSlice({
           // No promo codes found - treat as failed
           state.promoValidation.status = "failed";
           state.promoValidation.promoData = null;
-          state.promoValidation.error = "Kode promo tidak lagi tersedia";
+          state.promoValidation.error = "Promo yang Anda masukan tidak ditemukan";
         }
       })
       .addCase(validatePromoThunk.rejected, (state, action) => {

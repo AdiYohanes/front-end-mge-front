@@ -54,6 +54,18 @@ const BookingPaymentPage = () => {
     console.log("BookingPaymentPage - user role:", user?.role);
     console.log("BookingPaymentPage - paymentMethod:", paymentMethod);
   }, [isOtsBooking, location.state, user, paymentMethod]);
+
+  // Populate personal info from user data when user is logged in
+  useEffect(() => {
+    if (user && !isOtsBooking) {
+      setPersonalInfo(prev => ({
+        ...prev,
+        fullName: user.name || user.full_name || "",
+        phoneNumber: user.phone || user.phone_number || "",
+        agreed: true, // Auto-agree for logged-in users
+      }));
+    }
+  }, [user, isOtsBooking]);
   const [useLoginInfo, setUseLoginInfo] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false); // State untuk modal
   const [showTermsModal, setShowTermsModal] = useState(false); // State untuk terms modal
@@ -277,12 +289,11 @@ const BookingPaymentPage = () => {
         });
         toast.success(`Voucher "${promo.promo_code}" applied! ${promo.percentage}% discount`);
       } else {
-        // Show toast for inactive promo code
-        toast.error("Oops! Promo ini sudah tidak berlaku! Nantikan promo menarik dari kami.");
+        // Inactive promo code - no message shown
       }
     } else if (promoValidation.status === "failed") {
       // Show modal for promo code not found or API error
-      setPromoModalMessage(promoValidation.error || "Kode promo tidak lagi tersedia");
+      setPromoModalMessage(promoValidation.error || "Promo yang Anda masukan tidak ditemukan");
       setShowPromoModal(true);
     }
   }, [promoValidation]);
@@ -420,7 +431,8 @@ const BookingPaymentPage = () => {
     // For reward booking with logged in user, skip personal info validation
     // For OTS booking, always require personal info (customer info)
     // For guest users (reward or normal), require personal info
-    if ((!userRewardId || !user) && !isOtsBooking) {
+    // For logged-in users making normal bookings, skip personal info validation
+    if (!user && !isOtsBooking) {
       if (!personalInfo.agreed) {
         toast.error("You must agree to the Terms & Conditions first.");
         return;
@@ -447,8 +459,8 @@ const BookingPaymentPage = () => {
     const userRewardId = bookingDetails?.rewardInfo?.userRewardId || rewardData?.user_reward_id;
 
     // Validate customer data before submitting
-    // Skip for logged in user with reward, but require for OTS booking
-    if ((!userRewardId || !user) && !isOtsBooking && (!personalInfo.fullName || !personalInfo.phoneNumber)) {
+    // Skip for logged in user, but require for OTS booking and guest users
+    if (!user && !isOtsBooking && (!personalInfo.fullName || !personalInfo.phoneNumber)) {
       toast.error("Name and phone number are required");
       return;
     }
@@ -515,9 +527,9 @@ const BookingPaymentPage = () => {
       ...bookingDetails,
       notes: document.getElementById("booking-notes")?.value || "",
       customer: {
-        fullName: personalInfo.fullName.trim(),
-        email: "", // Empty email since it's not required
-        phone: personalInfo.phoneNumber.trim(),
+        fullName: user ? (user.name || user.full_name || "") : personalInfo.fullName.trim(),
+        email: user ? (user.email || "") : "", // Use user email if available
+        phone: user ? (user.phone || user.phone_number || "") : personalInfo.phoneNumber.trim(),
       },
     };
 

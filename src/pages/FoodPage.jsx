@@ -324,7 +324,7 @@ const FoodPage = () => {
         toast.error("Oops! Promo ini sudah tidak berlaku! Nantikan promo menarik dari kami.");
       }
     } else if (promoValidation.status === "failed") {
-      toast.error(promoValidation.error || "Kode promo tidak lagi tersedia");
+      toast.error(promoValidation.error || "Promo yang Anda masukan tidak ditemukan");
     }
   }, [promoValidation, selections]);
 

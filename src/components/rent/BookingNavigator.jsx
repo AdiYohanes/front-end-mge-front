@@ -121,56 +121,111 @@ const BookingNavigator = ({ currentStep, onStepClick, bookingDetails }) => {
 
   return (
     <div className="w-full max-w-3xl mt-8">
-      <div className="flex border-b-2 border-base-200">
-        {visibleSteps.map((step, index) => {
-          const isActive = currentStep === step.id;
-          const isCompleted = isStepCompleted(step.id);
-          const isAccessible = isStepAccessible(step.id);
-          const isDisabled = !isAccessible && !isActive;
+      {/* Mobile: Vertical layout */}
+      <div className="block sm:hidden">
+        <div className="space-y-2">
+          {visibleSteps.map((step, index) => {
+            const isActive = currentStep === step.id;
+            const isCompleted = isStepCompleted(step.id);
+            const isAccessible = isStepAccessible(step.id);
+            const isDisabled = !isAccessible && !isActive;
 
-          return (
-            <button
-              key={step.id}
-              onClick={() => isAccessible && onStepClick(step.id)}
-              disabled={isDisabled}
-              className={`flex-1 p-2 sm:p-4 transition-all duration-300 ease-in-out border-b-4 min-w-0
-                ${isActive
-                  ? "bg-brand-gold text-white border-brand-gold shadow-md -translate-y-1"
-                  : isCompleted
-                    ? "bg-transparent text-theme-primary border-transparent cursor-pointer"
-                    : isDisabled
-                      ? "bg-transparent text-gray-400 border-transparent cursor-not-allowed opacity-50"
-                      : "bg-transparent text-theme-secondary border-transparent hover:bg-theme-secondary cursor-pointer"
-                }
-                ${index === 0 ? "rounded-tl-lg" : ""}
-                ${index === steps.length - 1 ? "rounded-tr-lg" : ""}
-              `}
-            >
-              <div className="flex items-center justify-center gap-2 sm:gap-3 min-w-0">
-                {/* --- LOGIKA BARU UNTUK IKON --- */}
-                {isActive ? (
-                  <img
-                    src={step.activeIconUrl}
-                    alt={step.name}
-                    className="h-6 w-6"
-                  />
-                ) : isCompleted ? (
-                  <FaCheckCircle className="text-green-500 h-6 w-6" /> // Ikon checklist hijau
-                ) : (
-                  <span className="flex items-center justify-center w-6 h-6 border-2 border-gray-300 rounded-full text-xs font-bold">
-                    0{step.id}
+            return (
+              <button
+                key={step.id}
+                onClick={() => isAccessible && onStepClick(step.id)}
+                disabled={isDisabled}
+                className={`w-full p-3 transition-all duration-300 ease-in-out rounded-lg border-2 min-w-0
+                  ${isActive
+                    ? "bg-brand-gold text-white border-brand-gold shadow-md"
+                    : isCompleted
+                      ? "bg-green-50 text-green-700 border-green-200 cursor-pointer"
+                      : isDisabled
+                        ? "bg-gray-50 text-gray-400 border-gray-200 cursor-not-allowed opacity-50"
+                        : "bg-white text-gray-700 border-gray-200 hover:bg-gray-50 cursor-pointer"
+                  }
+                `}
+              >
+                <div className="flex items-center gap-3 min-w-0">
+                  {/* Icons */}
+                  {isActive ? (
+                    <img
+                      src={step.activeIconUrl}
+                      alt={step.name}
+                      className="h-5 w-5 flex-shrink-0"
+                    />
+                  ) : isCompleted ? (
+                    <FaCheckCircle className="text-green-500 h-5 w-5 flex-shrink-0" />
+                  ) : (
+                    <span className="flex items-center justify-center w-5 h-5 border-2 border-gray-300 rounded-full text-xs font-bold flex-shrink-0">
+                      {step.id}
+                    </span>
+                  )}
+                  <span
+                    className={`font-semibold text-sm ${isActive ? "font-minecraft" : ""}`}
+                  >
+                    {step.name}
                   </span>
-                )}
-                <span
-                  className={`font-semibold whitespace-nowrap text-sm sm:text-base ${isActive ? "font-minecraft" : ""
-                    }`}
-                >
-                  {step.name}
-                </span>
-              </div>
-            </button>
-          );
-        })}
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Desktop: Horizontal layout */}
+      <div className="hidden sm:block">
+        <div className="flex border-b-2 border-base-200">
+          {visibleSteps.map((step, index) => {
+            const isActive = currentStep === step.id;
+            const isCompleted = isStepCompleted(step.id);
+            const isAccessible = isStepAccessible(step.id);
+            const isDisabled = !isAccessible && !isActive;
+
+            return (
+              <button
+                key={step.id}
+                onClick={() => isAccessible && onStepClick(step.id)}
+                disabled={isDisabled}
+                className={`flex-1 p-2 sm:p-4 transition-all duration-300 ease-in-out border-b-4 min-w-0
+                  ${isActive
+                    ? "bg-brand-gold text-white border-brand-gold shadow-md -translate-y-1"
+                    : isCompleted
+                      ? "bg-transparent text-theme-primary border-transparent cursor-pointer"
+                      : isDisabled
+                        ? "bg-transparent text-gray-400 border-transparent cursor-not-allowed opacity-50"
+                        : "bg-transparent text-theme-secondary border-transparent hover:bg-theme-secondary cursor-pointer"
+                  }
+                  ${index === 0 ? "rounded-tl-lg" : ""}
+                  ${index === visibleSteps.length - 1 ? "rounded-tr-lg" : ""}
+                `}
+              >
+                <div className="flex items-center justify-center gap-2 sm:gap-3 min-w-0">
+                  {/* Icons */}
+                  {isActive ? (
+                    <img
+                      src={step.activeIconUrl}
+                      alt={step.name}
+                      className="h-6 w-6"
+                    />
+                  ) : isCompleted ? (
+                    <FaCheckCircle className="text-green-500 h-6 w-6" />
+                  ) : (
+                    <span className="flex items-center justify-center w-6 h-6 border-2 border-gray-300 rounded-full text-xs font-bold">
+                      0{step.id}
+                    </span>
+                  )}
+                  <span
+                    className={`font-semibold whitespace-nowrap text-sm sm:text-base ${isActive ? "font-minecraft" : ""
+                      }`}
+                  >
+                    {step.name}
+                  </span>
+                </div>
+              </button>
+            );
+          })}
+        </div>
       </div>
     </div>
   );

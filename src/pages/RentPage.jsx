@@ -193,14 +193,19 @@ const RentPage = () => {
     if (currentStep === 1 && consolesStatus === "idle") {
       dispatch(fetchConsolesThunk());
     }
-    if (currentStep === 2 && roomsStatus === "idle") {
-      dispatch(fetchRoomsThunk());
-    }
     if (currentStep === 4 && fnbsStatus === "idle") {
       dispatch(fetchFnbsThunk());
       dispatch(fetchFnbsCategoriesThunk());
     }
-  }, [currentStep, consolesStatus, roomsStatus, fnbsStatus, dispatch]);
+  }, [currentStep, consolesStatus, fnbsStatus, dispatch]);
+
+  // Fetch rooms berdasarkan console yang dipilih
+  useEffect(() => {
+    if (bookingDetails.console && roomsStatus === "idle") {
+      console.log("RentPage - Fetching rooms for console:", bookingDetails.console);
+      dispatch(fetchRoomsThunk(bookingDetails.console));
+    }
+  }, [bookingDetails.console, roomsStatus, dispatch]);
 
   // Mengambil data unit berdasarkan pilihan konsol & ruangan
   useEffect(() => {
@@ -381,6 +386,7 @@ const RentPage = () => {
     }));
   };
 
+
   const handlePsUnitChange = (e) => {
     const selectedUnitId = parseInt(e.target.value, 10);
     const selectedUnitObject = filteredUnits.find((unit) => unit.id === selectedUnitId);
@@ -505,6 +511,22 @@ const RentPage = () => {
 
   const handleFinalizeBooking = () => {
     console.log("RentPage - handleFinalizeBooking called with isOtsBooking:", isOtsBooking);
+
+    // Set timeout untuk mendeteksi jika user tidak melakukan pembayaran
+    const paymentTimeout = setTimeout(() => {
+      console.log("RentPage - Payment timeout detected, redirecting to cancelled page");
+      navigate("/booking-cancelled", {
+        state: {
+          reason: "timeout",
+          message: "Pembayaran tidak dilakukan dalam waktu yang ditentukan",
+          bookingDetails: bookingDetails
+        }
+      });
+    }, 30 * 60 * 1000); // 30 menit timeout
+
+    // Simpan timeout ID untuk bisa di-clear jika pembayaran berhasil
+    sessionStorage.setItem("paymentTimeoutId", paymentTimeout.toString());
+
     if (user) {
       // User is logged in, proceed to payment page
       console.log("RentPage - Navigating to BookingPaymentPage (logged in) with isOtsBooking:", isOtsBooking);
@@ -513,7 +535,8 @@ const RentPage = () => {
           bookingDetails,
           fromReward: location.state?.fromReward || false,
           rewardData: location.state?.rewardData || null,
-          isOtsBooking: isOtsBooking
+          isOtsBooking: isOtsBooking,
+          paymentTimeout: paymentTimeout
         }
       });
     } else {
@@ -525,15 +548,13 @@ const RentPage = () => {
           isGuestBooking: true,
           fromReward: location.state?.fromReward || false,
           rewardData: location.state?.rewardData || null,
-          isOtsBooking: isOtsBooking
+          isOtsBooking: isOtsBooking,
+          paymentTimeout: paymentTimeout
         }
       });
     }
   };
 
-  const filteredRooms = allRooms.filter(
-    (room) => room.max_visitors >= bookingDetails.numberOfPeople
-  );
 
   // Filter units based on selected console and room
   const filteredUnits = useMemo(() => {
@@ -800,109 +821,130 @@ const RentPage = () => {
 
         {currentStep === 2 && (
           <div>
-            <div className="flex items-center justify-center gap-4 mb-8">
-              <label
-                htmlFor="people-select"
-                className="text-2xl font-semibold text-theme-primary flex items-center gap-2"
-              >
-                <IoMdPeople /> Number of People :
-              </label>
-              <select
-                id="people-select"
-                className={`select select-bordered border-brand-gold focus:border-brand-gold focus:outline-none ${bookingDetails.rewardInfo ? 'cursor-not-allowed opacity-70' : 'cursor-pointer'
-                  }`}
-                value={bookingDetails.numberOfPeople || ""}
-                onChange={(e) =>
-                  !bookingDetails.rewardInfo && setBookingDetails((prev) => ({
-                    ...prev,
-                    numberOfPeople: e.target.value ? parseInt(e.target.value) : null,
-                    roomType: null,
-                    psUnit: null,
-                    selectedGames: [],
-                    unitPrice: 0,
-                  }))
-                }
-                disabled={!!bookingDetails.rewardInfo}
-              >
-                <option value="" disabled>
-                  Select number of people
-                </option>
-                {[...Array(10)].map((_, i) => (
-                  <option key={i + 1} value={i + 1}>
-                    {i + 1} {i > 0 ? "People" : "Person"}
-                  </option>
-                ))}
-              </select>
-            </div>
+            {/* Room Selection - Tampilkan langsung setelah console dipilih */}
+            <RoomTypeSelection
+              rooms={allRooms}
+              selectedRoomType={bookingDetails.roomType}
+              onSelectRoomType={handleSelectRoomType}
+              isReward={!!bookingDetails.rewardInfo}
+            />
 
-            {bookingDetails.numberOfPeople ? (
-              <>
-                <RoomTypeSelection
-                  rooms={filteredRooms}
-                  selectedRoomType={bookingDetails.roomType}
-                  onSelectRoomType={handleSelectRoomType}
-                  isReward={!!bookingDetails.rewardInfo}
-                />
-                {bookingDetails.roomType && (
-                  <div className="flex items-center justify-center gap-4 mt-8">
-                    <label
-                      htmlFor="ps-unit-select"
-                      className="text-2xl font-semibold text-theme-primary flex items-center gap-2"
-                    >
-                      PS Unit Selection :
-                    </label>
-                    <select
-                      id="ps-unit-select"
-                      className={`select select-bordered ${bookingDetails.rewardInfo ? 'cursor-not-allowed opacity-70' : ''
-                        }`}
-                      value={bookingDetails.psUnit?.id || ""}
-                      onChange={!bookingDetails.rewardInfo ? handlePsUnitChange : () => { }}
-                      disabled={unitsStatus === "loading" || !!bookingDetails.rewardInfo}
-                    >
-                      <option disabled value="">
-                        {unitsStatus === "loading"
-                          ? "Loading units..."
-                          : filteredUnits.length === 0
-                            ? "No units available"
-                            : "Pilih Unit"}
+            {/* Number of People Selection - Setelah room dipilih */}
+            {bookingDetails.roomType && (
+              <div className="mt-8 mb-8">
+                <div className="flex items-center gap-4">
+                  <label
+                    htmlFor="people-select"
+                    className="text-2xl font-semibold text-theme-primary flex items-center gap-2"
+                  >
+                    <IoMdPeople /> Number of People :
+                  </label>
+                  <select
+                    id="people-select"
+                    className={`select select-bordered border-brand-gold focus:border-brand-gold focus:outline-none ${bookingDetails.rewardInfo ? 'cursor-not-allowed opacity-70' : 'cursor-pointer'
+                      }`}
+                    value={bookingDetails.numberOfPeople || ""}
+                    onChange={(e) =>
+                      !bookingDetails.rewardInfo && setBookingDetails((prev) => ({
+                        ...prev,
+                        numberOfPeople: e.target.value ? parseInt(e.target.value) : null,
+                        psUnit: null,
+                        selectedGames: [],
+                        unitPrice: 0,
+                      }))
+                    }
+                    disabled={!!bookingDetails.rewardInfo}
+                  >
+                    <option value="" disabled>
+                      Select number of people
+                    </option>
+                    {[...Array(bookingDetails.roomType.max_visitors)].map((_, i) => (
+                      <option key={i + 1} value={i + 1}>
+                        {i + 1} {i > 0 ? "People" : "Person"}
                       </option>
-                      {filteredUnits.map((unit) => (
-                        <option key={unit.id} value={unit.id}>
-                          {unit.name} - Rp{parseInt(unit.price).toLocaleString('id-ID')}
-                        </option>
-                      ))}
-                    </select>
+                    ))}
+                  </select>
+                </div>
+              </div>
+            )}
+
+            {/* PS Unit Selection - Setelah number of people dipilih */}
+            {bookingDetails.roomType && bookingDetails.numberOfPeople && (
+              <div className="flex items-center gap-4 mt-8">
+                <label
+                  htmlFor="ps-unit-select"
+                  className="text-2xl font-semibold text-theme-primary flex items-center gap-2"
+                >
+                  PS Unit Selection :
+                </label>
+                <select
+                  id="ps-unit-select"
+                  className={`select select-bordered ${bookingDetails.rewardInfo ? 'cursor-not-allowed opacity-70' : ''
+                    }`}
+                  value={bookingDetails.psUnit?.id || ""}
+                  onChange={!bookingDetails.rewardInfo ? handlePsUnitChange : () => { }}
+                  disabled={unitsStatus === "loading" || !!bookingDetails.rewardInfo}
+                >
+                  <option disabled value="">
+                    {unitsStatus === "loading"
+                      ? "Loading units..."
+                      : filteredUnits.length === 0
+                        ? "No units available"
+                        : "Pilih Unit"}
+                  </option>
+                  {filteredUnits.map((unit) => (
+                    <option key={unit.id} value={unit.id}>
+                      {unit.name} - Rp{parseInt(unit.price).toLocaleString('id-ID')}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+
+            {/* Game Selection - Setelah PS Unit dipilih */}
+            {bookingDetails.psUnit && (
+              <div>
+                <GameSelectionUnit
+                  unitName={bookingDetails.psUnit.name}
+                  availableGames={bookingDetails.psUnit.games || []}
+                  selectedGame={bookingDetails.selectedGames[0]}
+                  onSelectGame={handleSelectGame}
+                />
+                {bookingDetails.selectedGames.length > 0 && (
+                  <div className="flex justify-center mt-8">
+                    <button
+                      onClick={handleNextToStep3}
+                      className="btn w-full bg-brand-gold hover:bg-brand-gold/80 text-white font-minecraft tracking-wider text-lg px-8 py-3 transition-all duration-300 transform hover:scale-105 shadow-lg"
+                    >
+                      Next Step →
+                    </button>
                   </div>
                 )}
-                {bookingDetails.psUnit && (
-                  <div>
-                    <GameSelectionUnit
-                      unitName={bookingDetails.psUnit.name}
-                      availableGames={bookingDetails.psUnit.games || []}
-                      selectedGame={bookingDetails.selectedGames[0]}
-                      onSelectGame={handleSelectGame}
-                    />
-                    {bookingDetails.selectedGames.length > 0 && (
-                      <div className="flex justify-center mt-8">
-                        <button
-                          onClick={handleNextToStep3}
-                          className="btn w-full bg-brand-gold hover:bg-brand-gold/80 text-white font-minecraft tracking-wider text-lg px-8 py-3 transition-all duration-300 transform hover:scale-105 shadow-lg"
-                        >
-                          Next Step →
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </>
-            ) : (
+              </div>
+            )}
+
+            {/* Loading State untuk Rooms */}
+            {roomsStatus === "loading" && (
               <div className="text-center py-12">
-                <div className="text-6xl mb-4">👥</div>
+                <div className="text-6xl mb-4">🏠</div>
                 <h3 className="text-xl font-semibold text-gray-700 mb-2">
-                  Please Select Number of People First
+                  Loading Available Rooms
                 </h3>
                 <p className="text-gray-500">
-                  Choose how many people will be using the room to see available options
+                  Finding rooms for {bookingDetails.console}...
+                </p>
+              </div>
+            )}
+
+            {/* No Rooms Available */}
+            {roomsStatus === "succeeded" && allRooms.length === 0 && (
+              <div className="text-center py-12">
+                <div className="text-6xl mb-4">🏠</div>
+                <h3 className="text-xl font-semibold text-gray-700 mb-2">
+                  No Rooms Available
+                </h3>
+                <p className="text-gray-500">
+                  No rooms found for {bookingDetails.console}. Please try a different console.
                 </p>
               </div>
             )}

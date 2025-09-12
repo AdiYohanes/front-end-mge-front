@@ -81,13 +81,6 @@ const BookingPaymentPage = () => {
 
   // Handle browser back button and page refresh
   useEffect(() => {
-    const handleBeforeUnload = (e) => {
-      if (shouldBlock) {
-        e.preventDefault();
-        e.returnValue = '';
-      }
-    };
-
     const handlePopState = (e) => {
       if (shouldBlock) {
         e.preventDefault();
@@ -102,11 +95,9 @@ const BookingPaymentPage = () => {
       window.history.pushState(null, '', window.location.pathname);
     }
 
-    window.addEventListener('beforeunload', handleBeforeUnload);
     window.addEventListener('popstate', handlePopState);
 
     return () => {
-      window.removeEventListener('beforeunload', handleBeforeUnload);
       window.removeEventListener('popstate', handlePopState);
     };
   }, [shouldBlock]);
@@ -146,6 +137,13 @@ const BookingPaymentPage = () => {
       currentUrl: window.location.href
     });
 
+    // Clear payment timeout jika ada
+    const timeoutId = sessionStorage.getItem("paymentTimeoutId");
+    if (timeoutId) {
+      clearTimeout(parseInt(timeoutId, 10));
+      sessionStorage.removeItem("paymentTimeoutId");
+    }
+
     // Disable navigation blocking for any Midtrans redirect
     setShouldBlock(false);
 
@@ -171,7 +169,8 @@ const BookingPaymentPage = () => {
 
       navigate('/booking-cancelled', {
         state: {
-          paymentCancelled: true,
+          reason: "user_cancelled",
+          message: "Anda telah membatalkan proses pembayaran di Midtrans",
           transactionStatus: transactionStatus,
           orderId: orderId
         }
@@ -182,7 +181,8 @@ const BookingPaymentPage = () => {
       // For unknown status, redirect to cancelled page as fallback
       navigate('/booking-cancelled', {
         state: {
-          paymentCancelled: true,
+          reason: "payment_failed",
+          message: "Terjadi kesalahan dalam proses pembayaran",
           transactionStatus: transactionStatus,
           orderId: orderId
         }
@@ -275,6 +275,14 @@ const BookingPaymentPage = () => {
     if (promoValidation.status === "succeeded" && promoValidation.promoData) {
       const promo = promoValidation.promoData;
 
+      // Check if the entered promo code exactly matches the promo code from API
+      if (promo.promo_code && promo.promo_code.toUpperCase() !== promoCode.trim().toUpperCase()) {
+        // Promo code doesn't match exactly
+        setPromoModalMessage("Promo yang Anda masukan tidak ditemukan");
+        setShowPromoModal(true);
+        return;
+      }
+
       if (promo.is_active) {
         setBookingDetails((prev) => {
           if (!prev) return prev; // Safety check
@@ -296,7 +304,7 @@ const BookingPaymentPage = () => {
       setPromoModalMessage(promoValidation.error || "Promo yang Anda masukan tidak ditemukan");
       setShowPromoModal(true);
     }
-  }, [promoValidation]);
+  }, [promoValidation, promoCode]);
 
   // Handle booking success - same logic as FoodPage.jsx
   useEffect(() => {
@@ -931,7 +939,7 @@ const BookingPaymentPage = () => {
             </div>
 
             {/* Message */}
-            <h3 className="text-lg font-bold mb-2">Promo Code Error</h3>
+            <h3 className="text-lg font-bold mb-2">Promo Code Not Found</h3>
             <div className="text-sm text-gray-500 mb-6">
               <p>{promoModalMessage}</p>
             </div>

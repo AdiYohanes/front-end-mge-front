@@ -463,6 +463,13 @@ const FoodPage = () => {
     setShowBackConfirmation(false);
     setShowPersonalInfo(false);
 
+    // Clear payment timeout jika ada
+    const timeoutId = sessionStorage.getItem("paymentTimeoutId");
+    if (timeoutId) {
+      clearTimeout(parseInt(timeoutId, 10));
+      sessionStorage.removeItem("paymentTimeoutId");
+    }
+
     // Reset personal info
     setPersonalInfoData({
       fullName: "",
@@ -505,6 +512,13 @@ const FoodPage = () => {
   const handleConfirmExit = () => {
     setShowNavigationWarning(false);
     setShouldBlock(false); // Disable blocking for this navigation
+
+    // Clear payment timeout jika ada
+    const timeoutId = sessionStorage.getItem("paymentTimeoutId");
+    if (timeoutId) {
+      clearTimeout(parseInt(timeoutId, 10));
+      sessionStorage.removeItem("paymentTimeoutId");
+    }
 
     // Reset personal information and promo code
     setPersonalInfoData({
@@ -619,11 +633,36 @@ const FoodPage = () => {
 
     // Dispatch booking action
     dispatch(bookFnbsThunk(fnbData));
+
+    // Set timeout untuk mendeteksi jika pembayaran tidak dilakukan dalam 30 menit
+    // Hanya untuk booking normal (bukan reward booking)
+    if (!userRewardId) {
+      const paymentTimeout = setTimeout(() => {
+        console.log("FoodPage - Payment timeout detected, redirecting to cancelled page");
+        navigate("/booking-cancelled", {
+          state: {
+            reason: "timeout",
+            message: "Pembayaran tidak dilakukan dalam waktu yang ditentukan",
+            bookingDetails: fnbData
+          }
+        });
+      }, 30 * 60 * 1000); // 30 menit timeout
+
+      // Simpan timeout ID di sessionStorage untuk bisa di-clear nanti
+      sessionStorage.setItem("paymentTimeoutId", paymentTimeout.toString());
+    }
   };
 
   // Handle booking status changes
   useEffect(() => {
     if (bookingStatus === "succeeded" && bookingData?.data) {
+
+      // Clear payment timeout jika ada
+      const timeoutId = sessionStorage.getItem("paymentTimeoutId");
+      if (timeoutId) {
+        clearTimeout(parseInt(timeoutId, 10));
+        sessionStorage.removeItem("paymentTimeoutId");
+      }
 
       // If there's a reward, don't redirect to Midtrans
       if (userRewardId) {
@@ -679,6 +718,13 @@ const FoodPage = () => {
     } else if (bookingStatus === "failed" && bookingError) {
       console.error("F&B Booking failed:", bookingError);
 
+      // Clear payment timeout jika ada
+      const timeoutId = sessionStorage.getItem("paymentTimeoutId");
+      if (timeoutId) {
+        clearTimeout(parseInt(timeoutId, 10));
+        sessionStorage.removeItem("paymentTimeoutId");
+      }
+
       // Handle validation errors
       if (bookingError.errors) {
         // Show specific validation errors
@@ -698,6 +744,13 @@ const FoodPage = () => {
     return () => {
       if (bookingStatus !== "idle") {
         dispatch(resetBookingStatus());
+      }
+
+      // Clear payment timeout jika ada
+      const timeoutId = sessionStorage.getItem("paymentTimeoutId");
+      if (timeoutId) {
+        clearTimeout(parseInt(timeoutId, 10));
+        sessionStorage.removeItem("paymentTimeoutId");
       }
     };
   }, [bookingStatus, dispatch]);

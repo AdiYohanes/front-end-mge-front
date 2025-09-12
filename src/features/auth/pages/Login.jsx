@@ -21,6 +21,15 @@ const Login = () => {
   const { status, error: apiError, token } = useSelector((state) => state.auth);
   const isLoading = status === "loading";
 
+  // Function to clear errors when user starts typing
+  const handleInputChange = (field, value, setter) => {
+    setter(value);
+    // Clear error for this field
+    if (errors[field]) {
+      setErrors(prev => ({ ...prev, [field]: undefined }));
+    }
+  };
+
   const handleLogin = (e) => {
     e.preventDefault();
     setErrors({});
@@ -31,7 +40,10 @@ const Login = () => {
     if (!validationResult.success) {
       const formattedErrors = validationResult.error.flatten().fieldErrors;
       setErrors(formattedErrors);
-      toast.error(Object.values(formattedErrors)[0]?.[0]);
+      const firstError = Object.values(formattedErrors)[0]?.[0];
+      if (firstError) {
+        toast.error(firstError);
+      }
       return;
     }
 
@@ -40,7 +52,8 @@ const Login = () => {
 
   useEffect(() => {
     if (status === "failed" && apiError) {
-      toast.error(apiError);
+      // Show a clear, professional error message
+      toast.error("Username or password is incorrect. Please  try again.");
     }
     if (status === "succeeded" && token) {
       toast.success("Login successful! Redirecting...");
@@ -71,7 +84,7 @@ const Login = () => {
               className={`input input-sm input-bordered w-full ${errors.username ? "input-error" : ""
                 }`}
               value={username}
-              onChange={(e) => setUsername(e.target.value)}
+              onChange={(e) => handleInputChange("username", e.target.value, setUsername)}
               disabled={isLoading}
             />
             {errors.username && (
@@ -94,7 +107,7 @@ const Login = () => {
                 className={`input input-sm input-bordered w-full pr-10 ${errors.password ? "input-error" : ""
                   }`}
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={(e) => handleInputChange("password", e.target.value, setPassword)}
                 disabled={isLoading}
               />
               <button

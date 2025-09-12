@@ -3,9 +3,9 @@ import { fetchRooms } from "./roomsApi";
 
 export const fetchRoomsThunk = createAsyncThunk(
   "rooms/fetchRooms",
-  async (_, { rejectWithValue }) => {
+  async (consoleName = null, { rejectWithValue }) => {
     try {
-      const roomsData = await fetchRooms();
+      const roomsData = await fetchRooms(consoleName);
       // Filter rooms yang is_available dan memiliki units
       const availableRooms = roomsData.filter((room) =>
         room.is_available && room.units && room.units.length > 0

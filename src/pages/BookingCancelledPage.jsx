@@ -21,7 +21,7 @@ const BookingCancelledPage = () => {
         </p>
         <div className="flex flex-col sm:flex-row justify-center gap-4 w-full">
           <Link
-            to="/book-history"
+            to="/history"
             className="btn btn-outline border-gray-300 w-full"
           >
             See Booking History

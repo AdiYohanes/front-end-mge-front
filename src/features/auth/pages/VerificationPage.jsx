@@ -22,20 +22,9 @@ const VerificationPage = () => {
   // Loading state berdasarkan status Redux
   const isLoading = status === "loading";
 
-  // Redirect jika tidak ada nomor telepon
+  // Handle verification result and redirect logic
   useEffect(() => {
-    if (!registrationPhone && !hasShownRedirectToast) {
-      setHasShownRedirectToast(true);
-      toast.error("Phone number not found. Please register again.");
-      setTimeout(() => {
-        navigate("/register");
-      }, 2000);
-    }
-  }, [registrationPhone, navigate, hasShownRedirectToast]);
-
-  // Handle verification result
-  useEffect(() => {
-    // Hanya proses jika status berubah dan bukan loading
+    // Handle verification result
     if (status !== previousStatus.current && status !== "loading") {
       if (status === "succeeded" && !error && !hasShownSuccessToast) {
         setHasShownSuccessToast(true);
@@ -45,6 +34,7 @@ const VerificationPage = () => {
         setTimeout(() => {
           navigate("/login");
         }, 1500);
+        return; // Exit early to prevent other logic
       } else if (status === "failed" && error && !hasShownErrorToast) {
         setHasShownErrorToast(true);
         console.error("Verification error:", error);
@@ -52,9 +42,18 @@ const VerificationPage = () => {
       }
     }
 
+    // Handle phone number redirect (only if verification hasn't succeeded)
+    if (!registrationPhone && !hasShownRedirectToast && !hasShownSuccessToast && status !== "succeeded") {
+      setHasShownRedirectToast(true);
+      toast.error("Phone number not found. Please register again.");
+      setTimeout(() => {
+        navigate("/register");
+      }, 2000);
+    }
+
     // Update previous status
     previousStatus.current = status;
-  }, [status, error, navigate, hasShownSuccessToast, hasShownErrorToast]);
+  }, [status, error, navigate, hasShownSuccessToast, hasShownErrorToast, dispatch, registrationPhone, hasShownRedirectToast]);
 
   // Jika tidak ada nomor telepon, tampilkan loading
   if (!registrationPhone) {
@@ -142,11 +141,21 @@ const VerificationPage = () => {
           value={otp}
           onChange={setOtp}
           numInputs={6}
+          inputType="text"
+          shouldAutoFocus={true}
           renderInput={(props) => (
             <input
               {...props}
               className="!w-10 sm:!w-12 h-10 sm:h-12 text-center text-lg font-bold border-2 border-base-300 rounded-md focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary transition"
               disabled={isLoading}
+              inputMode="numeric"
+              pattern="[0-9]*"
+              onKeyPress={(e) => {
+                // Only allow numeric input
+                if (!/[0-9]/.test(e.key)) {
+                  e.preventDefault();
+                }
+              }}
             />
           )}
           containerStyle="flex justify-between gap-1"

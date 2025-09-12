@@ -49,7 +49,9 @@ const BookingSuccessPage = () => {
         hasData: !!bookingData?.data,
         points_earned: bookingData?.data?.points_earned,
         total_booking_hours: bookingData?.data?.total_booking_hours,
-        points_per_hour: bookingData?.data?.unit?.points_per_hour
+        points_per_hour: bookingData?.data?.unit?.points_per_hour,
+        unit: bookingData?.data?.unit,
+        bookable: bookingData?.data?.bookable
       });
 
       // If this is a Midtrans redirect, validate the transaction status
@@ -126,7 +128,17 @@ const BookingSuccessPage = () => {
 
   // Calculate points based on booking type and API response
   const calculatePoints = () => {
+    console.log("BookingSuccessPage - calculatePoints called:", {
+      isRewardBooking,
+      isOtsBooking,
+      isGuestBooking,
+      bookingData: bookingData?.data,
+      points_earned: bookingData?.data?.points_earned,
+      bookingDetails: bookingDetails
+    });
+
     if (isRewardBooking || isOtsBooking || isGuestBooking) {
+      console.log("BookingSuccessPage - No points for reward/OTS/guest booking");
       return 0; // No points for reward bookings, OTS bookings, or guest bookings
     }
 
@@ -141,10 +153,15 @@ const BookingSuccessPage = () => {
 
     // Fallback to bookingDetails if API data not available
     if (bookingDetails?.duration) {
+      console.log("BookingSuccessPage - Using fallback calculation:", {
+        duration: bookingDetails.duration,
+        calculatedPoints: Math.floor(bookingDetails.duration)
+      });
       // 1 point per hour of booking (fallback)
       return Math.floor(bookingDetails.duration);
     }
 
+    console.log("BookingSuccessPage - No points data available");
     return 0; // No points if no data available
   };
 
@@ -182,8 +199,8 @@ const BookingSuccessPage = () => {
           </div>
         )}
 
-        {/* 3. Points Section - Only show for normal bookings (logged in users only) */}
-        {!isRewardBooking && !isOtsBooking && !isGuestBooking && earnedPoints > 0 && (
+        {/* 3. Points Section - Show for normal bookings (logged in users only) */}
+        {!isRewardBooking && !isOtsBooking && !isGuestBooking && (
           <div className="flex justify-center items-center gap-4 mb-8 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
             <img
               src="/images/coin.png"
@@ -193,6 +210,11 @@ const BookingSuccessPage = () => {
             <div className="text-left">
               <p className="text-gray-500 text-sm">You've earned</p>
               <p className="text-2xl font-bold text-brand-gold">{earnedPoints} Points</p>
+              {bookingData?.data?.unit?.points_per_hour && (
+                <p className="text-xs text-gray-400">
+                  ({bookingData.data.unit.points_per_hour} points per hour)
+                </p>
+              )}
             </div>
           </div>
         )}

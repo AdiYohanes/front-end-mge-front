@@ -163,24 +163,24 @@ const Register = () => {
   }, [status, apiError, navigate]);
 
   return (
-    <div className="card w-full max-w-md shadow-2xl bg-base-100">
-      <form className="card-body p-6" onSubmit={handleRegister}>
-        <h1 className="text-3xl md:text-5xl font-minecraft text-brand-gold text-center mb-4">
+    <div className="card w-full max-w-sm sm:max-w-md lg:max-w-lg shadow-2xl bg-base-100 mx-auto">
+      <form className="card-body p-4 sm:p-6 lg:p-8" onSubmit={handleRegister}>
+        <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-minecraft text-brand-gold text-center mb-4 sm:mb-6">
           Register
         </h1>
 
-        <div className="space-y-1">
+        <div className="space-y-2 sm:space-y-3">
           {/* Full Name */}
           <div className="form-control">
             <label className="label py-1" htmlFor="fullName">
-              <span className="label-text text-sm">Name<span className="text-red-500">*</span>
+              <span className="label-text text-sm sm:text-base font-medium">Name<span className="text-red-500">*</span>
               </span>
             </label>
             <input
               id="fullName"
               type="text"
               placeholder="ex: John Doe"
-              className={`input input-sm input-bordered w-full ${errors.fullName || apiErrors.fullName ? "input-error" : ""
+              className={`input input-sm sm:input-md input-bordered w-full ${errors.fullName || apiErrors.fullName ? "input-error" : ""
                 }`}
               value={fullName}
               onChange={(e) => handleInputChange("fullName", e.target.value, setFullName)}
@@ -192,7 +192,7 @@ const Register = () => {
           {/* Username */}
           <div className="form-control">
             <label className="label py-1" htmlFor="username">
-              <span className="label-text text-sm">
+              <span className="label-text text-sm sm:text-base font-medium">
                 Username<span className="text-red-500">*</span>
               </span>
             </label>
@@ -200,7 +200,7 @@ const Register = () => {
               id="username"
               type="text"
               placeholder="ex: johndoe123"
-              className={`input input-sm input-bordered w-full ${errors.username || apiErrors.username ? "input-error" : ""
+              className={`input input-sm sm:input-md input-bordered w-full ${errors.username || apiErrors.username ? "input-error" : ""
                 }`}
               value={username}
               onChange={(e) => handleInputChange("username", e.target.value, setUsername)}
@@ -212,7 +212,7 @@ const Register = () => {
           {/* Email Address */}
           <div className="form-control">
             <label className="label py-1" htmlFor="email">
-              <span className="label-text text-sm">
+              <span className="label-text text-sm sm:text-base font-medium">
                 Email <span className="text-gray-500">(Optional)</span>
               </span>
             </label>
@@ -220,7 +220,7 @@ const Register = () => {
               id="email"
               type="email"
               placeholder="ex: user@gmail.com (optional)"
-              className={`input input-sm input-bordered w-full ${errors.email || apiErrors.email ? "input-error" : ""
+              className={`input input-sm sm:input-md input-bordered w-full ${errors.email || apiErrors.email ? "input-error" : ""
                 }`}
               value={email}
               onChange={(e) => handleInputChange("email", e.target.value, setEmail)}
@@ -232,18 +232,18 @@ const Register = () => {
           {/* Phone Number */}
           <div className="form-control">
             <label className="label py-1" htmlFor="phoneNumber">
-              <span className="label-text text-sm">
+              <span className="label-text text-sm sm:text-base font-medium">
                 Phone Number<span className="text-red-500">*</span>
               </span>
             </label>
-            <span className="text-xs text-gray-500 mb-1 px-1">
+            <span className="text-xs sm:text-sm text-gray-500 mb-1 px-1">
               Make sure this number is connected to Whatsapp
             </span>
             <input
               id="phoneNumber"
               type="tel"
               placeholder="ex: 081234567890"
-              className={`input input-sm input-bordered w-full ${errors.phoneNumber || apiErrors.phoneNumber ? "input-error" : ""}`}
+              className={`input input-sm sm:input-md input-bordered w-full ${errors.phoneNumber || apiErrors.phoneNumber ? "input-error" : ""}`}
               value={phoneNumber}
               onChange={(e) => handleInputChange("phoneNumber", e.target.value.replace(/[^0-9]/g, '').slice(0, 14), setPhoneNumber)}
               maxLength={14}
@@ -257,7 +257,7 @@ const Register = () => {
           {/* Password */}
           <div className="form-control">
             <label className="label py-1" htmlFor="password">
-              <span className="label-text text-sm">
+              <span className="label-text text-sm sm:text-base font-medium">
                 Password<span className="text-red-500">*</span>
               </span>
             </label>
@@ -266,7 +266,7 @@ const Register = () => {
                 id="password"
                 type={showPassword ? "text" : "password"}
                 placeholder="Enter your password"
-                className={`input input-sm input-bordered w-full pr-10 ${errors.password || apiErrors.password ? "input-error" : ""
+                className={`input input-sm sm:input-md input-bordered w-full pr-10 ${errors.password || apiErrors.password ? "input-error" : ""
                   }`}
                 value={password}
                 onChange={(e) => handleInputChange("password", e.target.value, setPassword)}
@@ -274,14 +274,14 @@ const Register = () => {
               />
               <button
                 type="button"
-                className="absolute inset-y-0 right-0 flex items-center px-3 text-gray-500 hover:text-gray-700"
+                className="absolute inset-y-0 right-0 flex items-center px-2 sm:px-3 text-gray-500 hover:text-gray-700"
                 onClick={() => setShowPassword(!showPassword)}
                 disabled={isLoading}
               >
                 {showPassword ? (
-                  <AiOutlineEyeInvisible size={18} />
+                  <AiOutlineEyeInvisible size={16} className="sm:w-5 sm:h-5" />
                 ) : (
-                  <AiOutlineEye size={18} />
+                  <AiOutlineEye size={16} className="sm:w-5 sm:h-5" />
                 )}
               </button>
             </div>
@@ -291,7 +291,7 @@ const Register = () => {
           {/* Confirm Password */}
           <div className="form-control">
             <label className="label py-1" htmlFor="confirmPassword">
-              <span className="label-text text-sm">
+              <span className="label-text text-sm sm:text-base font-medium">
                 Confirm Password<span className="text-red-500">*</span>
               </span>
             </label>
@@ -300,7 +300,7 @@ const Register = () => {
                 id="confirmPassword"
                 type={showConfirmPassword ? "text" : "password"}
                 placeholder="Confirm your password"
-                className={`input input-sm input-bordered w-full pr-10 ${errors.confirmPassword || apiErrors.confirmPassword ? "input-error" : ""
+                className={`input input-sm sm:input-md input-bordered w-full pr-10 ${errors.confirmPassword || apiErrors.confirmPassword ? "input-error" : ""
                   }`}
                 value={confirmPassword}
                 onChange={(e) => handleInputChange("confirmPassword", e.target.value, setConfirmPassword)}
@@ -308,14 +308,14 @@ const Register = () => {
               />
               <button
                 type="button"
-                className="absolute inset-y-0 right-0 flex items-center px-3 text-gray-500 hover:text-gray-700"
+                className="absolute inset-y-0 right-0 flex items-center px-2 sm:px-3 text-gray-500 hover:text-gray-700"
                 onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                 disabled={isLoading}
               >
                 {showConfirmPassword ? (
-                  <AiOutlineEyeInvisible size={18} />
+                  <AiOutlineEyeInvisible size={16} className="sm:w-5 sm:h-5" />
                 ) : (
-                  <AiOutlineEye size={18} />
+                  <AiOutlineEye size={16} className="sm:w-5 sm:h-5" />
                 )}
               </button>
             </div>
@@ -324,11 +324,11 @@ const Register = () => {
         </div>
 
         {/* Terms & Conditions */}
-        <div className="form-control mt-4">
-          <label className="label cursor-pointer items-start gap-3">
+        <div className="form-control mt-4 sm:mt-6">
+          <div className="flex items-start gap-2 sm:gap-3">
             <input
               type="checkbox"
-              className="checkbox text-brand-gold rounded-none border-brand-gold checkbox-xs mt-1"
+              className="checkbox cursor-pointer text-brand-gold rounded-none border-brand-gold checkbox-xs sm:checkbox-sm mt-1 flex-shrink-0"
               checked={agreed}
               onChange={(e) => {
                 if (e.target.checked) {
@@ -346,30 +346,27 @@ const Register = () => {
               }}
               disabled={isLoading}
             />
-            <div className="flex flex-col">
-              <span className="label-text text-xs text-gray-600">
-                By ticking, you are confirming that you have read, understood,
-              </span>
-              <span className="label-text text-xs text-gray-600">
-                and agree to our{" "}
+            <div className="flex flex-col min-w-0 flex-1">
+              <span className="label-text text-xs sm:text-sm text-gray-600 leading-relaxed break-words">
+                By ticking, you are confirming that you have read, understood, and agree to our{" "}
                 <button
                   type="button"
                   onClick={() => setShowTermsModal(true)}
-                  className="link text-brand-gold font-bold text-xs"
+                  className="link text-brand-gold font-bold text-xs sm:text-sm underline"
                 >
                   Terms & Conditions
                 </button>
               </span>
             </div>
-          </label>
-          <ErrorMessage errors={errors} apiErrors={apiErrors} fieldName="agreed" className="ml-9" />
+          </div>
+          <ErrorMessage errors={errors} apiErrors={apiErrors} fieldName="agreed" className="ml-6 sm:ml-9" />
         </div>
 
         {/* Action Buttons */}
-        <div className="form-control mt-4 space-y-2">
+        <div className="form-control mt-4 sm:mt-6 space-y-2">
           <button
             type="submit"
-            className={`btn bg-brand-gold btn-sm w-full text-white font-funnel tracking-widest ${isLoading ? "loading" : ""
+            className={`btn bg-brand-gold btn-sm sm:btn-md w-full text-white font-funnel tracking-widest ${isLoading ? "loading" : ""
               }`}
             disabled={isLoading}
           >
@@ -378,8 +375,8 @@ const Register = () => {
         </div>
 
         {/* Login Link */}
-        <div className="text-center mt-4">
-          <p className="text-xs">
+        <div className="text-center mt-4 sm:mt-6">
+          <p className="text-xs sm:text-sm">
             Already have an account?{" "}
             <Link to="/login" className="link text-brand-gold font-semibold">
               Login

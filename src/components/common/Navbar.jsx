@@ -26,7 +26,7 @@ const Navbar = () => {
       </li>
       <li>
         <NavLink to="/rent" className="text-base font-minecraft text-theme-primary hover:text-brand-gold">
-          Rent
+          Room
         </NavLink>
       </li>
       <li>

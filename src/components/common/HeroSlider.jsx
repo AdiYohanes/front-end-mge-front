@@ -3,8 +3,7 @@
 import React, { useState, useEffect } from "react";
 // KOREKSI: Selalu import dari 'react-router-dom' untuk aplikasi web
 import { Link } from "react-router";
-import { FaRegMoneyBillAlt } from "react-icons/fa";
-import { MdPhoneAndroid } from "react-icons/md";
+import { FaRegMoneyBillAlt, FaGamepad } from "react-icons/fa";
 
 // Daftar gambar untuk slider
 const images = [
@@ -64,7 +63,7 @@ const HeroSlider = ({ onPricelistClick }) => {
             onClick={onPricelistClick}
             className="w-[160px] sm:w-[180px] lg:w-[200px] flex items-center justify-center text-sm sm:text-base lg:text-lg xl:text-xl px-6 py-3 sm:px-8 sm:py-4 lg:px-10 lg:py-5 bg-brand-gold text-white font-funnel tracking-wider hover:bg-white hover:text-black border-none transition-all duration-300 transform hover:scale-105 shadow-lg rounded-lg"
           >
-            <FaRegMoneyBillAlt className="mr-2 sm:mr-3 h-4 w-4 sm:h-5 sm:w-5 lg:h-6 lg:w-6" />
+            <FaRegMoneyBillAlt className="mr-2 sm:mr-3 h-5 w-5 sm:h-6 sm:w-6 lg:h-7 lg:w-7 flex-shrink-0" />
             <span className="whitespace-nowrap">Pricelist</span>
           </button>
 
@@ -73,7 +72,7 @@ const HeroSlider = ({ onPricelistClick }) => {
             to="/rent"
             className="w-[160px] sm:w-[180px] lg:w-[200px] flex items-center justify-center text-sm sm:text-base lg:text-lg xl:text-xl px-6 py-3 sm:px-8 sm:py-4 lg:px-10 lg:py-5 bg-brand-gold text-white font-funnel tracking-wider hover:bg-white hover:text-black border-none transition-all duration-300 transform hover:scale-105 shadow-lg rounded-lg"
           >
-            <MdPhoneAndroid className="mr-2 sm:mr-3 h-4 w-4 sm:h-5 sm:w-5 lg:h-6 lg:w-6" />
+            <FaGamepad className="mr-2 sm:mr-3 h-5 w-5 sm:h-6 sm:w-6 lg:h-7 lg:w-7 flex-shrink-0" />
             <span className="whitespace-nowrap">Book a Room</span>
           </Link>
         </div>

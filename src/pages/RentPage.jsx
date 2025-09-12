@@ -647,7 +647,11 @@ const RentPage = () => {
                           currency: "IDR",
                           minimumFractionDigits: 0,
                         }).format(bookingDetails.unitPrice).replace(/\s/g, "")}/jam)` : "-",
-                        total: "-",
+                        total: bookingDetails.psUnit ? new Intl.NumberFormat("id-ID", {
+                          style: "currency",
+                          currency: "IDR",
+                          minimumFractionDigits: 0,
+                        }).format(bookingDetails.unitPrice).replace(/\s/g, "") : "-",
                       },
                       {
                         label: "Game",

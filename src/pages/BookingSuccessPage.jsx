@@ -289,17 +289,28 @@ const BookingSuccessPage = () => {
 
         {/* 6. Tombol Aksi */}
         <div className="flex flex-col sm:flex-row justify-center gap-4 w-full max-w-md">
-          <Link
-            to="/history"
-            className="btn btn-outline border-gray-300 w-full"
-          >
-            <FaHistory className="mr-2" />
-            See booking history
-          </Link>
-          <Link to="/rent" className="btn bg-brand-gold text-white w-full">
-            <FaPlusCircle className="mr-2" />
-            Book another Room
-          </Link>
+          {isGuestBooking ? (
+            // Guest booking - only show back to home button
+            <Link to="/" className="btn bg-brand-gold text-white w-full">
+              <FaPlusCircle className="mr-2" />
+              Back to Home
+            </Link>
+          ) : (
+            // Logged in user - show both buttons
+            <>
+              <Link
+                to="/history"
+                className="btn btn-outline border-gray-300 w-full"
+              >
+                <FaHistory className="mr-2" />
+                See booking history
+              </Link>
+              <Link to="/rent" className="btn bg-brand-gold text-white w-full">
+                <FaPlusCircle className="mr-2" />
+                Book another Room
+              </Link>
+            </>
+          )}
         </div>
       </div>
     </div>

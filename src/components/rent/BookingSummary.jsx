@@ -7,7 +7,7 @@ const formatPrice = (price) => {
     style: "currency",
     currency: "IDR",
     minimumFractionDigits: 0,
-  }).format(price);
+  }).format(price).replace(/\s/g, "");
 };
 
 const BookingSummary = ({
@@ -31,60 +31,62 @@ const BookingSummary = ({
     })
     : null;
 
-  const fnbValue =
-    details.foodAndDrinks?.length > 0
-      ? details.foodAndDrinks
-        .map((item) => `${item.name} (x${item.quantity})`)
-        .join(", ")
-      : null;
+  const fnbItems = details.foodAndDrinks?.length > 0
+    ? details.foodAndDrinks
+    : [];
 
   const fnbTotal = details.foodAndDrinks?.reduce((total, item) => {
     return total + parseInt(item.price, 10) * item.quantity;
   }, 0);
 
+  // Calculate unit total price (unit price * duration)
+  const unitTotalPrice = details.psUnit && details.duration
+    ? details.unitPrice * details.duration
+    : 0;
+
   const summaryItems = [
     {
       label: "Console",
       value: details.console,
-      quantity: details.console ? 1 : "-",
     },
     {
       label: "Room Type",
       value: details.roomType?.name,
-      quantity: details.roomType ? 1 : "-",
     },
     {
       label: "PS Unit",
-      value: details.psUnit?.name,
-      quantity: details.psUnit ? 1 : "-",
+      value: details.psUnit ? `${details.psUnit.name} (${formatPrice(details.unitPrice)}/jam)` : "-",
       total: details.psUnit ? formatPrice(details.unitPrice) : "-",
     },
     {
       label: "Game",
       value: details.selectedGames[0]?.title,
-      quantity:
-        details.selectedGames.length > 0 ? details.selectedGames.length : "-",
     },
-    { label: "Date", value: formattedDate, quantity: "-" },
+    {
+      label: "Date",
+      value: formattedDate
+    },
     {
       label: "Start Time",
       value: details.startTime,
-      quantity: details.startTime ? 1 : "-",
     },
     {
       label: "Duration",
       value: details.duration ? `${details.duration} Hour(s)` : null,
-      quantity: "-",
+      total: unitTotalPrice > 0 ? formatPrice(unitTotalPrice) : "-",
     },
-    {
+    ...(fnbItems.length > 0 ? fnbItems.map((item, index) => {
+      const itemTotal = parseInt(item.price, 10) * item.quantity;
+      return {
+        label: index === 0 ? "Food & Drinks" : "",
+        value: `${item.name} (x${item.quantity})`,
+        total: formatPrice(itemTotal),
+      };
+    }) : [{
       label: "Food & Drinks",
-      value: fnbValue,
-      quantity:
-        details.foodAndDrinks?.length > 0
-          ? details.foodAndDrinks.reduce((acc, item) => acc + item.quantity, 0)
-          : "-",
-      total: fnbTotal > 0 ? formatPrice(fnbTotal) : "-",
-    },
+      value: null,
+      total: "-",
+    }]),
   ];
 
   const baseSubtotal = details.subtotal || 0;
@@ -123,10 +125,9 @@ const BookingSummary = ({
         </button>
       </div>
       <div className="p-6">
-        <div className="grid grid-cols-4 gap-4 text-sm font-semibold text-black mb-2">
+        <div className="grid grid-cols-3 gap-4 text-sm font-semibold text-black mb-2">
           <span>Type</span>
           <span>Description</span>
-          <span className="text-center">Quantity</span>
           <span className="text-right">Total</span>
         </div>
         <div className="border-t border-gray-200"></div>
@@ -134,13 +135,12 @@ const BookingSummary = ({
           {summaryItems.map((item) => (
             <div
               key={item.label}
-              className="grid grid-cols-4 gap-4 items-center text-sm"
+              className="grid grid-cols-3 gap-4 items-center text-sm"
             >
               <span className="font-bold text-black">{item.label}</span>
               <span className="text-black break-words">
                 {item.value || "-"}
               </span>
-              <span className="text-center text-black">{item.quantity}</span>
               <span className="text-right font-semibold text-black">
                 {item.total || "-"}
               </span>

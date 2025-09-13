@@ -124,7 +124,7 @@ const BookingNavigator = ({ currentStep, onStepClick, bookingDetails }) => {
       {/* Mobile: Vertical layout */}
       <div className="block sm:hidden">
         <div className="space-y-2">
-          {visibleSteps.map((step, index) => {
+          {visibleSteps.map((step) => {
             const isActive = currentStep === step.id;
             const isCompleted = isStepCompleted(step.id);
             const isAccessible = isStepAccessible(step.id);
@@ -157,7 +157,7 @@ const BookingNavigator = ({ currentStep, onStepClick, bookingDetails }) => {
                   ) : isCompleted ? (
                     <FaCheckCircle className="text-green-500 h-5 w-5 flex-shrink-0" />
                   ) : (
-                    <span className="flex items-center justify-center w-5 h-5 border-2 border-gray-300 rounded-full text-xs font-bold flex-shrink-0">
+                    <span className="flex items-center justify-center w-5 h-5 border-2 border-gray-300 rounded-full text-xs font-bold flex-shrink-0 min-w-[20px] min-h-[20px]">
                       {step.id}
                     </span>
                   )}
@@ -211,7 +211,7 @@ const BookingNavigator = ({ currentStep, onStepClick, bookingDetails }) => {
                   ) : isCompleted ? (
                     <FaCheckCircle className="text-green-500 h-6 w-6" />
                   ) : (
-                    <span className="flex items-center justify-center w-6 h-6 border-2 border-gray-300 rounded-full text-xs font-bold">
+                    <span className="flex items-center justify-center w-6 h-6 border-2 border-gray-300 rounded-full text-xs font-bold min-w-[24px] min-h-[24px]">
                       0{step.id}
                     </span>
                   )}

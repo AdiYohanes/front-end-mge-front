@@ -348,7 +348,7 @@ const TermsModal = ({ isOpen, onClose, onAccept, title = "Terms & Conditions" })
                 {/* Footer */}
                 <div className="p-6 border-t border-gray-200 bg-gradient-to-r from-gray-50 to-yellow-50/30">
                     <div className="flex items-start space-x-3 mb-6">
-                        <div className="relative">
+                        <div className="relative flex-shrink-0">
                             <input
                                 type="checkbox"
                                 id="terms-checkbox"
@@ -361,7 +361,7 @@ const TermsModal = ({ isOpen, onClose, onAccept, title = "Terms & Conditions" })
                                 <div className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
                             )}
                         </div>
-                        <label htmlFor="terms-checkbox" className="text-sm flex-1">
+                        <label htmlFor="terms-checkbox" className="text-sm flex-1 text-left">
                             <span className={`font-medium ${!hasScrolledToBottom ? "text-gray-400" : "text-gray-700"}`}>
                                 Saya telah membaca, memahami, dan menyetujui Syarat & Ketentuan
                             </span>

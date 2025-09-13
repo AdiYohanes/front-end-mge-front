@@ -1529,7 +1529,7 @@ const FoodPage = () => {
                 </button>
                 <button
                   onClick={handleConfirmExit}
-                  className="btn btn-outline border-red-500 text-red-600 hover:bg-red-50 w-full"
+                  className="btn btn-outline border-black text-red-600 hover:bg-red-50 w-full"
                 >
                   Yes, Exit
                 </button>

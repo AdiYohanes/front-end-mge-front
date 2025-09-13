@@ -58,6 +58,7 @@ const RentPage = () => {
   const [durationsLoading, setDurationsLoading] = useState(false);
   const pageRef = useRef(null);
   const rewardGamesUpdatedRef = useRef(false);
+  const gameSelectionRef = useRef(null);
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -102,6 +103,19 @@ const RentPage = () => {
       const rewardDetails = rewardData.reward_details;
       const bookingPreset = rewardData.booking_preset;
       const priceAdjustment = rewardData.price_adjustment;
+
+      // Validate reward data structure
+      if (!rewardDetails || !bookingPreset) {
+        console.error("RentPage - Invalid reward data structure:", { rewardDetails, bookingPreset });
+        alert("Invalid reward data. Please try again.");
+        return;
+      }
+
+      if (!rewardData.user_reward_id) {
+        console.error("RentPage - Missing user_reward_id in reward data:", rewardData);
+        alert("Reward ID is missing. Please try again.");
+        return;
+      }
 
       if (rewardDetails && bookingPreset) {
         // Get console name from booking preset
@@ -165,6 +179,17 @@ const RentPage = () => {
         console.log("RentPage - Reward unit console:", rewardDetails.unit?.console);
         console.log("RentPage - Reward unit room:", rewardDetails.unit?.room);
         dispatch(fetchUnitsThunk(params));
+
+        // Scroll to game selection section after a short delay to ensure DOM is updated
+        setTimeout(() => {
+          if (gameSelectionRef.current) {
+            console.log("RentPage - Scrolling to game selection section");
+            gameSelectionRef.current.scrollIntoView({
+              behavior: 'smooth',
+              block: 'start'
+            });
+          }
+        }, 500);
 
         // Clear the navigation state to prevent issues with browser back/forward
         navigate(location.pathname, { replace: true });
@@ -254,6 +279,17 @@ const RentPage = () => {
           }
         }));
         rewardGamesUpdatedRef.current = true; // Mark as updated
+
+        // Scroll to game selection after games are loaded
+        setTimeout(() => {
+          if (gameSelectionRef.current) {
+            console.log("RentPage - Scrolling to game selection after games loaded");
+            gameSelectionRef.current.scrollIntoView({
+              behavior: 'smooth',
+              block: 'start'
+            });
+          }
+        }, 300);
       } else {
         console.log("RentPage - Unit not found in API response");
         console.log("RentPage - Available unit IDs:", units.map(u => u.id));
@@ -404,14 +440,9 @@ const RentPage = () => {
 
   const handleNextToStep3 = () => {
     if (bookingDetails.psUnit && bookingDetails.selectedGames.length > 0) {
-      // For reward booking, skip step 4 and go directly to payment
-      if (bookingDetails.rewardInfo) {
-        console.log("RentPage - Reward booking detected, skipping to payment page");
-        handleFinalizeBooking();
-        return;
-      }
-
-      // Normal booking goes to step 3 for date and time selection
+      // For reward booking, still go to step 3 for date and time selection
+      // Only skip step 4 (F&B selection) for reward booking
+      console.log("RentPage - Going to step 3 for date and time selection");
       setCurrentStep(3);
       // Scroll to top for better UX
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -462,9 +493,9 @@ const RentPage = () => {
 
   const handleNextToStep4 = () => {
     if (bookingDetails.startTime && bookingDetails.duration) {
-      // For reward booking, skip step 4 and go directly to payment
+      // For reward booking, skip step 4 (F&B selection) and go directly to payment
       if (bookingDetails.rewardInfo) {
-        console.log("RentPage - Reward booking detected, skipping step 4 to payment page");
+        console.log("RentPage - Reward booking detected, skipping step 4 (F&B) to payment page");
         handleFinalizeBooking();
         return;
       }
@@ -511,6 +542,33 @@ const RentPage = () => {
 
   const handleFinalizeBooking = () => {
     console.log("RentPage - handleFinalizeBooking called with isOtsBooking:", isOtsBooking);
+    console.log("RentPage - Current bookingDetails:", bookingDetails);
+
+    // Validate required data before proceeding
+    const requiredFields = ['console', 'roomType', 'psUnit', 'selectedGames', 'date', 'startTime', 'duration', 'numberOfPeople'];
+    const missingFields = requiredFields.filter(field => {
+      const value = bookingDetails[field];
+      const isMissing = !value || (Array.isArray(value) && value.length === 0);
+      if (isMissing) {
+        console.error(`RentPage - Missing required field '${field}':`, value);
+      }
+      return isMissing;
+    });
+
+    if (missingFields.length > 0) {
+      console.error("RentPage - Missing required fields:", missingFields);
+      alert(`Please complete the following: ${missingFields.join(', ')}`);
+      return;
+    }
+
+    // Additional validation for reward booking
+    if (bookingDetails.rewardInfo) {
+      if (!bookingDetails.rewardInfo.userRewardId) {
+        console.error("RentPage - Missing userRewardId in rewardInfo:", bookingDetails.rewardInfo);
+        alert("Reward information is incomplete. Please try again.");
+        return;
+      }
+    }
 
     // Set timeout untuk mendeteksi jika user tidak melakukan pembayaran
     const paymentTimeout = setTimeout(() => {
@@ -527,29 +585,28 @@ const RentPage = () => {
     // Simpan timeout ID untuk bisa di-clear jika pembayaran berhasil
     sessionStorage.setItem("paymentTimeoutId", paymentTimeout.toString());
 
+    // Prepare navigation state
+    const navigationState = {
+      bookingDetails,
+      fromReward: location.state?.fromReward || false,
+      rewardData: location.state?.rewardData || null,
+      isOtsBooking: isOtsBooking,
+      paymentTimeout: paymentTimeout
+    };
+
+    console.log("RentPage - Navigation state prepared:", navigationState);
+
     if (user) {
       // User is logged in, proceed to payment page
       console.log("RentPage - Navigating to BookingPaymentPage (logged in) with isOtsBooking:", isOtsBooking);
-      navigate("/booking-payment", {
-        state: {
-          bookingDetails,
-          fromReward: location.state?.fromReward || false,
-          rewardData: location.state?.rewardData || null,
-          isOtsBooking: isOtsBooking,
-          paymentTimeout: paymentTimeout
-        }
-      });
+      navigate("/booking-payment", { state: navigationState });
     } else {
       // User is not logged in, proceed to guest booking page
       console.log("RentPage - Navigating to BookingPaymentPage (guest) with isOtsBooking:", isOtsBooking);
       navigate("/booking-payment", {
         state: {
-          bookingDetails,
-          isGuestBooking: true,
-          fromReward: location.state?.fromReward || false,
-          rewardData: location.state?.rewardData || null,
-          isOtsBooking: isOtsBooking,
-          paymentTimeout: paymentTimeout
+          ...navigationState,
+          isGuestBooking: true
         }
       });
     }
@@ -668,11 +725,7 @@ const RentPage = () => {
                           currency: "IDR",
                           minimumFractionDigits: 0,
                         }).format(bookingDetails.unitPrice).replace(/\s/g, "")}/jam)` : "-",
-                        total: bookingDetails.psUnit ? new Intl.NumberFormat("id-ID", {
-                          style: "currency",
-                          currency: "IDR",
-                          minimumFractionDigits: 0,
-                        }).format(bookingDetails.unitPrice).replace(/\s/g, "") : "-",
+                        total: "-",
                       },
                       {
                         label: "Game",
@@ -705,17 +758,19 @@ const RentPage = () => {
                             currency: "IDR",
                             minimumFractionDigits: 0,
                           }).format(itemTotal).replace(/\s/g, ""),
+                          uniqueKey: `fnb-${item.id}-${index}`, // Add unique key for each item
                         };
                       }) : [{
                         label: "Food & Drinks",
                         value: null,
                         total: "-",
+                        uniqueKey: "fnb-empty",
                       }]),
                     ];
 
-                    return summaryItems.map((item) => (
+                    return summaryItems.map((item, index) => (
                       <div
-                        key={item.label}
+                        key={item.uniqueKey || `${item.label}-${index}`}
                         className="grid grid-cols-3 gap-4 items-center text-sm"
                       >
                         <span className="font-bold text-black">{item.label}</span>
@@ -829,81 +884,98 @@ const RentPage = () => {
               isReward={!!bookingDetails.rewardInfo}
             />
 
-            {/* Number of People Selection - Setelah room dipilih */}
+            {/* Number of People & PS Unit Selection - Bersebelahan setelah room dipilih */}
             {bookingDetails.roomType && (
               <div className="mt-8 mb-8">
-                <div className="flex items-center gap-4">
-                  <label
-                    htmlFor="people-select"
-                    className="text-2xl font-semibold text-theme-primary flex items-center gap-2"
-                  >
-                    <IoMdPeople /> Number of People :
-                  </label>
-                  <select
-                    id="people-select"
-                    className={`select select-bordered border-brand-gold focus:border-brand-gold focus:outline-none ${bookingDetails.rewardInfo ? 'cursor-not-allowed opacity-70' : 'cursor-pointer'
-                      }`}
-                    value={bookingDetails.numberOfPeople || ""}
-                    onChange={(e) =>
-                      !bookingDetails.rewardInfo && setBookingDetails((prev) => ({
-                        ...prev,
-                        numberOfPeople: e.target.value ? parseInt(e.target.value) : null,
-                        psUnit: null,
-                        selectedGames: [],
-                        unitPrice: 0,
-                      }))
-                    }
-                    disabled={!!bookingDetails.rewardInfo}
-                  >
-                    <option value="" disabled>
-                      Select number of people
-                    </option>
-                    {[...Array(bookingDetails.roomType.max_visitors)].map((_, i) => (
-                      <option key={i + 1} value={i + 1}>
-                        {i + 1} {i > 0 ? "People" : "Person"}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  {/* Number of People Selection */}
+                  <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-3">
+                      <img
+                        src="/Icon/Number of People.svg"
+                        alt="Number of People"
+                        className="w-6 h-6"
+                      />
+                      <label
+                        htmlFor="people-select"
+                        className="text-2xl font-normal text-theme-primary font-minecraft"
+                      >
+                        Number of People :
+                      </label>
+                    </div>
+                    <select
+                      id="people-select"
+                      className={`select select-bordered border-brand-gold focus:border-brand-gold focus:outline-none ${bookingDetails.rewardInfo ? 'cursor-not-allowed opacity-70' : 'cursor-pointer'
+                        }`}
+                      value={bookingDetails.numberOfPeople || ""}
+                      onChange={(e) =>
+                        !bookingDetails.rewardInfo && setBookingDetails((prev) => ({
+                          ...prev,
+                          numberOfPeople: e.target.value ? parseInt(e.target.value) : null,
+                          psUnit: null,
+                          selectedGames: [],
+                          unitPrice: 0,
+                        }))
+                      }
+                      disabled={!!bookingDetails.rewardInfo}
+                    >
+                      <option value="" disabled>
+                        Select number of people
                       </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-            )}
+                      {[...Array(bookingDetails.roomType.max_visitors)].map((_, i) => (
+                        <option key={i + 1} value={i + 1}>
+                          {i + 1} {i > 0 ? "People" : "Person"}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
 
-            {/* PS Unit Selection - Setelah number of people dipilih */}
-            {bookingDetails.roomType && bookingDetails.numberOfPeople && (
-              <div className="flex items-center gap-4 mt-8">
-                <label
-                  htmlFor="ps-unit-select"
-                  className="text-2xl font-semibold text-theme-primary flex items-center gap-2"
-                >
-                  PS Unit Selection :
-                </label>
-                <select
-                  id="ps-unit-select"
-                  className={`select select-bordered ${bookingDetails.rewardInfo ? 'cursor-not-allowed opacity-70' : ''
-                    }`}
-                  value={bookingDetails.psUnit?.id || ""}
-                  onChange={!bookingDetails.rewardInfo ? handlePsUnitChange : () => { }}
-                  disabled={unitsStatus === "loading" || !!bookingDetails.rewardInfo}
-                >
-                  <option disabled value="">
-                    {unitsStatus === "loading"
-                      ? "Loading units..."
-                      : filteredUnits.length === 0
-                        ? "No units available"
-                        : "Pilih Unit"}
-                  </option>
-                  {filteredUnits.map((unit) => (
-                    <option key={unit.id} value={unit.id}>
-                      {unit.name} - Rp{parseInt(unit.price).toLocaleString('id-ID')}
-                    </option>
-                  ))}
-                </select>
+                  {/* PS Unit Selection */}
+                  {bookingDetails.numberOfPeople && (
+                    <div className="flex items-center gap-4">
+                      <div className="flex items-center gap-3">
+                        <img
+                          src="/Icon/PS Unit Selection.svg"
+                          alt="PS Unit Selection"
+                          className="w-6 h-6"
+                        />
+                        <label
+                          htmlFor="ps-unit-select"
+                          className="text-2xl font-normal text-theme-primary font-minecraft"
+                        >
+                          PS Unit Selection :
+                        </label>
+                      </div>
+                      <select
+                        id="ps-unit-select"
+                        className={`select select-bordered ${bookingDetails.rewardInfo ? 'cursor-not-allowed opacity-70' : ''
+                          }`}
+                        value={bookingDetails.psUnit?.id || ""}
+                        onChange={!bookingDetails.rewardInfo ? handlePsUnitChange : () => { }}
+                        disabled={unitsStatus === "loading" || !!bookingDetails.rewardInfo}
+                      >
+                        <option disabled value="">
+                          {unitsStatus === "loading"
+                            ? "Loading units..."
+                            : filteredUnits.length === 0
+                              ? "No units available"
+                              : "Pilih Unit"}
+                        </option>
+                        {filteredUnits.map((unit) => (
+                          <option key={unit.id} value={unit.id}>
+                            {unit.name} - Rp{parseInt(unit.price).toLocaleString('id-ID')}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
+                </div>
               </div>
             )}
 
             {/* Game Selection - Setelah PS Unit dipilih */}
             {bookingDetails.psUnit && (
-              <div>
+              <div ref={gameSelectionRef}>
                 <GameSelectionUnit
                   unitName={bookingDetails.psUnit.name}
                   availableGames={bookingDetails.psUnit.games || []}
@@ -957,20 +1029,31 @@ const RentPage = () => {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
               {/* Date Selection */}
               <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200">
-                <h3 className="text-2xl font-minecraft text-black mb-4 text-center">
-                  📅 Choose Date
+                <h3 className="text-2xl font-minecraft text-black mb-4 text-center flex items-center justify-center gap-2">
+                  <img
+                    src="/Icon/Select Date.svg"
+                    alt="Select Date"
+                    className="w-6 h-6"
+                  />
+                  Choose Date
                 </h3>
                 <DateSelection
                   unitId={bookingDetails.psUnit?.id}
                   selectedDate={bookingDetails.date}
                   onDateSelect={handleSelectDate}
+                  isRewardBooking={!!bookingDetails.rewardInfo}
                 />
               </div>
 
               {/* Time Selection */}
               <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200">
-                <h3 className="text-2xl font-minecraft text-black mb-4 text-center">
-                  ⏰ Choose Time
+                <h3 className="text-2xl font-minecraft text-black mb-4 text-center flex items-center justify-center gap-2">
+                  <img
+                    src="/Icon/Select Time.svg"
+                    alt="Select Time"
+                    className="w-6 h-6"
+                  />
+                  Choose Time
                 </h3>
                 {bookingDetails.date ? (
                   <TimeSelection
@@ -991,7 +1074,7 @@ const RentPage = () => {
             </div>
 
             {/* Duration and Next Step */}
-            {(bookingDetails.startTime || bookingDetails.rewardInfo) && (
+            {((bookingDetails.startTime && bookingDetails.duration) || bookingDetails.rewardInfo) && (
               <div className="w-full">
                 <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200">
                   {/* Duration Selection - Full Width */}
@@ -1081,13 +1164,13 @@ const RentPage = () => {
                   </div>
 
                   {/* Next Step Button - Centered */}
-                  {bookingDetails.duration && (
+                  {(bookingDetails.duration || bookingDetails.rewardInfo) && (
                     <div className="flex justify-center">
                       <button
                         onClick={handleNextToStep4}
                         className="btn w-full bg-brand-gold hover:bg-brand-gold/80 text-white font-minecraft tracking-wider text-lg px-8 py-3 transition-all duration-300 transform hover:scale-105 shadow-lg"
                       >
-                        Next Step →
+                        {bookingDetails.rewardInfo ? "Proceed to Payment" : "Next Step →"}
                       </button>
                     </div>
                   )}

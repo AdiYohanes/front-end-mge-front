@@ -46,6 +46,11 @@ const RoomTypeSelection = ({ rooms, selectedRoomType, onSelectRoomType, isReward
   return (
     <div className="mt-8 w-full">
       <h3 className="text-2xl font-minecraft text-theme-primary mb-6 flex items-center gap-2">
+        <img
+          src="/Icon/ROOM TYPE.svg"
+          alt="Room Type"
+          className="w-6 h-6"
+        />
         Room Type :
       </h3>
 
@@ -79,7 +84,7 @@ const RoomTypeSelection = ({ rooms, selectedRoomType, onSelectRoomType, isReward
                   alt={room.name}
                   className="h-56 w-full object-cover"
                 />
-                <div className="badge badge-lg bg-black text-white font-semibold absolute top-4 right-4 flex items-center gap-2">
+                <div className="badge badge-lg bg-black dark:bg-gray-700 text-white dark:text-gray-200 font-semibold absolute top-4 right-4 flex items-center gap-2">
                   <IoMdPeople />
                   Max {room.max_visitors} Orang
                 </div>

@@ -97,7 +97,7 @@ const ProfileRewardsPage = () => {
             setTimeout(() => setRedeemError(""), 5000);
         } finally {
             setRedeemingId(null);
-            setSelectedReward(null);
+            // Don't reset selectedReward here - keep it for success modal
         }
     };
 
@@ -252,9 +252,58 @@ const ProfileRewardsPage = () => {
                                 }
 
                                 // Use the user reward ID from the redeem response, not the original reward ID
-                                const userRewardId = selectedReward.apiResponse?.id;
+                                console.log("Full selectedReward object:", selectedReward);
+                                console.log("Full apiResponse object:", selectedReward.apiResponse);
+
+                                // Try different possible structures for user reward ID
+                                const userRewardId = selectedReward.apiResponse?.id ||
+                                    selectedReward.apiResponse?.data?.id ||
+                                    selectedReward.apiResponse?.user_reward_id ||
+                                    selectedReward.apiResponse?.reward_id;
+
                                 if (!userRewardId) {
                                     console.error("No user reward ID found in apiResponse:", selectedReward.apiResponse);
+                                    console.error("Available keys in apiResponse:", Object.keys(selectedReward.apiResponse || {}));
+
+                                    // Fallback: Try to get the latest user reward from getUserRewards
+                                    console.log("Trying fallback: getting latest user reward...");
+                                    try {
+                                        const userRewardsResponse = await getUserRewards();
+                                        const userRewardsList = Array.isArray(userRewardsResponse.data) ? userRewardsResponse.data : Array.isArray(userRewardsResponse) ? userRewardsResponse : [];
+
+                                        if (userRewardsList.length > 0) {
+                                            // Get the most recent reward (assuming it's the one just redeemed)
+                                            const latestReward = userRewardsList[0];
+                                            const fallbackId = latestReward.id;
+                                            console.log("Found fallback user reward ID:", fallbackId);
+
+                                            if (fallbackId) {
+                                                // Use the fallback ID
+                                                const applyResponse = await applyReward(fallbackId);
+                                                console.log("Use Now clicked - Apply Reward API Response (fallback):", applyResponse);
+
+                                                const redirectTo = applyResponse?.redirect_to;
+                                                if (redirectTo) {
+                                                    navigate(redirectTo, {
+                                                        state: {
+                                                            rewardData: applyResponse,
+                                                            fromReward: true
+                                                        }
+                                                    });
+                                                    setShowSuccessModal(false);
+                                                    setSelectedReward(null);
+                                                    return;
+                                                } else {
+                                                    setShowSuccessModal(false);
+                                                    setSelectedReward(null);
+                                                    return;
+                                                }
+                                            }
+                                        }
+                                    } catch (fallbackError) {
+                                        console.error("Fallback also failed:", fallbackError);
+                                    }
+
                                     return;
                                 }
 
@@ -278,16 +327,20 @@ const ProfileRewardsPage = () => {
                                                 fromReward: true
                                             }
                                         });
+                                        setShowSuccessModal(false);
+                                        setSelectedReward(null); // Reset selectedReward after redirect
                                     } else {
                                         // No redirect URL specified, just close modal
                                         console.warn("Use Now - No redirect URL in response");
                                         setShowSuccessModal(false);
+                                        setSelectedReward(null); // Reset selectedReward when closing modal
                                     }
                                 } catch (error) {
                                     console.error("Failed to apply reward:", error);
                                     const message = error.response?.data?.message || error.message || "Failed to apply reward";
                                     console.log("Apply Reward Error:", message);
                                     setShowSuccessModal(false);
+                                    setSelectedReward(null); // Reset selectedReward on error
                                 }
                             }}
                             className="btn bg-brand-gold hover:bg-yellow-600 text-white w-full py-3 text-lg font-medium"
@@ -297,8 +350,11 @@ const ProfileRewardsPage = () => {
                         <button
                             onClick={async () => {
                                 setShowSuccessModal(false);
+                                setSelectedReward(null); // Reset selectedReward when closing modal
                                 // Refresh user rewards to show the newly redeemed reward
-                                await loadUserRewards();
+                                if (window.loadUserRewards) {
+                                    await window.loadUserRewards();
+                                }
                                 // Refresh page to update user points
                                 setTimeout(() => {
                                     window.location.reload();
@@ -317,16 +373,16 @@ const ProfileRewardsPage = () => {
     const renderHeader = () => {
         return (
             <div className="flex flex-col items-center gap-3 text-center">
-                <h1 className="font-minecraft text-4xl text-theme-primary">Rewards</h1>
+                <h1 className="font-minecraft text-5xl lg:text-6xl text-brand-gold">Rewards</h1>
                 <div className="flex items-center gap-2">
-                    <div className="h-3 w-10 rounded bg-brand-gold" aria-hidden="true"></div>
-                    <div className="h-3 w-10 rounded bg-theme-primary" aria-hidden="true"></div>
-                    <div className="h-3 w-10 rounded bg-brand-gold" aria-hidden="true"></div>
+                    <div className="h-2 w-2 bg-brand-gold" aria-hidden="true"></div>
+                    <div className="h-2 w-2 bg-black" aria-hidden="true"></div>
+                    <div className="h-2 w-2 bg-brand-gold" aria-hidden="true"></div>
                 </div>
                 <div className="text-sm text-theme-secondary">
-                    <span className="inline-flex items-center gap-2">
-                        <img src="/images/coin.png" alt="points" className="h-5 w-5" />
-                        <strong className="text-theme-primary">{userPoints} points</strong>
+                    <span className="inline-flex items-center gap-3">
+                        <img src="/images/coin.png" alt="points" className="h-8 w-8" />
+                        <strong className="text-brand-gold text-2xl">{userPoints} points</strong>
                     </span>
                     <div className="mt-1">Expired on August 12, 2025</div>
                 </div>

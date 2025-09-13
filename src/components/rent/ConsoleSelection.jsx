@@ -41,7 +41,12 @@ const ConsoleSelection = ({ selectedConsole, onSelectConsole }) => {
 
   return (
     <div className="mt-8 w-full">
-      <h3 className="text-2xl font-minecraft text-theme-primary mb-6">
+      <h3 className="text-2xl font-minecraft text-theme-primary mb-6 flex items-center gap-2">
+        <img
+          src="/Icon/Console Selection.svg"
+          alt="Console Selection"
+          className="w-6 h-6"
+        />
         Console Selection :
       </h3>
 

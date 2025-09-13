@@ -26,9 +26,9 @@ const TaglineSection = () => {
         </p>
 
         <div className="flex items-center gap-5 mt-12">
-          <div className="h-3 w-3 bg-black"></div>
+          <div className="h-3 w-3 bg-black dark:bg-white"></div>
           <div className="h-3 w-3 bg-brand-gold"></div>
-          <div className="h-3 w-3 bg-black"></div>
+          <div className="h-3 w-3 bg-black dark:bg-white"></div>
         </div>
       </div>
     </section>

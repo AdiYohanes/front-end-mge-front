@@ -2,7 +2,6 @@
 
 import React from "react";
 import { useTheme } from "./ThemeProvider";
-import { FaSun, FaMoon } from "react-icons/fa";
 
 const ThemeToggle = () => {
     const { theme, toggleTheme } = useTheme();
@@ -10,14 +9,22 @@ const ThemeToggle = () => {
     return (
         <button
             onClick={toggleTheme}
-            className="btn btn-ghost btn-circle border-2 border-black dark:border-white hover:bg-theme-secondary"
+            className="btn btn-ghost hover:bg-theme-secondary p-2"
             aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
             title={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
         >
             {theme === "light" ? (
-                <FaMoon className="h-5 w-5 text-black" />
+                <img
+                    src="/images/LIGHT MODE.svg"
+                    alt="Light Mode"
+                    className="h-8 w-8"
+                />
             ) : (
-                <FaSun className="h-5 w-5 text-white" />
+                <img
+                    src="/images/DARK MODE.svg"
+                    alt="Dark Mode"
+                    className="h-8 w-8"
+                />
             )}
         </button>
     );

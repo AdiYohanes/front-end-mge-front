@@ -43,7 +43,12 @@ const GameSelectionUnit = ({
       className="mt-8 w-full p-6 bg-base-100 rounded-lg shadow-inner"
     >
       <div className="text-center">
-        <h3 className="text-2xl font-semibold text-theme-primary">
+        <h3 className="text-2xl font-normal text-theme-primary flex items-center justify-center gap-2 font-minecraft">
+          <img
+            src="/Icon/Available Game List.svg"
+            alt="Available Game List"
+            className="w-6 h-6"
+          />
           Available Game List for {unitName}
         </h3>
         <p className="text-sm text-theme-secondary mt-1">

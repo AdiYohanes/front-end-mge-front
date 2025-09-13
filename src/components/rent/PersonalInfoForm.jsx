@@ -1,6 +1,6 @@
 // src/components/rent/PersonalInfoForm.jsx
 
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { useSelector } from "react-redux";
 import { FaUser, FaPhone } from "react-icons/fa";
 import TermsModal from "../common/TermsModal";
@@ -36,11 +36,11 @@ const PersonalInfoForm = ({
   };
 
   return (
-    <div className="bg-white border border-gray-200 rounded-lg shadow-sm p-6 w-full">
-      <h2 className="text-xl font-semibold text-gray-900 mb-1 text-left">
+    <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm p-6 w-full">
+      <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-1 text-left">
         Personal Information
       </h2>
-      <p className="text-sm text-gray-600 mb-6 text-left">
+      <p className="text-sm text-gray-600 dark:text-gray-300 mb-6 text-left">
         Please provide your name and phone number.
       </p>
 
@@ -153,17 +153,17 @@ const PersonalInfoForm = ({
                   onFormChange({ target: { name: "agreed", type: "checkbox", checked: false } });
                 }
               }}
-              className="w-4 h-4 text-brand-gold rounded focus:ring-brand-gold mt-0.5"
+              className="w-4 h-4 text-brand-gold rounded focus:ring-brand-gold mt-0.5 flex-shrink-0"
               required
             />
-            <span className="text-sm text-gray-600 leading-relaxed">
-              I agree to the{" "}
+            <span className="text-sm text-gray-600 leading-relaxed text-left">
+              Saya telah membaca, memahami, dan menyetujui{" "}
               <button
                 type="button"
                 onClick={() => setShowTermsModal(true)}
                 className="text-brand-gold hover:underline font-medium"
               >
-                Terms & Conditions
+                Syarat & Ketentuan
               </button>
               .
             </span>

@@ -8,7 +8,7 @@ import { fetchAvailabilityThunk } from "../../features/availability/availability
 import "react-calendar/dist/Calendar.css";
 import "../../styles/Calendar.css";
 
-const DateSelection = ({ unitId, selectedDate, onDateSelect }) => {
+const DateSelection = ({ unitId, selectedDate, onDateSelect, isRewardBooking = false }) => {
   const [activeMonth, setActiveMonth] = useState(new Date());
 
   const dispatch = useDispatch();
@@ -44,7 +44,7 @@ const DateSelection = ({ unitId, selectedDate, onDateSelect }) => {
           <Calendar
             onChange={onDateSelect}
             value={selectedDate}
-            minDate={new Date()}
+            minDate={new Date(new Date().setHours(0, 0, 0, 0))}
             onActiveStartDateChange={({ activeStartDate }) =>
               setActiveMonth(activeStartDate)
             }

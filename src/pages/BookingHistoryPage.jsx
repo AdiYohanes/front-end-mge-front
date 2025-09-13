@@ -207,21 +207,21 @@ const BookingItem = ({ booking, onViewDetails, onRate, ratedBookings }) => {
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-lg border border-gray-100 hover:shadow-xl transition-all duration-300 hover:border-brand-gold/30 group">
+    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-100 dark:border-gray-700 hover:shadow-xl transition-all duration-300 hover:border-brand-gold/30 group">
       <div className="p-6">
         {/* Header Section */}
         <div className="flex items-start justify-between mb-4">
           <div className="flex items-center gap-4">
-            <div className={`p-3 rounded-xl ${isRoomBooking ? 'bg-blue-50' : 'bg-green-50'} group-hover:scale-105 transition-transform duration-200`}>
-              <FaGamepad className={`h-6 w-6 ${isRoomBooking ? 'text-blue-600' : 'text-green-600'}`} />
+            <div className={`p-3 rounded-xl ${isRoomBooking ? 'bg-blue-50 dark:bg-blue-900/30' : 'bg-green-50 dark:bg-green-900/30'} group-hover:scale-105 transition-transform duration-200`}>
+              <FaGamepad className={`h-6 w-6 ${isRoomBooking ? 'text-blue-600 dark:text-blue-400' : 'text-green-600 dark:text-green-400'}`} />
             </div>
             <div>
-              <h3 className="font-bold text-xl text-gray-900 mb-1">{displayTitle}</h3>
+              <h3 className="font-bold text-xl text-gray-900 dark:text-white mb-1">{displayTitle}</h3>
               <div className="flex items-center gap-3">
                 <span className={`badge ${getStatusColor(booking.status)} font-medium px-3 py-1`}>
                   {getStatusText(booking.status)}
                 </span>
-                <span className="text-sm text-gray-500 font-mono">
+                <span className="text-sm text-gray-500 dark:text-gray-400 font-mono">
                   {booking.invoice_number}
                 </span>
               </div>
@@ -231,7 +231,7 @@ const BookingItem = ({ booking, onViewDetails, onRate, ratedBookings }) => {
             <p className="text-2xl font-bold text-brand-gold mb-1">
               Rp{parseInt(booking.total_price).toLocaleString("id-ID")}
             </p>
-            <p className="text-sm text-gray-500">Total Amount</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">Total Amount</p>
           </div>
         </div>
 
@@ -239,37 +239,37 @@ const BookingItem = ({ booking, onViewDetails, onRate, ratedBookings }) => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
           <div className="space-y-2">
             <div className="flex items-center gap-2">
-              <span className="text-sm font-medium text-gray-600">Date:</span>
-              <span className="text-sm text-gray-900">{bookingDate}</span>
+              <span className="text-sm font-medium text-gray-600 dark:text-gray-300">Date:</span>
+              <span className="text-sm text-gray-900 dark:text-white">{bookingDate}</span>
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-sm font-medium text-gray-600">Time:</span>
-              <span className="text-sm text-gray-900">{bookingTime}</span>
+              <span className="text-sm font-medium text-gray-600 dark:text-gray-300">Time:</span>
+              <span className="text-sm text-gray-900 dark:text-white">{bookingTime}</span>
             </div>
             {isRoomBooking && booking.unit && (
               <div className="flex items-center gap-2">
-                <span className="text-sm font-medium text-gray-600">Visitors:</span>
-                <span className="text-sm text-gray-900">{booking.total_visitors || 1} person(s)</span>
+                <span className="text-sm font-medium text-gray-600 dark:text-gray-300">Visitors:</span>
+                <span className="text-sm text-gray-900 dark:text-white">{booking.total_visitors || 1} person(s)</span>
               </div>
             )}
           </div>
           <div className="space-y-2">
             {isRoomBooking && booking.unit?.consoles?.[0] && (
               <div className="flex items-center gap-2">
-                <span className="text-sm font-medium text-gray-600">Console:</span>
-                <span className="text-sm text-gray-900">{booking.unit.consoles[0].name}</span>
+                <span className="text-sm font-medium text-gray-600 dark:text-gray-300">Console:</span>
+                <span className="text-sm text-gray-900 dark:text-white">{booking.unit.consoles[0].name}</span>
               </div>
             )}
             {isRoomBooking && booking.game && (
               <div className="flex items-center gap-2">
-                <span className="text-sm font-medium text-gray-600">Game:</span>
-                <span className="text-sm text-gray-900">{booking.game.title}</span>
+                <span className="text-sm font-medium text-gray-600 dark:text-gray-300">Game:</span>
+                <span className="text-sm text-gray-900 dark:text-white">{booking.game.title}</span>
               </div>
             )}
             {booking.payment_method && (
               <div className="flex items-center gap-2">
-                <span className="text-sm font-medium text-gray-600">Payment:</span>
-                <span className="text-sm text-gray-900 capitalize">{booking.payment_method}</span>
+                <span className="text-sm font-medium text-gray-600 dark:text-gray-300">Payment:</span>
+                <span className="text-sm text-gray-900 dark:text-white capitalize">{booking.payment_method}</span>
               </div>
             )}
           </div>
@@ -277,9 +277,9 @@ const BookingItem = ({ booking, onViewDetails, onRate, ratedBookings }) => {
 
         {/* F&B Items Section */}
         {fnbItems && (
-          <div className="mb-4 p-3 bg-gray-50 rounded-lg">
-            <p className="text-sm font-medium text-gray-700 mb-1">Food & Drinks:</p>
-            <p className="text-sm text-gray-600">{fnbItems}</p>
+          <div className="mb-4 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+            <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Food & Drinks:</p>
+            <p className="text-sm text-gray-600 dark:text-gray-400">{fnbItems}</p>
           </div>
         )}
 

@@ -15,13 +15,13 @@ const BookingCancelledPage = () => {
           Your Booking has been cancelled.
         </h1>
         <p className="max-w-md mx-auto text-gray-600 leading-relaxed mb-10">
-          We're sad to see you go, but we will meet another time! We will send
-          you a confirmation and refund information through Whatsapp, please sit
-          tight!
+          We're sad to see you go, but we will meet another time!
+          <br />
+          If your payment does not go through, please try booking again
         </p>
         <div className="flex flex-col sm:flex-row justify-center gap-4 w-full">
           <Link
-            to="/history"
+            to="/book-history"
             className="btn btn-outline border-gray-300 w-full"
           >
             See Booking History

@@ -61,7 +61,7 @@ const HeroSlider = ({ onPricelistClick }) => {
           {/* Pricelist Button */}
           <button
             onClick={onPricelistClick}
-            className="w-[160px] sm:w-[180px] lg:w-[200px] flex items-center justify-center text-base sm:text-base lg:text-lg xl:text-xl px-6 py-3 sm:px-8 sm:py-4 lg:px-10 lg:py-5 bg-brand-gold text-white font-funnel tracking-wider hover:bg-white hover:text-black border-none transition-all duration-300 transform hover:scale-105 shadow-lg rounded-lg"
+            className="w-[180px] sm:w-[200px] lg:w-[220px] flex items-center justify-center text-base sm:text-base lg:text-lg xl:text-xl px-8 py-3 sm:px-10 sm:py-4 lg:px-12 lg:py-5 bg-brand-gold text-white font-funnel tracking-wider hover:bg-white hover:text-black border-none transition-all duration-300 transform hover:scale-105 shadow-lg rounded-lg cursor-pointer"
           >
             <FaRegMoneyBillAlt className="mr-2 sm:mr-3 h-5 w-5 sm:h-6 sm:w-6 lg:h-7 lg:w-7 flex-shrink-0" />
             <span className="whitespace-nowrap">Pricelist</span>
@@ -70,7 +70,7 @@ const HeroSlider = ({ onPricelistClick }) => {
           {/* Book a Room Button */}
           <Link
             to="/rent"
-            className="w-[160px] sm:w-[180px] lg:w-[200px] flex items-center justify-center text-base sm:text-base lg:text-lg xl:text-xl px-6 py-3 sm:px-8 sm:py-4 lg:px-10 lg:py-5 bg-brand-gold text-white font-funnel tracking-wider hover:bg-white hover:text-black border-none transition-all duration-300 transform hover:scale-105 shadow-lg rounded-lg"
+            className="w-[200px] sm:w-[220px] lg:w-[240px] flex items-center justify-center text-base sm:text-base lg:text-lg xl:text-xl px-8 py-3 sm:px-10 sm:py-4 lg:px-12 lg:py-5 bg-brand-gold text-white font-funnel tracking-wider hover:bg-white hover:text-black border-none transition-all duration-300 transform hover:scale-105 shadow-lg rounded-lg"
           >
             <FaGamepad className="mr-2 sm:mr-3 h-5 w-5 sm:h-6 sm:w-6 lg:h-7 lg:w-7 flex-shrink-0" />
             <span className="whitespace-nowrap">Book a Room</span>

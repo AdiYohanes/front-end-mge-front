@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router";
-import { FaHistory, FaPlusCircle, FaGift } from "react-icons/fa";
+import { FaHistory, FaPlusCircle, FaGift, FaHome } from "react-icons/fa";
 import { useSelector, useDispatch } from "react-redux";
 import { clearBookingState } from "../features/booking/bookingSlice";
 
@@ -114,9 +114,9 @@ const BookingSuccessPage = () => {
   if (isLoading) {
     return (
       <div className="container mx-auto px-4 py-16 lg:py-24 flex justify-center">
-        <div className="w-full max-w-2xl text-center flex flex-col items-center">
+        <div className="w-full max-w-2xl text-center flex flex-col items-center text-gray-900 dark:text-white">
           <div className="loading loading-spinner loading-lg text-brand-gold"></div>
-          <p className="mt-4 text-gray-600">Verifying booking...</p>
+          <p className="mt-4 text-gray-600 dark:text-gray-300">Verifying booking...</p>
         </div>
       </div>
     );
@@ -169,7 +169,7 @@ const BookingSuccessPage = () => {
 
   return (
     <div className="container mx-auto px-4 py-16 lg:py-24 flex justify-center">
-      <div className="w-full max-w-2xl text-center flex flex-col items-center">
+      <div className="w-full max-w-2xl text-center flex flex-col items-center text-gray-900 dark:text-white">
         {/* 1. Gambar Sukses (Logo) lebih besar */}
         <img
           src="/images/success.png"
@@ -220,12 +220,12 @@ const BookingSuccessPage = () => {
         )}
 
         {/* 3. Tulisan Sukses */}
-        <h1 className="text-4xl lg:text-5xl font-minecraft text-gray-800 mb-4">
+        <h1 className="text-4xl lg:text-5xl font-minecraft text-gray-900 dark:text-white mb-4">
           {invoiceNumber ? "Your booking has been made!" : "Booking Confirmation"}
         </h1>
 
         {/* 5. Teks Konfirmasi */}
-        <p className="max-w-md mx-auto text-gray-600 leading-relaxed mb-8">
+        <p className="max-w-md mx-auto text-gray-600 dark:text-gray-300 leading-relaxed mb-8">
           {invoiceNumber ? (
             isRewardBooking
               ? "Your reward booking has been confirmed! We will send you a confirmation through Whatsapp. Please sit tight!"
@@ -239,25 +239,25 @@ const BookingSuccessPage = () => {
 
         {/* 4. Booking Details */}
         {bookingDetails && (
-          <div className="mb-8 p-6 bg-gray-50 rounded-lg w-full max-w-md">
+          <div className="mb-8 p-6 bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-600 rounded-lg w-full max-w-md">
             <h3 className="font-minecraft text-lg text-brand-gold mb-4">Booking Details</h3>
             <div className="space-y-2 text-left">
               {bookingDetails.psUnit && (
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Unit:</span>
-                  <span className="font-semibold">{bookingDetails.psUnit.name}</span>
+                  <span className="text-gray-600 dark:text-gray-300">Unit:</span>
+                  <span className="font-semibold text-gray-900 dark:text-white">{bookingDetails.psUnit.name}</span>
                 </div>
               )}
               {bookingDetails.selectedGames?.[0] && (
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Game:</span>
-                  <span className="font-semibold">{bookingDetails.selectedGames[0].name}</span>
+                  <span className="text-gray-600 dark:text-gray-300">Game:</span>
+                  <span className="font-semibold text-gray-900 dark:text-white">{bookingDetails.selectedGames[0].name}</span>
                 </div>
               )}
               {bookingDetails.date && (
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Date:</span>
-                  <span className="font-semibold">
+                  <span className="text-gray-600 dark:text-gray-300">Date:</span>
+                  <span className="font-semibold text-gray-900 dark:text-white">
                     {new Date(bookingDetails.date).toLocaleDateString('id-ID', {
                       weekday: 'long',
                       year: 'numeric',
@@ -269,20 +269,20 @@ const BookingSuccessPage = () => {
               )}
               {bookingDetails.startTime && (
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Time:</span>
-                  <span className="font-semibold">{bookingDetails.startTime}</span>
+                  <span className="text-gray-600 dark:text-gray-300">Time:</span>
+                  <span className="font-semibold text-gray-900 dark:text-white">{bookingDetails.startTime}</span>
                 </div>
               )}
               {bookingDetails.duration && (
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Duration:</span>
-                  <span className="font-semibold">{bookingDetails.duration} hours</span>
+                  <span className="text-gray-600 dark:text-gray-300">Duration:</span>
+                  <span className="font-semibold text-gray-900 dark:text-white">{bookingDetails.duration} hours</span>
                 </div>
               )}
               {bookingDetails.numberOfPeople && (
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Players:</span>
-                  <span className="font-semibold">{bookingDetails.numberOfPeople} people</span>
+                  <span className="text-gray-600 dark:text-gray-300">Players:</span>
+                  <span className="font-semibold text-gray-900 dark:text-white">{bookingDetails.numberOfPeople} people</span>
                 </div>
               )}
             </div>
@@ -290,18 +290,18 @@ const BookingSuccessPage = () => {
         )}
 
         {/* 5. Nomor Invoice */}
-        <div className="mb-10 p-4 bg-base-200 rounded-lg inline-block">
-          <span className="text-gray-500 text-sm">Invoice Number:</span>
-          <p className="font-semibold text-lg tracking-wider">
+        <div className="mb-10 p-4 bg-gray-100 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-600 rounded-lg inline-block">
+          <span className="text-gray-600 dark:text-gray-300 text-sm">Invoice Number:</span>
+          <p className="font-semibold text-lg tracking-wider text-gray-900 dark:text-white">
             {displayInvoiceNumber}
           </p>
         </div>
 
         {/* Public Access Information */}
         {!invoiceNumber && (
-          <div className="mb-10 p-6 bg-blue-50 border border-blue-200 rounded-lg max-w-md mx-auto">
-            <h3 className="font-minecraft text-lg text-blue-800 mb-3">Need Help?</h3>
-            <div className="text-sm text-blue-700 space-y-2">
+          <div className="mb-10 p-6 bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-400 rounded-lg max-w-md mx-auto">
+            <h3 className="font-minecraft text-lg text-blue-800 dark:text-blue-300 mb-3">Need Help?</h3>
+            <div className="text-sm text-blue-700 dark:text-blue-200 space-y-2">
               <p><strong>Email:</strong> support@gamingrental.com</p>
               <p><strong>Phone:</strong> +62 812-3456-7890</p>
               <p><strong>WhatsApp:</strong> +62 812-3456-7890</p>
@@ -314,14 +314,14 @@ const BookingSuccessPage = () => {
           {isGuestBooking ? (
             // Guest booking - only show back to home button
             <Link to="/" className="btn bg-brand-gold text-white w-full">
-              <FaPlusCircle className="mr-2" />
+              <FaHome className="mr-2" />
               Back to Home
             </Link>
           ) : (
             // Logged in user - show both buttons
             <>
               <Link
-                to="/history"
+                to="/book-history"
                 className="btn btn-outline border-gray-300 w-full"
               >
                 <FaHistory className="mr-2" />

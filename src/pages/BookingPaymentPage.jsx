@@ -46,27 +46,49 @@ const BookingPaymentPage = () => {
     agreed: false,
   });
   const [paymentMethod, setPaymentMethod] = useState("cash");
+  const [useLoginInfo, setUseLoginInfo] = useState(false);
 
-  // Debug log for OTS booking
+  // Update bookingDetails when initialBookingDetails changes
   useEffect(() => {
-    console.log("BookingPaymentPage - isOtsBooking:", isOtsBooking);
-    console.log("BookingPaymentPage - location.state:", location.state);
-    console.log("BookingPaymentPage - user role:", user?.role);
-    console.log("BookingPaymentPage - paymentMethod:", paymentMethod);
-  }, [isOtsBooking, location.state, user, paymentMethod]);
+    if (initialBookingDetails) {
+      console.log("BookingPaymentPage - Updating bookingDetails with initialBookingDetails:", initialBookingDetails);
+      setBookingDetails(initialBookingDetails);
+    }
+  }, [initialBookingDetails]);
 
-  // Populate personal info from user data when user is logged in
+  // Debug log for booking data
   useEffect(() => {
-    if (user && !isOtsBooking) {
+    console.log("BookingPaymentPage - Debug data:");
+    console.log("  - isOtsBooking:", isOtsBooking);
+    console.log("  - isGuestBooking:", isGuestBooking);
+    console.log("  - fromReward:", fromReward);
+    console.log("  - rewardData:", rewardData);
+    console.log("  - bookingDetails:", bookingDetails);
+    console.log("  - user role:", user?.role);
+    console.log("  - paymentMethod:", paymentMethod);
+    console.log("  - location.state:", location.state);
+  }, [isOtsBooking, isGuestBooking, fromReward, rewardData, bookingDetails, user, paymentMethod, location.state]);
+
+  // Auto-check personal info for reward booking since user is logged in and using rewards
+  useEffect(() => {
+    const userRewardId = bookingDetails?.rewardInfo?.userRewardId || rewardData?.user_reward_id;
+    if (userRewardId && user && !useLoginInfo) {
+      console.log("BookingPaymentPage - Auto-checking personal info for reward booking");
+      setUseLoginInfo(true);
+    }
+  }, [bookingDetails, rewardData, user, useLoginInfo]);
+
+  // Populate personal info from user data when user is logged in and checkbox is checked
+  useEffect(() => {
+    if (user && !isOtsBooking && useLoginInfo) {
       setPersonalInfo(prev => ({
         ...prev,
         fullName: user.name || user.full_name || "",
         phoneNumber: user.phone || user.phone_number || "",
-        agreed: true, // Auto-agree for logged-in users
+        // Don't auto-agree to terms, let user decide
       }));
     }
-  }, [user, isOtsBooking]);
-  const [useLoginInfo, setUseLoginInfo] = useState(false);
+  }, [user, isOtsBooking, useLoginInfo]);
   const [isModalOpen, setIsModalOpen] = useState(false); // State untuk modal
   const [showTermsModal, setShowTermsModal] = useState(false); // State untuk terms modal
   const [showExitWarning, setShowExitWarning] = useState(false); // State untuk exit warning modal (back to booking)
@@ -462,163 +484,305 @@ const BookingPaymentPage = () => {
     setIsModalOpen(true); // Buka modal jika validasi berhasil
   };
 
-  // Fungsi ini dipanggil dari dalam modal untuk submit
-  const handleSubmitBooking = () => {
-    const userRewardId = bookingDetails?.rewardInfo?.userRewardId || rewardData?.user_reward_id;
+  // Helper function to validate required fields
+  const validateRequiredFields = (data, fields, bookingType) => {
+    const missingFields = fields.filter(field => {
+      const fieldValue = data[field];
+      const isMissing = !fieldValue || fieldValue === null || fieldValue === undefined;
+      if (isMissing) {
+        console.error(`Missing field '${field}':`, fieldValue);
+      }
+      return isMissing;
+    });
 
-    // Validate customer data before submitting
-    // Skip for logged in user, but require for OTS booking and guest users
-    if (!user && !isOtsBooking && (!personalInfo.fullName || !personalInfo.phoneNumber)) {
-      toast.error("Name and phone number are required");
-      return;
+    if (missingFields.length > 0) {
+      console.error(`Missing required fields for ${bookingType}:`, missingFields);
+      console.error("Full data:", data);
+      toast.error(`Missing required fields: ${missingFields.join(', ')}`);
+      return false;
+    }
+    return true;
+  };
+
+  // Helper function to build time strings
+  const buildTimeStrings = (date, time, duration) => {
+    console.log("buildTimeStrings - Input:", { date, time, duration });
+
+    // Validate inputs
+    if (!date) {
+      throw new Error("Date is required for time calculation");
     }
 
-    // For OTS booking, always require customer info
-    if (isOtsBooking && (!personalInfo.fullName || !personalInfo.phoneNumber)) {
-      toast.error("Customer name and phone number are required for OTS booking");
-      return;
+    if (!time) {
+      throw new Error("Start time is required for time calculation");
     }
 
-    // Validate bookingDetails exists
+    if (!duration || duration <= 0) {
+      throw new Error("Valid duration is required for time calculation");
+    }
+
+    // Ensure date is a Date object
+    const dateObj = date instanceof Date ? date : new Date(date);
+
+    // Validate date
+    if (isNaN(dateObj.getTime())) {
+      throw new Error("Invalid date provided");
+    }
+
+    // Format date as YYYY-MM-DD
+    const dateStr = dateObj.toISOString().split('T')[0];
+
+    // Ensure time is in HH:MM format
+    const timeStr = time;
+
+    // Validate time format (HH:MM)
+    if (!/^\d{2}:\d{2}$/.test(timeStr)) {
+      throw new Error("Invalid time format. Expected HH:MM");
+    }
+
+    // Create start datetime
+    const startDateTime = new Date(`${dateStr}T${timeStr}:00`);
+    console.log("buildTimeStrings - Start datetime:", startDateTime);
+
+    // Validate start datetime
+    if (isNaN(startDateTime.getTime())) {
+      throw new Error("Invalid start datetime");
+    }
+
+    // Calculate end datetime
+    const endDateTime = new Date(startDateTime.getTime() + (duration * 60 * 60 * 1000));
+    console.log("buildTimeStrings - End datetime:", endDateTime);
+
+    // Format as YYYY-MM-DD HH:MM (without seconds to match API expectation)
+    const startTime = `${dateStr} ${timeStr}`;
+    const endTime = `${endDateTime.toISOString().split('T')[0]} ${endDateTime.toTimeString().split(' ')[0].substring(0, 5)}`;
+
+    console.log("buildTimeStrings - Result:", { start_time: startTime, end_time: endTime });
+
+    return {
+      start_time: startTime,
+      end_time: endTime
+    };
+  };
+
+  // Helper function to validate booking details
+  const validateBookingDetails = () => {
     if (!bookingDetails) {
       console.error("No booking details available");
+      toast.error("Booking details are missing. Please start the booking process again.");
+      navigate("/rent");
+      return false;
+    }
+
+    const userRewardId = bookingDetails?.rewardInfo?.userRewardId || rewardData?.user_reward_id;
+
+    if (userRewardId) {
+      if (!bookingDetails.psUnit?.id) {
+        toast.error("PS Unit selection is missing. Please go back to select a unit.");
+        return false;
+      }
+      if (!bookingDetails.selectedGames?.[0]?.id) {
+        toast.error("Game selection is missing. Please go back to select a game.");
+        return false;
+      }
+    }
+
+    return true;
+  };
+
+  // Helper function to validate personal info
+  const validatePersonalInfo = () => {
+    if (!user && !isOtsBooking && (!personalInfo.fullName || !personalInfo.phoneNumber)) {
+      toast.error("Name and phone number are required");
+      return false;
+    }
+    if (isOtsBooking && (!personalInfo.fullName || !personalInfo.phoneNumber)) {
+      toast.error("Customer name and phone number are required for OTS booking");
+      return false;
+    }
+    return true;
+  };
+
+  // Fungsi ini dipanggil dari dalam modal untuk submit
+  const handleSubmitBooking = () => {
+    // Check if bookingDetails is available
+    if (!bookingDetails) {
+      console.error("BookingPaymentPage - bookingDetails is null or undefined");
       toast.error("Booking details are missing. Please start the booking process again.");
       navigate("/rent");
       return;
     }
 
-    // Different request structure for reward vs OTS vs normal booking
-    console.log("BookingPaymentPage - Building finalData:");
-    console.log("  - userRewardId:", userRewardId);
-    console.log("  - isOtsBooking:", isOtsBooking);
-    console.log("  - paymentMethod:", paymentMethod);
+    const userRewardId = bookingDetails?.rewardInfo?.userRewardId || rewardData?.user_reward_id;
 
-    const finalData = userRewardId ? {
-      // Simplified structure for reward booking
-      user_reward_id: userRewardId,
-      unit_id: bookingDetails.psUnit.id,
-      game_id: bookingDetails.selectedGames[0].id,
-      total_visitors: bookingDetails.numberOfPeople,
-      start_time: `${bookingDetails.date.toISOString().split('T')[0]} ${bookingDetails.startTime}`,
-      end_time: (() => {
-        const startDate = new Date(`${bookingDetails.date.toISOString().split('T')[0]} ${bookingDetails.startTime}`);
-        const endDate = new Date(startDate.getTime() + (bookingDetails.duration * 60 * 60 * 1000));
-        return `${endDate.toISOString().split('T')[0]} ${endDate.toTimeString().split(' ')[0].substring(0, 5)}`;
-      })(),
-      notes: document.getElementById("booking-notes")?.value || "No F&B needed.",
-      // Only include customer data for guest reward bookings (when user is not logged in)
-      ...(!user && {
+    // Debug logging for reward booking
+    console.log("BookingPaymentPage - Reward booking debug:");
+    console.log("  - userRewardId:", userRewardId);
+    console.log("  - bookingDetails:", bookingDetails);
+    console.log("  - bookingDetails.psUnit:", bookingDetails.psUnit);
+    console.log("  - bookingDetails.selectedGames:", bookingDetails.selectedGames);
+    console.log("  - bookingDetails.date:", bookingDetails.date);
+    console.log("  - bookingDetails.startTime:", bookingDetails.startTime);
+    console.log("  - bookingDetails.duration:", bookingDetails.duration);
+    console.log("  - bookingDetails.numberOfPeople:", bookingDetails.numberOfPeople);
+
+    // Validate all required data
+    if (!validateBookingDetails() || !validatePersonalInfo()) return;
+
+    // Build final data based on booking type
+    let finalData;
+
+    try {
+      // Validate required fields for reward booking
+      if (userRewardId) {
+        if (!bookingDetails.date) {
+          throw new Error("Date is required for reward booking");
+        }
+        if (!bookingDetails.startTime) {
+          throw new Error("Start time is required for reward booking");
+        }
+        if (!bookingDetails.duration) {
+          throw new Error("Duration is required for reward booking");
+        }
+      }
+
+      finalData = userRewardId ? {
+        // Reward booking structure
+        user_reward_id: parseInt(userRewardId),
+        unit_id: parseInt(bookingDetails.psUnit.id),
+        game_id: parseInt(bookingDetails.selectedGames[0].id),
+        total_visitors: parseInt(bookingDetails.numberOfPeople) || 1,
+        ...(() => {
+          try {
+            return buildTimeStrings(
+              bookingDetails.date,
+              bookingDetails.startTime,
+              bookingDetails.duration || 1
+            );
+          } catch (error) {
+            console.error("BookingPaymentPage - Error building time strings:", error);
+            throw new Error(`Time calculation failed: ${error.message}`);
+          }
+        })(),
+        notes: document.getElementById("booking-notes")?.value || "No F&B needed.",
+        ...(!user && {
+          name: personalInfo.fullName.trim(),
+          phone: personalInfo.phoneNumber.trim(),
+        })
+      } : isOtsBooking ? {
+        // OTS booking structure
+        unit_id: parseInt(bookingDetails.psUnit.id),
+        game_id: parseInt(bookingDetails.selectedGames[0].id),
         name: personalInfo.fullName.trim(),
         phone: personalInfo.phoneNumber.trim(),
-      })
-    } : isOtsBooking ? {
-      // OTS booking structure
-      unit_id: bookingDetails.psUnit.id,
-      game_id: bookingDetails.selectedGames[0].id,
-      name: personalInfo.fullName.trim(),
-      phone: personalInfo.phoneNumber.trim(),
-      total_visitors: bookingDetails.numberOfPeople,
-      payment_method: paymentMethod,
-      start_time: `${bookingDetails.date.toISOString().split('T')[0]} ${bookingDetails.startTime}`,
-      end_time: (() => {
-        const startDate = new Date(`${bookingDetails.date.toISOString().split('T')[0]} ${bookingDetails.startTime}`);
-        const endDate = new Date(startDate.getTime() + (bookingDetails.duration * 60 * 60 * 1000));
-        return `${endDate.toISOString().split('T')[0]} ${endDate.toTimeString().split(' ')[0].substring(0, 5)}`;
-      })(),
-      notes: document.getElementById("booking-notes")?.value || "OTS Booking.",
-      fnbs: (bookingDetails.foodAndDrinks || []).map(item => ({
-        id: item.id,
-        quantity: item.quantity
-      }))
-    } : {
-      // Normal booking structure
-      ...bookingDetails,
-      notes: document.getElementById("booking-notes")?.value || "",
-      customer: {
-        fullName: user ? (user.name || user.full_name || "") : personalInfo.fullName.trim(),
-        email: user ? (user.email || "") : "", // Use user email if available
-        phone: user ? (user.phone || user.phone_number || "") : personalInfo.phoneNumber.trim(),
-      },
-    };
+        total_visitors: parseInt(bookingDetails.numberOfPeople),
+        payment_method: paymentMethod,
+        ...buildTimeStrings(bookingDetails.date, bookingDetails.startTime, bookingDetails.duration),
+        notes: document.getElementById("booking-notes")?.value || "OTS Booking.",
+        fnbs: (bookingDetails.foodAndDrinks || []).map(item => ({
+          id: parseInt(item.id),
+          quantity: parseInt(item.quantity)
+        }))
+      } : {
+        // Normal booking structure
+        ...bookingDetails,
+        notes: document.getElementById("booking-notes")?.value || "",
+        customer: {
+          fullName: user ? (user.name || user.full_name || "") : personalInfo.fullName.trim(),
+          email: user ? (user.email || "") : "",
+          phone: user ? (user.phone || user.phone_number || "") : personalInfo.phoneNumber.trim(),
+        },
+      };
+    } catch (error) {
+      console.error("Error building final data:", error);
+      toast.error(`Error preparing booking data: ${error.message}`);
+      return;
+    }
 
+    console.log("BookingPaymentPage - Final data to be submitted:", finalData);
 
-    // Different validation for reward vs OTS vs normal booking
+    // Validate final data based on booking type
+    const validationFields = userRewardId
+      ? ['user_reward_id', 'unit_id', 'game_id', 'total_visitors', 'start_time', 'end_time']
+      : isOtsBooking
+        ? ['unit_id', 'game_id', 'name', 'phone', 'total_visitors', 'payment_method', 'start_time', 'end_time']
+        : ['psUnit', 'selectedGames', 'date', 'startTime', 'duration', 'numberOfPeople'];
+
+    // Additional validation for reward booking
     if (userRewardId) {
-      // Simplified validation for reward booking
-      const requiredFields = ['user_reward_id', 'unit_id', 'game_id', 'total_visitors', 'start_time', 'end_time'];
-      const missingFields = requiredFields.filter(field => {
-        const fieldValue = finalData[field];
-        const isMissing = !fieldValue;
-        if (isMissing) {
-          console.error(`Missing field '${field}':`, fieldValue);
-        }
-        return isMissing;
-      });
-
-      if (missingFields.length > 0) {
-        console.error("Missing required fields for reward booking:", missingFields);
-        console.error("Full final data:", finalData);
-        toast.error(`Missing required fields: ${missingFields.join(', ')}`);
-        return;
-      }
-    } else if (isOtsBooking) {
-      // Validation for OTS booking
-      const requiredFields = ['unit_id', 'game_id', 'name', 'phone', 'total_visitors', 'payment_method', 'start_time', 'end_time'];
-      const missingFields = requiredFields.filter(field => {
-        const fieldValue = finalData[field];
-        const isMissing = !fieldValue;
-        if (isMissing) {
-          console.error(`Missing field '${field}':`, fieldValue);
-        }
-        return isMissing;
-      });
-
-      if (missingFields.length > 0) {
-        console.error("Missing required fields for OTS booking:", missingFields);
-        console.error("Full final data:", finalData);
-        toast.error(`Missing required fields: ${missingFields.join(', ')}`);
-        return;
-      }
-    } else {
-      // Normal booking validation
-      const requiredFields = [
-        'psUnit', 'selectedGames', 'date', 'startTime', 'duration', 'numberOfPeople'
-      ];
-
-      const missingFields = requiredFields.filter(field => {
-        const fieldValue = finalData[field];
-        const isMissing = !fieldValue;
-        if (isMissing) {
-          console.error(`Missing field '${field}':`, fieldValue);
-        }
-        return isMissing;
-      });
-
-      if (missingFields.length > 0) {
-        console.error("Missing required fields:", missingFields);
-        console.error("Full final data:", finalData);
-        toast.error(`Missing required fields: ${missingFields.join(', ')}`);
+      // Check if date and time are provided and valid
+      if (!bookingDetails.date) {
+        console.error("Missing date for reward booking:", bookingDetails.date);
+        toast.error("Please select a date for your reward booking");
         return;
       }
 
-      // Additional validation for critical fields
+      if (!bookingDetails.startTime) {
+        console.error("Missing start time for reward booking:", bookingDetails.startTime);
+        toast.error("Please select a start time for your reward booking");
+        return;
+      }
+
+      // Check if the selected time is in the future (with 30 minutes tolerance for reward booking)
+      const selectedDateTime = new Date(`${bookingDetails.date.toISOString().split('T')[0]}T${bookingDetails.startTime}:00`);
+      const now = new Date();
+      const thirtyMinutesFromNow = new Date(now.getTime() + (30 * 60 * 1000)); // 30 minutes from now
+
+      console.log("BookingPaymentPage - Time validation for reward booking:");
+      console.log("  - Selected time:", selectedDateTime);
+      console.log("  - Selected time (local):", selectedDateTime.toLocaleString());
+      console.log("  - Current time:", now);
+      console.log("  - Current time (local):", now.toLocaleString());
+      console.log("  - 30 minutes from now:", thirtyMinutesFromNow);
+      console.log("  - 30 minutes from now (local):", thirtyMinutesFromNow.toLocaleString());
+      console.log("  - Selected time is before 30 minutes from now:", selectedDateTime < thirtyMinutesFromNow);
+      console.log("  - Time difference (minutes):", (selectedDateTime.getTime() - now.getTime()) / (1000 * 60));
+
+      // For reward booking, allow same day booking with 30 minutes advance notice
+      if (selectedDateTime < thirtyMinutesFromNow) {
+        console.error("Selected time is too close to current time for reward booking:", selectedDateTime, "Current time:", now);
+        toast.error("Please select a time at least 30 minutes from now for your reward booking");
+        return;
+      }
+
+      // Check if total_visitors is a valid number
+      if (!finalData.total_visitors || isNaN(finalData.total_visitors) || finalData.total_visitors < 1) {
+        console.error("Invalid total_visitors for reward booking:", finalData.total_visitors);
+        toast.error("Invalid number of visitors for reward booking");
+        return;
+      }
+
+      // Check if unit_id and game_id are valid numbers
+      if (!finalData.unit_id || isNaN(finalData.unit_id)) {
+        console.error("Invalid unit_id for reward booking:", finalData.unit_id);
+        toast.error("Invalid unit selection for reward booking");
+        return;
+      }
+
+      if (!finalData.game_id || isNaN(finalData.game_id)) {
+        console.error("Invalid game_id for reward booking:", finalData.game_id);
+        toast.error("Invalid game selection for reward booking");
+        return;
+      }
+    }
+
+    if (!validateRequiredFields(finalData, validationFields, userRewardId ? 'reward' : isOtsBooking ? 'OTS' : 'normal')) {
+      return;
+    }
+
+    // Additional validation for normal booking
+    if (!userRewardId && !isOtsBooking) {
       if (!finalData.psUnit?.id) {
-        console.error("Missing PS Unit ID:", finalData.psUnit);
         toast.error("PS Unit information is missing");
         return;
       }
-
       if (!finalData.selectedGames?.[0]?.id) {
-        console.error("Missing Game ID:", finalData.selectedGames);
         toast.error("Game selection is missing");
         return;
       }
     }
 
     console.log("BookingPaymentPage - Submitting booking data:", finalData);
-    console.log("BookingPaymentPage - User Reward ID:", userRewardId);
-    console.log("BookingPaymentPage - Payment Method:", paymentMethod);
-    console.log("BookingPaymentPage - Is OTS Booking:", isOtsBooking);
     dispatch(submitBookingThunk(finalData));
   };
 
@@ -916,7 +1080,7 @@ const BookingPaymentPage = () => {
               </button>
               <button
                 onClick={handleConfirmExit}
-                className="btn btn-outline border-red-500 text-red-600 hover:bg-red-50 w-full"
+                className="btn btn-outline border-black text-red-600 hover:bg-red-50 w-full"
               >
                 Yes, Exit
               </button>

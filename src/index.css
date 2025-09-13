@@ -15,6 +15,7 @@
 
 @import "tailwindcss";
 @plugin "daisyui";
+@custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *));
 
 @theme {
   --color-brand-gold: #b99733;
